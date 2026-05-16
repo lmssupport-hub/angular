@@ -1,0 +1,76 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* FLOATING SHAPES BASE */
+.shape1,
+.shape2,
+.shape3 {
+  position: absolute;
+  animation: float 8s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* SHAPE 1 */
+.shape1 {
+  width: 350px;
+  height: 350px;
+  background: #f9b4d0;
+  top: -140px;
+  left: -100px;
+}
+
+/* SHAPE 2 */
+.shape2 {
+  width: 280px;
+  height: 280px;
+  background: #c6bdf7;
+  bottom: -80px;
+  right: -80px;
+  animation-duration: 6s;
+}
+
+/* SHAPE 3 */
+.shape3 {
+  width: 180px;
+  height: 180px;
+  background: rgba(255,255,255,0.5);
+  top: 120px;
+  right: 120px;
+  animation-duration: 7s;
+}
+
+/* KEYFRAME FIX (IMPORTANT) */
+@keyframes float {
+  0% {
+    transform: translateY(0px) rotate(45deg);
+  }
+
+  50% {
+    transform: translateY(-15px) rotate(45deg);
+  }
+
+  100% {
+    transform: translateY(0px) rotate(45deg);
+  }
+}
+
+
+.logo-anim {
+  animation: logoSlide 0.8s ease-in-out;
+}
+
+@keyframes logoSlide {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

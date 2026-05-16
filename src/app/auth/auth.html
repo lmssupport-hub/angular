@@ -1,0 +1,185 @@
+<div class="h-screen overflow-hidden bg-[#f4f3f8]">
+
+  <div class="relative flex h-full overflow-hidden">
+
+    <!-- LOGIN SIDE -->
+    <div class="w-1/2 h-full bg-[#fafafa] flex items-center justify-center relative">
+
+      <div class="w-full max-w-[430px] px-8">
+
+        <img
+  src="Group 9.png"
+  class="w-14 absolute top-6 left-6 transition-all duration-700 hover:scale-110"
+/>
+
+        <h1 class="text-4xl font-bold text-[#5a4bb3] mb-2">
+          Welcome Back
+        </h1>
+
+        <p class="text-gray-500 text-base mb-8">
+           Login to your account continue
+        </p>
+
+        <!-- EMAIL -->
+        <div class="mb-4">
+
+          <label class="block text-sm font-medium mb-2">Email</label>
+
+          <input
+            type="email"
+            placeholder="Enter your email"
+            class="w-full h-12 rounded-lg border border-gray-300 px-4 text-sm outline-none bg-[#eef2ff]"
+          />
+
+        </div>
+
+        <!-- PASSWORD -->
+        <div class="mb-5">
+
+          <label class="block text-sm font-medium mb-2">Password</label>
+
+          <input
+            type="password"
+            placeholder="Enter your password"
+            class="w-full h-12 rounded-lg border border-gray-300 px-4 text-sm outline-none bg-[#eef2ff]"
+          />
+
+        </div>
+
+        <div class="flex justify-between items-center mb-6">
+
+          <label class="flex items-center gap-2 text-sm text-gray-500">
+            <input type="checkbox">
+            Remember
+          </label>
+
+          <span class="text-[#5a4bb3] text-sm cursor-pointer">
+            Forgot?
+          </span>
+
+        </div>
+
+        <!-- LOGIN BUTTON (TRIGGER SLIDE) -->
+        <button
+          class="w-full h-12 rounded-lg bg-[#d8d5ef] text-white text-sm font-semibold transition hover:scale-105"
+          (mouseenter)="isLogin = true"
+        >
+          Login
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- SIGNUP SIDE -->
+<div class="w-1/2 h-full bg-[#fafafa] flex items-center justify-center relative">
+
+      <div class="w-full max-w-[430px] px-8">
+
+        <img
+  src="Group 9.png"
+  class="w-14 absolute top-6 right-6 transition-all duration-700 hover:scale-110"
+/>
+
+        <h1 class="text-3xl font-bold text-[#5a4bb3] mb-2">
+          Create Your Account
+        </h1>
+
+        <p class="text-gray-500 text-sm mb-6">
+           Fill in the details below to get started
+        </p>
+
+        <!-- NAME -->
+        <div class="grid grid-cols-2 gap-3 mb-3">
+
+          <input type="text" placeholder="First Name"
+            class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm outline-none" />
+
+          <input type="text" placeholder="Last Name"
+            class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm outline-none" />
+
+        </div>
+
+        <input type="email" placeholder="Email Address"
+          class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm outline-none mb-3" />
+
+        <input type="text" placeholder="Phone Number"
+          class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm outline-none mb-3" />
+
+        <input type="password" placeholder="Password"
+          class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm outline-none mb-3" />
+
+        <input type="password" placeholder="Confirm Password"
+  class="w-full h-11 rounded-lg border border-gray-300 px-4 text-sm outline-none mb-3" />
+
+        <!-- TERMS & CONDITIONS -->
+        <label class="flex items-start gap-2 text-sm text-gray-500 mb-5 cursor-pointer">
+            <input type="checkbox" class="mt-1 accent-[#5a4bb3]">
+            <span>
+                I accept the <span class="text-[#5a4bb3] font-medium cursor-pointer hover:underline">
+            Terms & Conditions
+            </span>
+            </span>
+            </label>
+
+        <!-- SIGNUP BUTTON (TRIGGER SLIDE) -->
+        <button
+          class="w-full h-12 rounded-lg bg-[#d8d5ef] text-white text-sm font-semibold transition hover:scale-105"
+          (mouseenter)="isLogin = false"
+        >
+          Sign Up
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- SLIDING PANEL -->
+    <div
+      class="absolute top-0 h-full w-1/2 z-50 transition-all duration-700 ease-in-out"
+      [ngClass]="isLogin ? 'left-1/2' : 'left-0'"
+    >
+
+      <div
+        class="relative h-full bg-gradient-to-br from-[#dedcf6] to-[#cfcaf1] overflow-hidden flex items-center justify-center"
+      >
+
+        <!-- FLOATING SHAPES -->
+        <div class="absolute inset-0 overflow-hidden opacity-40">
+          <div class="shape1"></div>
+          <div class="shape2"></div>
+          <div class="shape3"></div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="relative z-10 text-center max-w-[320px] px-8 flex flex-col justify-end h-full pb-12">
+
+          <h1 class="text-3xl font-semibold text-[#5a4bb3] leading-tight mb-4 opacity-90">
+                 {{ isLogin ? 'Thin. Plan. Execute.' : 'Back Again?' }}
+        </h1>
+
+          <p class="text-sm text-[#5a4bb3] leading-relaxed mb-6 opacity-70">
+  {{
+    isLogin
+      ? 'Unite professionals to build a stronger organization.'
+      : 'Reconnect with your team in a click.'
+  }}
+</p>
+
+          <!-- HOVER CONTROL BUTTON -->
+          <button
+            class="bg-[#5a4bb3] text-white px-10 h-12 rounded-lg text-sm font-semibold transition-all duration-500 hover:scale-105 hover:shadow-xl"
+            (mouseenter)="isLogin = !isLogin"
+          >
+            {{ isLogin ? 'Sign Up' : 'Login' }}
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
