@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class ApiService {
 
-  baseUrl = 'http://localhost:8080/api/users';
+  baseUrl = 'https://nexus-backend-uoox.onrender.com/api/users';
 
   constructor(private http: HttpClient) {}
 
