@@ -1,0 +1,166 @@
+<div class="min-h-screen flex bg-gradient-to-br from-[#f7eaf8] via-[#fff7fb] to-[#fff0dd]">
+  <!-- Sidebar -->
+  <aside
+    class="relative min-h-screen bg-white/70 backdrop-blur-xl border-r border-white/70 shadow-[8px_0_30px_rgba(90,75,179,0.08)] transition-all duration-300 ease-in-out"
+    [class.w-[270px]]="isSidebarOpen"
+    [class.w-[88px]]="!isSidebarOpen"
+  >
+    
+
+    
+    <!-- Logo -->
+<div
+  class="h-[130px] flex items-center justify-center transition-all duration-300"
+  [class.px-6]="isSidebarOpen"
+  [class.px-3]="!isSidebarOpen"
+>
+  <div class="flex items-center gap-3">
+    <img
+      src="Group 9.png"
+      alt="Logo"
+      (click)="toggleSidebar()"
+      class="h-auto cursor-pointer transition-all duration-500 hover:scale-105"
+      [class.w-20]="isSidebarOpen"
+      [class.w-12]="!isSidebarOpen"
+    />
+
+  </div>
+</div>
+
+    <!-- Menu -->
+    <nav class="px-4 space-y-2">
+      <!-- Dashboard -->
+      <a
+        routerLink="/dashboard/home"
+        routerLinkActive="!bg-[#5a4bb3] !text-white !shadow-[0_10px_24px_rgba(90,75,179,0.28)]"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="closeProjectsMenu()"
+        class="group h-12 px-4 rounded-xl bg-white/80 shadow-sm flex items-center justify-between text-sm font-bold text-gray-900 hover:bg-white hover:shadow-md transition-all duration-200"
+      >
+        <span class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-lg bg-[#eef0ff] text-[#5a4bb3] group-[.active]:bg-white/20 flex items-center justify-center">
+            <i class="fa-solid fa-table-columns text-sm"></i>
+          </span>
+
+          @if (isSidebarOpen) {
+            <span>Dashboard</span>
+          }
+        </span>
+
+        @if (isSidebarOpen) {
+          <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
+        }
+      </a>
+
+      <!-- Projects Dropdown -->
+      <div>
+        <a
+          routerLink="/dashboard/projects"
+          routerLinkActive="!bg-[#5a4bb3] !text-white !shadow-[0_10px_24px_rgba(90,75,179,0.28)]"
+          (click)="openProjectsMenu()"
+          class="h-12 px-4 rounded-xl bg-white/80 shadow-sm flex items-center justify-between text-sm font-bold text-gray-900 hover:bg-white hover:shadow-md transition-all duration-200"
+        >
+          <span class="flex items-center gap-3">
+            <span class="w-8 h-8 rounded-lg bg-[#eef0ff] text-[#5a4bb3] flex items-center justify-center">
+              <i class="fa-regular fa-folder text-sm"></i>
+            </span>
+
+            @if (isSidebarOpen) {
+              <span>Projects</span>
+            }
+          </span>
+
+          @if (isSidebarOpen) {
+            <i
+              class="fa-solid fa-chevron-right text-xs opacity-60 transition-transform duration-300"
+              [class.rotate-90]="isProjectsOpen"
+            ></i>
+          }
+        </a>
+
+        @if (isProjectsOpen && isSidebarOpen) {
+          <div class="mt-2 ml-5 pl-4 border-l-2 border-[#ddd6ff] space-y-2">
+            <a
+              routerLink="/dashboard/projects-list"
+              routerLinkActive="!bg-[#5a4bb3] !text-white"
+              class="h-10 px-4 rounded-xl bg-white/70 shadow-sm flex items-center justify-between text-sm font-bold text-gray-700 hover:bg-white hover:shadow-md transition"
+            >
+              <span>Projects List</span>
+              <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
+            </a>
+          </div>
+        }
+      </div>
+
+    
+
+      <!-- Settings -->
+      <a
+        routerLink="/dashboard/settings"
+        routerLinkActive="!bg-[#5a4bb3] !text-white !shadow-[0_10px_24px_rgba(90,75,179,0.28)]"
+        (click)="closeProjectsMenu()"
+        class="h-12 px-4 rounded-xl bg-white/80 shadow-sm flex items-center justify-between text-sm font-bold text-gray-900 hover:bg-white hover:shadow-md transition-all duration-200"
+      >
+        <span class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-lg bg-[#eef0ff] text-[#5a4bb3] flex items-center justify-center">
+            <i class="fa-solid fa-gear text-sm"></i>
+          </span>
+
+          @if (isSidebarOpen) {
+            <span>Settings</span>
+          }
+        </span>
+
+        @if (isSidebarOpen) {
+          <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
+        }
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 min-h-screen">
+    <header class="h-[90px] bg-white/40 px-10 flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-extrabold text-gray-900">HELLO! Name</h1>
+        <p class="text-xs text-gray-500 mt-1">Welcome back!</p>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <div class="w-[260px] h-10 rounded-xl bg-[#f1e6f6] flex items-center gap-2 px-4">
+          <i class="fa-solid fa-magnifying-glass text-xs text-gray-500"></i>
+          <input
+            type="text"
+            placeholder="Search"
+            class="w-full bg-transparent outline-none text-sm text-gray-700 placeholder:text-gray-400"
+          />
+        </div>
+
+        <button class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm hover:bg-gray-100 transition">
+          <i class="fa-regular fa-bell text-gray-600 text-sm"></i>
+        </button>
+
+        <button class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm hover:bg-gray-100 transition">
+          <i class="fa-regular fa-message text-gray-600 text-sm"></i>
+        </button>
+
+        <div class="pl-6 border-l border-gray-300 flex items-center gap-3">
+          <img
+            src="Group 9.png"
+            alt="Profile"
+            class="w-10 h-10 rounded-sm object-cover"
+          />
+
+          <div>
+            <p class="text-xs font-extrabold text-gray-900">User Name</p>
+            <p class="text-[10px] text-gray-500">100 Destinations</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="p-8 min-h-[calc(100vh-90px)]">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+</div>
