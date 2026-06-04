@@ -1,30 +1,328 @@
-<div>
+<div class="min-h-screen bg-gray-50 p-6">
+
+  <!-- Header -->
   <div class="flex items-center justify-between mb-6">
     <div>
       <h2 class="text-3xl font-extrabold text-gray-900">Project Hub</h2>
-      <p class="text-sm text-gray-500 mt-1">
-        Track project progress, assignments, and deadlines
-      </p>
+      <p class="text-sm text-gray-500 mt-1">Track project progress, assignments, and deadlines</p>
     </div>
 
-    <button
-      type="button"
-      (click)="openProjectPopup()"
-      class="h-10 px-5 rounded-lg bg-[#5a4bb3] text-white text-sm font-bold shadow-md hover:bg-[#4b3ca0] transition cursor-pointer"
-    >
-      + Create Project
-    </button>
+    <div class="flex items-center gap-3">
+      <span class="text-sm font-semibold text-[#5a4bb3] bg-[#ede9f8] px-3 py-1.5 rounded-full">
+        ● {{ projects.length }} Active Projects
+      </span>
+      <button
+        type="button"
+        (click)="openProjectPopup()"
+        class="h-9 px-4 rounded-lg bg-[#5a4bb3] text-white text-sm font-bold shadow-md hover:bg-[#4b3ca0] transition cursor-pointer flex items-center gap-1"
+      >
+        + Create Project
+      </button>
+    </div>
   </div>
 
-  <p class="text-sm text-gray-700">projects works!</p>
+  <!-- Table -->
+<div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-visible">
+    <!-- Table Header -->
+    <div class="grid grid-cols-[60px_1fr_160px_130px_130px_110px] px-4 py-3 bg-gray-50 border-b border-gray-200">
+      <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">SL.NO</div>
+      <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">Project Name</div>
+      <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">Assigned User</div>
+      <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">Due Date</div>
+      <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">Target</div>
+      <div class="text-xs font-bold text-gray-500 uppercase tracking-wide text-right">Actions</div>
+    </div>
+
+    <!-- Loading State -->
+    @if (isLoadingProjects) {
+      <div class="flex items-center justify-center py-16 text-gray-400 text-sm gap-2">
+        <svg class="w-4 h-4 animate-spin text-[#5a4bb3]" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+        </svg>
+        Loading projects...
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (!isLoadingProjects && loadError) {
+      <div class="flex flex-col items-center justify-center py-12 text-red-400 gap-2">
+        <svg class="w-10 h-10 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        </svg>
+        <p class="text-sm font-medium text-red-500">{{ loadError }}</p>
+        <button type="button" (click)="loadProjects()"
+          class="mt-1 text-xs text-[#5a4bb3] underline cursor-pointer hover:text-[#4b3ca0]">
+          Retry
+        </button>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!isLoadingProjects && !loadError && projects.length === 0) {
+      <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+        <svg class="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+        <p class="text-sm font-medium">No projects yet</p>
+        <p class="text-xs mt-1">Click "Create Project" to add your first project</p>
+      </div>
+    }
+
+    <!-- Project Rows -->
+    @if (!isLoadingProjects) {
+      @for (project of projects; track project.id; let i = $index) {
+
+        <!-- ── Main Row ── -->
+        <div
+          class="grid grid-cols-[60px_1fr_160px_130px_130px_110px] px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors items-center"
+          [class.bg-indigo-50]="isExpanded(project.id)"
+        >
+          <!-- SL.NO -->
+          <div class="text-sm text-gray-500 font-medium">
+            {{ (i + 1).toString().padStart(2, '0') }}
+          </div>
+
+          <!-- Project Name -->
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded bg-[#ede9f8] flex items-center justify-center flex-shrink-0">
+              <svg class="w-3.5 h-3.5 text-[#5a4bb3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <span class="text-sm font-semibold text-gray-800">{{ project.projectName }}</span>
+          </div>
+
+          <!-- Assigned User (first only, +N badge) -->
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-full bg-gradient-to-br from-[#5a4bb3] to-[#a78bfa] flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+              {{ getInitials(project.assignedUsers[0]) }}
+            </div>
+            <span class="text-sm text-gray-600 truncate">{{ project.assignedUsers[0] }}</span>
+            @if (project.assignedUsers.length > 1) {
+              <span class="text-xs text-gray-400">+{{ project.assignedUsers.length - 1 }}</span>
+            }
+          </div>
+
+          <!-- Due Date -->
+          <div class="text-sm text-gray-600">{{ formatDate(project.dueDate) }}</div>
+
+          <!-- Target Badge -->
+          <div>
+            @if (project.target) {
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold" [class]="getTargetBadgeClass(i)">
+                {{ getTargetLabel(project) }}
+              </span>
+            } @else {
+              <span class="text-xs text-gray-400">—</span>
+            }
+          </div>
+
+          <!-- Actions -->
+          <!-- FIX: stopPropagation on every action button so they don't bubble to the row -->
+          <div class="flex items-center gap-1.5 justify-end">
+
+            <!-- Edit -->
+            <button
+              type="button"
+              (click)="openProjectPopup(project, $event)"
+              class="w-7 h-7 rounded border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition cursor-pointer text-gray-500"
+              title="Edit"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+              </svg>
+            </button>
+
+            <!-- Delete -->
+            <button
+              type="button"
+              (click)="deleteProject(project.id, $event)"
+              class="w-7 h-7 rounded border border-red-100 flex items-center justify-center hover:bg-red-50 transition cursor-pointer text-red-400"
+              title="Delete"
+            >
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+
+            <!-- Expand / Collapse -->
+            <button
+              type="button"
+              (click)="toggleExpand(project.id, $event)"
+              class="w-7 h-7 rounded border flex items-center justify-center transition cursor-pointer"
+              [class]="isExpanded(project.id)
+                ? 'bg-[#5a4bb3] border-[#5a4bb3] text-white'
+                : 'border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100'"
+              title="Details"
+            >
+              <svg
+                class="w-3.5 h-3.5 transition-transform duration-200"
+                [class.rotate-180]="isExpanded(project.id)"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ── Expanded Detail Panel (only for THIS project) ── -->
+        @if (isExpanded(project.id)) {
+          <div class="bg-[#f5f3ff] border-b border-indigo-100 px-5 py-4 space-y-4">
+
+            <!-- Row 1: Description + Dates + Mini Calendar -->
+            <div class="flex items-start gap-6">
+
+              <!-- Description -->
+              <div class="flex-1 min-w-0">
+                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Description</p>
+                <p class="text-sm text-gray-700 leading-relaxed">
+                  {{ project.projectDescription || 'No description provided.' }}
+                </p>
+              </div>
+
+              <!-- Date chips -->
+              <div class="flex items-start gap-8 flex-shrink-0">
+                              <div>
+                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+                  Start Date
+                </label>
+                <input
+                  type="date"
+                  [value]="getEditDateValue(project, 'startDate')"
+                  (change)="onEditDateChange(project, 'startDate', $event)"
+                  class="w-32 h-8 px-2 rounded border border-transparent bg-transparent text-sm font-semibold text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-[#5a4bb3] focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+                  Received
+                </label>
+                <input
+                  type="date"
+                  [max]="todayInputValue"
+                  [value]="getEditDateValue(project, 'projectReceivedDate')"
+                  (change)="onEditDateChange(project, 'projectReceivedDate', $event)"
+                  class="w-32 h-8 px-2 rounded border border-transparent bg-transparent text-sm font-semibold text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-[#5a4bb3] focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+                  Due Date
+                </label>
+                <input
+                  type="date"
+                  [value]="getEditDateValue(project, 'dueDate')"
+                  (change)="onEditDateChange(project, 'dueDate', $event)"
+                  class="w-32 h-8 px-2 rounded border border-transparent bg-transparent text-sm font-semibold text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-[#5a4bb3] focus:bg-white"
+                />
+              </div>
+
+                <!-- Mini Calendar -->
+                <!-- <div class="w-28 bg-white rounded-lg border border-indigo-100 shadow-sm p-2 text-center flex-shrink-0">
+                  <div class="text-[9px] font-bold text-[#5a4bb3] uppercase tracking-wide mb-1">
+                    {{ getMonthYear(project.startDate) }}
+                  </div>
+                  <div class="grid grid-cols-7 gap-0 text-[8px] text-gray-400 mb-0.5">
+                    <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+                  </div>
+                  <div class="grid grid-cols-7 gap-0 text-[8px]">
+                    @for (cell of getCalendarCells(project.startDate); track $index) {
+                      <span
+                        class="w-3.5 h-3.5 flex items-center justify-center rounded-full mx-auto"
+                        [class.bg-[#5a4bb3]]="cell.isSelected"
+                        [class.text-white]="cell.isSelected"
+                        [class.text-gray-600]="!cell.isSelected && cell.day"
+                        [class.text-gray-300]="!cell.day"
+                      >{{ cell.day || '' }}</span>
+                    }
+                  </div>
+                </div> -->
+              </div>
+            </div>
+
+            <!-- Row 3: Assigned Users with add/remove -->
+            <div>
+              <p class="text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-2">Assigned Users</p>
+
+              <!-- Current users as chips -->
+              <div class="flex flex-wrap gap-2 mb-2">
+                @for (user of project.assignedUsers; track user) {
+                  <span class="flex items-center gap-1.5 bg-[#ede9f8] text-[#5a4bb3] text-xs font-semibold px-2.5 py-1 rounded-full">
+                    <span class="w-4 h-4 rounded-full bg-[#5a4bb3] text-white text-[9px] flex items-center justify-center font-bold">
+                      {{ getInitials(user) }}
+                    </span>
+                    {{ user }}
+                    <!-- FIX: pass $event to stopPropagation -->
+                    <button
+                      type="button"
+                      (click)="removeUserFromProject(project, user, $event)"
+                      class="ml-0.5 w-3.5 h-3.5 rounded-full bg-[#5a4bb3]/20 hover:bg-red-200 text-[#5a4bb3] hover:text-red-600 flex items-center justify-center text-[10px] font-bold cursor-pointer transition"
+                      title="Remove {{ user }}"
+                    >×</button>
+                  </span>
+                }
+
+                <!-- Add user toggle button -->
+                <div class="relative expand-user-dropdown-wrapper">
+                  <button
+                    type="button"
+                    (click)="toggleExpandUserDropdown(project.id, $event)"
+                    class="flex items-center gap-1 bg-white border border-dashed border-[#5a4bb3] text-[#5a4bb3] text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-[#ede9f8] transition cursor-pointer"
+                  >
+                    + Add User
+                  </button>
+
+                  <!-- Dropdown to add more users -->
+                  @if (expandUserDropdownId === project.id) {
+                      <div class="absolute left-0 top-full mt-1 z-50 rounded-lg border border-gray-200 bg-white shadow-lg p-2 min-w-[180px]">                      @for (user of getUnassignedUsers(project); track user) {
+                        <label class="flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer hover:bg-gray-50 rounded">
+                          <input
+                            type="checkbox"
+                            [checked]="false"
+                            (change)="addUserToProject(project, user)"
+                            class="cursor-pointer accent-[#5a4bb3]"
+                          />
+                          <span>{{ user }}</span>
+                        </label>
+                      }
+                      @if (getUnassignedUsers(project).length === 0) {
+                        <p class="text-xs text-gray-400 px-2 py-1">All users assigned</p>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+          </div>
+        }
+
+      }
+    }
+  </div>
 </div>
 
+
+<!-- ══════════════════════════════════════════════════
+     Create Project Popup
+══════════════════════════════════════════════════ -->
 @if (showProjectPopup) {
   <div class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4 py-4">
     <div class="w-[640px] max-w-[96vw] max-h-[92vh] overflow-y-auto bg-white rounded-lg shadow-2xl">
-      <div class="h-11 px-5 bg-[#dce1f3] flex items-center justify-between sticky top-0 z-10">
-        <h3 class="text-base font-extrabold text-gray-900">Create Project</h3>
 
+      <div class="h-11 px-5 bg-[#dce1f3] flex items-center justify-between sticky top-0 z-10">
+        <h3 class="text-base font-extrabold text-gray-900">
+          {{ editingProject ? 'Edit Project' : 'Create Project' }}
+        </h3>
         <button
           type="button"
           (click)="closeProjectPopup()"
@@ -35,6 +333,8 @@
       </div>
 
       <form [formGroup]="projectForm" class="p-4 space-y-3">
+
+        <!-- Project Name -->
         <div>
           <label class="text-xs font-bold text-gray-900">Project Name</label>
           <input
@@ -42,17 +342,17 @@
             placeholder="Enter project name"
             class="w-full h-8 mt-1 px-3 rounded border border-gray-300 text-sm outline-none focus:border-[#5a4bb3]"
           />
-
           @if (projectForm.get('projectName')?.touched && projectForm.get('projectName')?.errors?.['required']) {
             <p class="text-xs text-red-500 mt-1">Project Name is required</p>
           }
-
           @if (projectForm.get('projectName')?.errors?.['duplicateProject']) {
             <p class="text-xs text-red-500 mt-1">Project with the same name already exists</p>
           }
         </div>
 
+        <!-- Dates + Assign User -->
         <div class="grid grid-cols-2 gap-3">
+
           <div>
             <label class="text-xs font-bold text-gray-900">Project Received Date</label>
             <input
@@ -62,28 +362,25 @@
               (change)="onDatePickerChange('projectReceivedDate', $event)"
               class="w-full h-8 mt-1 px-3 rounded border border-gray-300 text-sm outline-none focus:border-[#5a4bb3]"
             />
-
             @if (projectForm.get('projectReceivedDate')?.touched && projectForm.get('projectReceivedDate')?.errors?.['required']) {
               <p class="text-xs text-red-500 mt-1">Project Received Date is required</p>
             }
-
             @if (projectForm.get('projectReceivedDate')?.errors?.['futureDate']) {
               <p class="text-xs text-red-500 mt-1">Project Received Date cannot be a future date</p>
             }
           </div>
 
-          <div class="relative">
+          <!-- FIX: wrapped in .user-dropdown-wrapper for outside-click detection -->
+          <div class="relative user-dropdown-wrapper">
             <label class="text-xs font-bold text-gray-900">Assign User</label>
-
             <button
               type="button"
-              (click)="toggleUserDropdown()"
+              (click)="toggleUserDropdown($event)"
               class="w-full h-8 mt-1 px-3 rounded border border-gray-300 text-sm outline-none bg-white focus:border-[#5a4bb3] cursor-pointer text-left flex items-center justify-between"
             >
               <span class="truncate">{{ getAssignedUsersLabel() }}</span>
               <span class="text-xs">▼</span>
             </button>
-
             @if (showUserDropdown) {
               <div class="absolute left-0 right-0 z-20 mt-1 rounded border border-gray-300 bg-white shadow-lg p-2 max-h-36 overflow-y-auto">
                 @for (user of users; track user) {
@@ -99,7 +396,6 @@
                 }
               </div>
             }
-
             @if (projectForm.get('assignedUsers')?.touched && projectForm.get('assignedUsers')?.errors?.['required']) {
               <p class="text-xs text-red-500 mt-1">Assign User is required</p>
             }
@@ -113,7 +409,6 @@
               (change)="onDatePickerChange('startDate', $event)"
               class="w-full h-8 mt-1 px-3 rounded border border-gray-300 text-sm outline-none focus:border-[#5a4bb3]"
             />
-
             @if (projectForm.get('startDate')?.touched && projectForm.get('startDate')?.errors?.['required']) {
               <p class="text-xs text-red-500 mt-1">Start Date is required</p>
             }
@@ -127,7 +422,6 @@
               (change)="onDatePickerChange('dueDate', $event)"
               class="w-full h-8 mt-1 px-3 rounded border border-gray-300 text-sm outline-none focus:border-[#5a4bb3]"
             />
-
             @if (projectForm.get('dueDate')?.touched && projectForm.get('dueDate')?.errors?.['required']) {
               <p class="text-xs text-red-500 mt-1">Due Date is required</p>
             }
@@ -135,209 +429,141 @@
         </div>
 
         @if (projectForm.errors?.['startBeforeReceived']) {
-          <p class="text-xs text-red-500">
-            Start Date must be greater than or equal to Project Received Date
-          </p>
+          <p class="text-xs text-red-500">Start Date must be greater than or equal to Project Received Date</p>
         }
-
         @if (projectForm.errors?.['dueBeforeStart']) {
-          <p class="text-xs text-red-500">
-            Due Date must be greater than or equal to Start Date
-          </p>
+          <p class="text-xs text-red-500">Due Date must be greater than or equal to Start Date</p>
         }
 
-        <div class="space-y-2 pb-2">
-          @for (row of formulaRows; track $index; let rowIndex = $index) {
-            <div class="relative w-full">
-              <div class="grid grid-cols-[145px_52px_74px_145px_52px_66px] gap-0 items-end">
-                <div>
-                  <label class="block text-[10px] font-bold text-gray-900 mb-1">Param key 1</label>
-                  <select
-                    [(ngModel)]="row.parameter1"
-                    (change)="onParameter1Change(rowIndex)"
-                    [ngModelOptions]="{ standalone: true }"
-                    name="parameter1-{{ rowIndex }}"
-                    class="w-full h-7 px-2 border border-gray-500 rounded-l bg-white text-[11px] outline-none"
-                  >
-                    <option value="">Option A</option>
-                    @for (option of getAllParameterOptions(); track option) {
-                      <option [value]="option">{{ option }}</option>
-                    }
-                  </select>
-                </div>
-
-                <div>
-                  <label class="block text-[10px] font-bold text-transparent mb-1">Value</label>
-                  <input
-                    type="number"
-                    min="1"
-                    step="any"
-                    [(ngModel)]="row.value1"
-                    (input)="onAnyFormulaChange()"
-                    [ngModelOptions]="{ standalone: true }"
-                    name="value1-{{ rowIndex }}"
-                    [disabled]="!row.parameter1"
-                    placeholder="00.0"
-                    class="w-full h-7 px-1 border-y border-r border-gray-500 text-[11px] text-center outline-none disabled:bg-gray-100"
-                  />
-                </div>
-
-                <div class="ml-2">
-                  <label class="block text-[10px] font-bold text-gray-900 mb-1">Operator</label>
-                  <select
-                    [(ngModel)]="row.operator"
-                    (change)="onAnyFormulaChange()"
-                    [ngModelOptions]="{ standalone: true }"
-                    name="operator-{{ rowIndex }}"
-                    class="w-full h-7 px-2 border border-gray-500 rounded bg-[#eef0f4] text-[11px] font-bold outline-none"
-                  >
-                    <option value="">Select</option>
-                    @for (op of operatorOptions; track op) {
-                      <option [value]="op">{{ op }}</option>
-                    }
-                  </select>
-                </div>
-
-                <div class="ml-2">
-                  <label class="block text-[10px] font-bold text-gray-900 mb-1">Param key 2</label>
-                  <select
-                    [(ngModel)]="row.parameter2"
-                    (change)="onParameter2Change(rowIndex)"
-                    [ngModelOptions]="{ standalone: true }"
-                    name="parameter2-{{ rowIndex }}"
-                    class="w-full h-7 px-2 border border-gray-500 rounded-l bg-white text-[11px] outline-none"
-                  >
-                    <option value="">Option X</option>
-                    @for (option of getAllParameterOptions(); track option) {
-                      <option [value]="option">{{ option }}</option>
-                    }
-                  </select>
-                </div>
-
-                <div>
-                  <label class="block text-[10px] font-bold text-transparent mb-1">Value</label>
-                  <input
-                    type="number"
-                    min="1"
-                    step="any"
-                    [(ngModel)]="row.value2"
-                    (input)="onAnyFormulaChange()"
-                    [ngModelOptions]="{ standalone: true }"
-                    name="value2-{{ rowIndex }}"
-                    [disabled]="!row.parameter2"
-                    placeholder="00.0"
-                    class="w-full h-7 px-1 border-y border-r border-gray-500 text-[11px] text-center outline-none disabled:bg-gray-100"
-                  />
-                </div>
-
-                <div class="ml-2">
-                  <label class="block text-[10px] font-bold text-transparent mb-1">Add</label>
-                  <button
-                    type="button"
-                    (click)="toggleAddChoice(rowIndex)"
-                    class="w-full h-7 rounded border border-gray-400 bg-[#eef0f4] text-[11px] font-bold text-gray-900 hover:bg-gray-200 cursor-pointer"
-                  >
-                    + ADD
-                  </button>
-                </div>
-              </div>
-
-              @if (showAddChoiceIndex === rowIndex) {
-                <div class="mt-2 ml-auto w-[180px] rounded-lg border border-gray-200 bg-white shadow-lg p-2 flex gap-2">
-                  <button
-                    type="button"
-                    (click)="addExtraField(rowIndex, 'operator')"
-                    class="flex-1 h-8 rounded bg-[#eef0f4] text-gray-800 text-xs font-bold cursor-pointer"
-                  >
-                    Operator
-                  </button>
-
-                  <button
-                    type="button"
-                    (click)="addExtraField(rowIndex, 'parameter')"
-                    class="flex-1 h-8 rounded bg-[#eef0ff] text-[#5a4bb3] text-xs font-bold cursor-pointer"
-                  >
-                    Parameter
-                  </button>
-                </div>
+       <!-- Formula Rows -->
+<div class="space-y-2 pb-2">
+  @for (row of formulaRows; track $index; let rowIndex = $index) {
+    <div class="relative w-full">
+      <!-- ✅ Fixed: 6 even columns that fill full width -->
+      <div class="grid grid-cols-6 gap-2 items-end w-full">
+        
+        <!-- Param key 1 select -->
+        <div class="col-span-2">
+          <label class="block text-[10px] font-bold text-gray-900 mb-1">Param key 1</label>
+          <div class="flex">
+            <select [(ngModel)]="row.parameter1" (change)="onParameter1Change(rowIndex)"
+              [ngModelOptions]="{ standalone: true }"
+              class="flex-1 h-7 px-2 border border-gray-500 rounded-l bg-white text-[11px] outline-none">
+              <option value="">Option A</option>
+              @for (option of getAllParameterOptions(); track option) {
+                <option [value]="option">{{ option }}</option>
               }
+            </select>
+            <input type="number" min="1" step="any"
+              [(ngModel)]="row.value1" (input)="onAnyFormulaChange()"
+              [ngModelOptions]="{ standalone: true }"
+              [disabled]="!row.parameter1" placeholder="00"
+              class="w-14 h-7 px-1 border-y border-r border-gray-500 rounded-r text-[11px] text-center outline-none disabled:bg-gray-100" />
+          </div>
+        </div>
 
-              @for (extra of row.extraFields; track $index; let extraIndex = $index) {
-                <div class="mt-1 ml-0">
-                  @if (extra.type === 'operator') {
-                    <div class="flex items-center gap-1">
-                      <select
-                        [(ngModel)]="extra.operator"
-                        (change)="onAnyFormulaChange()"
-                        [ngModelOptions]="{ standalone: true }"
-                        name="extra-operator-{{ rowIndex }}-{{ extraIndex }}"
-                        class="w-[72px] h-7 px-2 border border-gray-500 rounded bg-[#eef0f4] text-[11px] font-bold outline-none"
-                      >
-                        <option value="">Select</option>
-                        @for (op of operatorOptions; track op) {
-                          <option [value]="op">{{ op }}</option>
-                        }
-                      </select>
+        <!-- Operator -->
+        <div class="col-span-1">
+          <label class="block text-[10px] font-bold text-gray-900 mb-1">Operator</label>
+          <select [(ngModel)]="row.operator" (change)="onAnyFormulaChange()"
+            [ngModelOptions]="{ standalone: true }"
+            class="w-full h-7 px-2 border border-gray-500 rounded bg-[#eef0f4] text-[11px] font-bold outline-none">
+            <option value="">Select</option>
+            @for (op of operatorOptions; track op) {
+              <option [value]="op">{{ op }}</option>
+            }
+          </select>
+        </div>
 
-                      <button
-                        type="button"
-                        (click)="removeExtraField(rowIndex, extraIndex)"
-                        class="w-7 h-7 rounded border border-red-200 bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 cursor-pointer"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  }
-
-                  @if (extra.type === 'parameter') {
-                    <div class="flex items-center gap-1">
-                      <div class="grid grid-cols-[145px_52px] gap-0 w-[197px]">
-                        <select
-                          [(ngModel)]="extra.parameter"
-                          (change)="onExtraParameterChange(extra)"
-                          [ngModelOptions]="{ standalone: true }"
-                          name="extra-parameter-{{ rowIndex }}-{{ extraIndex }}"
-                          class="h-7 px-2 border border-gray-500 rounded-l bg-white text-[11px] outline-none"
-                        >
-                          <option value="">Select Parameter</option>
-                          @for (option of getAllParameterOptions(); track option) {
-                            <option [value]="option">{{ option }}</option>
-                          }
-                        </select>
-
-                        <input
-                          type="number"
-                          min="1"
-                          step="any"
-                          [(ngModel)]="extra.value"
-                          (input)="onAnyFormulaChange()"
-                          [ngModelOptions]="{ standalone: true }"
-                          name="extra-value-{{ rowIndex }}-{{ extraIndex }}"
-                          placeholder="00.0"
-                          class="h-7 px-1 border-y border-r border-gray-500 text-[11px] text-center outline-none"
-                        />
-                      </div>
-
-                      <button
-                        type="button"
-                        (click)="removeExtraField(rowIndex, extraIndex)"
-                        class="w-7 h-7 rounded border border-red-200 bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 cursor-pointer"
-                      >
-                        ×
-                      </button>
-                    </div>
-                  }
-                </div>
+        <!-- Param key 2 select -->
+        <div class="col-span-2">
+          <label class="block text-[10px] font-bold text-gray-900 mb-1">Param key 2</label>
+          <div class="flex">
+            <select [(ngModel)]="row.parameter2" (change)="onParameter2Change(rowIndex)"
+              [ngModelOptions]="{ standalone: true }"
+              class="flex-1 h-7 px-2 border border-gray-500 rounded-l bg-white text-[11px] outline-none">
+              <option value="">Option X</option>
+              @for (option of getAllParameterOptions(); track option) {
+                <option [value]="option">{{ option }}</option>
               }
+            </select>
+            <input type="number" min="1" step="any"
+              [(ngModel)]="row.value2" (input)="onAnyFormulaChange()"
+              [ngModelOptions]="{ standalone: true }"
+              [disabled]="!row.parameter2" placeholder="00"
+              class="w-14 h-7 px-1 border-y border-r border-gray-500 rounded-r text-[11px] text-center outline-none disabled:bg-gray-100" />
+          </div>
+        </div>
+
+        <!-- ADD button -->
+        <div class="col-span-1">
+          <label class="block text-[10px] font-bold text-transparent mb-1">Add</label>
+          <button type="button" (click)="toggleAddChoice(rowIndex, $event)"
+            class="w-full h-7 rounded border border-gray-400 bg-[#eef0f4] text-[11px] font-bold text-gray-900 hover:bg-gray-200 cursor-pointer">
+            + ADD
+          </button>
+        </div>
+      </div>
+
+      <!-- Add choice popup -->
+      @if (showAddChoiceIndex === rowIndex) {
+        <div class="mt-2 ml-auto w-[180px] rounded-lg border border-gray-200 bg-white shadow-lg p-2 flex gap-2">
+          <button type="button" (click)="addExtraField(rowIndex, 'operator')"
+            class="flex-1 h-8 rounded bg-[#eef0f4] text-gray-800 text-xs font-bold cursor-pointer">
+            Operator
+          </button>
+          <button type="button" (click)="addExtraField(rowIndex, 'parameter')"
+            class="flex-1 h-8 rounded bg-[#eef0ff] text-[#5a4bb3] text-xs font-bold cursor-pointer">
+            Parameter
+          </button>
+        </div>
+      }
+
+      <!-- Extra fields -->
+      @for (extra of row.extraFields; track $index; let extraIndex = $index) {
+        <div class="mt-1">
+          @if (extra.type === 'operator') {
+            <div class="flex items-center gap-1">
+              <select [(ngModel)]="extra.operator" (change)="onAnyFormulaChange()"
+                [ngModelOptions]="{ standalone: true }"
+                class="w-[72px] h-7 px-2 border border-gray-500 rounded bg-[#eef0f4] text-[11px] font-bold outline-none">
+                <option value="">Select</option>
+                @for (op of operatorOptions; track op) {
+                  <option [value]="op">{{ op }}</option>
+                }
+              </select>
+              <button type="button" (click)="removeExtraField(rowIndex, extraIndex)"
+                class="w-7 h-7 rounded border border-red-200 bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 cursor-pointer">×</button>
+            </div>
+          }
+          @if (extra.type === 'parameter') {
+            <div class="flex items-center gap-1">
+              <select [(ngModel)]="extra.parameter" (change)="onExtraParameterChange(extra)"
+                [ngModelOptions]="{ standalone: true }"
+                class="flex-1 h-7 px-2 border border-gray-500 rounded-l bg-white text-[11px] outline-none max-w-[200px]">
+                <option value="">Select Parameter</option>
+                @for (option of getAllParameterOptions(); track option) {
+                  <option [value]="option">{{ option }}</option>
+                }
+              </select>
+              <input type="number" min="1" step="any"
+                [(ngModel)]="extra.value" (input)="onAnyFormulaChange()"
+                [ngModelOptions]="{ standalone: true }"
+                placeholder="00.0"
+                class="w-14 h-7 px-1 border-y border-r border-gray-500 rounded-r text-[11px] text-center outline-none" />
+              <button type="button" (click)="removeExtraField(rowIndex, extraIndex)"
+                class="w-7 h-7 rounded border border-red-200 bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 cursor-pointer">×</button>
             </div>
           }
         </div>
+      }
+    </div>
+  }
+</div>
 
+        <!-- Target -->
         <div class="mt-3">
-          <label class="block text-[11px] font-bold text-gray-900 mb-1">
-            Target
-          </label>
-
+          <label class="block text-[11px] font-bold text-gray-900 mb-1">Target</label>
           <input
             formControlName="target"
             placeholder="Auto-calculated"
@@ -345,6 +571,7 @@
           />
         </div>
 
+        <!-- Description -->
         <div>
           <label class="text-xs font-bold text-gray-900">Project Description</label>
           <textarea
@@ -353,33 +580,66 @@
             placeholder="Enter detailed project scope and objectives..."
             class="w-full mt-1 p-3 rounded border border-gray-300 text-sm outline-none resize-none focus:border-[#5a4bb3]"
           ></textarea>
-
           @if (projectForm.get('projectDescription')?.errors?.['maxWords']) {
-            <p class="text-xs text-red-500 mt-1">
-              Project Description must not exceed 500 words
-            </p>
+            <p class="text-xs text-red-500 mt-1">Project Description must not exceed 500 words</p>
           }
         </div>
 
+        <!-- Footer -->
         <div class="pt-3 border-t flex justify-end gap-3">
-          <button
-            type="button"
-            (click)="closeProjectPopup()"
-            class="h-9 px-5 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200 transition cursor-pointer"
-          >
+          <button type="button" (click)="closeProjectPopup()"
+            class="h-9 px-5 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200 transition cursor-pointer">
             Close
           </button>
-
           <button
             type="button"
             [disabled]="isSavingProject || projectForm.invalid || !canAddFormulaRow()"
             (click)="saveProject()"
             class="h-9 px-5 rounded-lg bg-[#5a4bb3] text-white text-sm font-bold hover:bg-[#4b3ca0] disabled:opacity-40 disabled:cursor-not-allowed enabled:cursor-pointer transition"
           >
-            {{ isSavingProject ? 'Saving...' : 'Save Project' }}
+           {{ isSavingProject ? 'Saving...' : (editingProject ? 'Update Project' : 'Save Project') }}
+
           </button>
         </div>
       </form>
+    </div>
+  </div>
+}
+
+
+
+<!-- ══════════════════════════════════════════════════
+     Delete Confirm Dialog
+══════════════════════════════════════════════════ -->
+@if (showDeleteConfirm) {
+  <div class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4">
+    <div class="w-[380px] bg-white rounded-xl shadow-2xl p-6">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+          <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+        </div>
+        <div>
+          <h4 class="text-sm font-extrabold text-gray-900">Delete Project</h4>
+          <p class="text-xs text-gray-500 mt-0.5">This action cannot be undone.</p>
+        </div>
+      </div>
+      <p class="text-sm text-gray-700 mb-5">
+        Are you sure you want to delete <span class="font-semibold">{{ deletingProjectName }}</span>?
+      </p>
+      <div class="flex justify-end gap-3">
+        <button type="button" (click)="cancelDelete()"
+          class="h-9 px-5 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200 transition cursor-pointer">
+          Cancel
+        </button>
+        <button type="button" (click)="confirmDelete()"
+          [disabled]="isDeletingProject"
+          class="h-9 px-5 rounded-lg bg-red-500 text-white text-sm font-bold hover:bg-red-600 disabled:opacity-40 cursor-pointer transition">
+          {{ isDeletingProject ? 'Deleting...' : 'Delete' }}
+        </button>
+      </div>
     </div>
   </div>
 }

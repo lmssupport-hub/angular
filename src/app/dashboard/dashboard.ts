@@ -1,33 +1,43 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
-
-
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive,CommonModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
-export class Dashboard {
+export class Dashboard implements OnInit {
 
-isProjectsOpen = false;
-isSidebarOpen = true;
+  isProjectsOpen = false;
+  isSidebarOpen = true;
+  loggedInUser: any = null;
 
-openProjectsMenu() {
-  this.isProjectsOpen = true;
-}
+  constructor(@Inject(PLATFORM_ID) private platformId: object) {}
 
-closeProjectsMenu() {
-  this.isProjectsOpen = false;
-}
+  ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      const userData = localStorage.getItem('loggedInUser');
+      if (userData) {
+        this.loggedInUser = JSON.parse(userData);
+      }
+    }
+  }
 
-toggleSidebar() {
-  this.isSidebarOpen = !this.isSidebarOpen;
+  openProjectsMenu() {
+    this.isProjectsOpen = true;
+  }
 
-  if (!this.isSidebarOpen) {
+  closeProjectsMenu() {
     this.isProjectsOpen = false;
   }
-}
+
+  toggleSidebar() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+    if (!this.isSidebarOpen) {
+      this.isProjectsOpen = false;
+    }
+  }
 }

@@ -122,7 +122,9 @@
   <main class="flex-1 min-h-screen">
     <header class="h-[90px] bg-white/40 px-10 flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-extrabold text-gray-900">HELLO! Name</h1>
+        <h1 class="text-2xl font-extrabold text-gray-900">
+          HELLO! {{ loggedInUser?.firstName || 'User' }}
+        </h1>
         <p class="text-xs text-gray-500 mt-1">Welcome back!</p>
       </div>
 
@@ -144,18 +146,22 @@
           <i class="fa-regular fa-message text-gray-600 text-sm"></i>
         </button>
 
-        <div class="pl-6 border-l border-gray-300 flex items-center gap-3">
-          <img
-            src="Group 9.png"
-            alt="Profile"
-            class="w-10 h-10 rounded-sm object-cover"
-          />
-
-          <div>
-            <p class="text-xs font-extrabold text-gray-900">User Name</p>
-            <p class="text-[10px] text-gray-500">100 Destinations</p>
-          </div>
+       <div class="pl-6 border-l border-gray-300 flex items-center gap-3">
+  
+        <!-- Avatar: initials fallback -->
+        <div class="w-10 h-10 rounded-sm flex items-center justify-center bg-[#5a4bb3] text-white text-sm font-bold uppercase">
+          {{ loggedInUser?.firstName?.charAt(0) || '' }}{{ loggedInUser?.lastName?.charAt(0) || '' }}
         </div>
+
+        <div>
+          <p class="text-xs font-extrabold text-gray-900">
+            {{ loggedInUser?.firstName }} {{ loggedInUser?.lastName }}
+          </p>
+          <p class="text-[10px] text-gray-500">{{ loggedInUser?.email }}</p>
+        </div>
+
+      </div>
+
       </div>
     </header>
 

@@ -1,15 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, HostListener, Inject, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import {
-  FormsModule,
-  ReactiveFormsModule,
-  FormBuilder,
-  Validators,
-  AbstractControl,
-  ValidationErrors,
+  FormsModule, ReactiveFormsModule, FormBuilder,
+  Validators, AbstractControl, ValidationErrors,
 } from '@angular/forms';
-import { ApiService } from '../../services/api.service';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { ApiService, Project, ProjectPayload } from '../../services/api.service';
 
-type Operator = '+' | '-' | '×' | '÷';
+type Operator = '+' | '-' | '*' | '/';
 
 type ExtraFormulaField = {
   type: 'parameter' | 'operator';
@@ -30,194 +27,368 @@ type FormulaRow = {
 @Component({
   selector: 'app-projects-list',
   standalone: true,
-  imports: [FormsModule, ReactiveFormsModule],
+  imports: [FormsModule, ReactiveFormsModule, CommonModule],
   templateUrl: './projects-list.html',
   styleUrl: './projects-list.css',
 })
-export class ProjectsList {
+export class ProjectsList implements OnInit {
+
+  projects: Project[] = [];
+  existingProjectNames: string[] = [];
+  isLoadingProjects = false;
+  loadError: string | null = null;
+
   showProjectPopup = false;
-  showAddChoiceIndex: number | null = null;
-  showUserDropdown = false;
   isSavingProject = false;
+  editingProject: Project | null = null;
 
-  users = ['test name 1', 'test name2', 'test name 3'];
-  existingProjects = ['Cloud Migration Alpha', 'Brand Refresh 2024'];
+  showDeleteConfirm = false;
+  deletingProjectId: number | null = null;
+  deletingProjectName = '';
+  isDeletingProject = false;
 
-  operatorOptions: Operator[] = ['+', '-', '×', '÷'];
-
-  formulaOptions = [
-    { parameter1: 'Total Working Minutes', parameter2: 'Minutes per Unit', sampleValue1: 480, sampleValue2: 30 },
-    { parameter1: 'Total Working Hours', parameter2: 'Hours per Unit', sampleValue1: 8, sampleValue2: 2 },
-    { parameter1: 'Monthly Target', parameter2: 'Working Days', sampleValue1: 1200, sampleValue2: 24 },
-  ];
+  expandedProjectIds = new Set<number>();
+  expandUserDropdownId: number | null = null;
+  showUserDropdown = false;
+  showAddChoiceIndex: number | null = null;
 
   formulaRows: FormulaRow[] = [this.createFormulaRow()];
+  operatorOptions: Operator[] = ['+', '-', '*', '/'];
+  formulaOptions = [
+    { parameter1: 'Total Working Minutes', parameter2: 'Minutes per Unit', sampleValue1: 480, sampleValue2: 30 },
+    { parameter1: 'Total Working Hours',   parameter2: 'Hours per Unit',   sampleValue1: 8,   sampleValue2: 2  },
+    { parameter1: 'Monthly Target',        parameter2: 'Working Days',     sampleValue1: 1200, sampleValue2: 24 },
+  ];
+
+  users = ['test name 1', 'test name 2', 'test name 3'];
   todayInputValue = ProjectsList.toDateInputValue(new Date());
 
   projectForm;
 
-  constructor(private fb: FormBuilder, private apiService: ApiService) {
-    this.projectForm = this.fb.group(
-      {
-        projectName: ['', [Validators.required, this.uniqueProjectName.bind(this)]],
-        projectReceivedDate: ['', [Validators.required, this.validDDMMYYYY, this.notFutureDate]],
-        assignedUsers: this.fb.control<string[]>([], [Validators.required]),
-        startDate: ['', [Validators.required, this.validDDMMYYYY]],
-        dueDate: ['', [Validators.required, this.validDDMMYYYY]],
-        target: [{ value: '', disabled: true }],
-        projectDescription: ['', [this.maxWords(500)]],
+  constructor(
+    private fb: FormBuilder,
+    private apiService: ApiService,
+    private cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private platformId: object
+  ) {
+    this.projectForm = this.buildForm();
+  }
+
+  ngOnInit(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadProjects();
+    }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.user-dropdown-wrapper')) this.showUserDropdown = false;
+    if (!target.closest('.expand-user-dropdown-wrapper')) this.expandUserDropdownId = null;
+  }
+
+  private buildForm() {
+    return this.fb.group({
+      projectName:         ['', [Validators.required, this.uniqueProjectName.bind(this)]],
+      projectReceivedDate: ['', [Validators.required, this.validDDMMYYYY, this.notFutureDate]],
+      assignedUsers:       this.fb.control<string[]>([], [Validators.required, Validators.minLength(1)]),
+      startDate:           ['', [Validators.required, this.validDDMMYYYY]],
+      dueDate:             ['', [Validators.required, this.validDDMMYYYY]],
+      target:              [{ value: '', disabled: true }],
+      projectDescription:  ['', [this.maxWords(500)]],
+    }, { validators: [this.dateDependencyValidator] });
+  }
+
+  loadProjects(): void {
+    this.isLoadingProjects = true;
+    this.loadError = null;
+    this.cdr.detectChanges();
+
+    this.apiService.getProjects().subscribe({
+      next: (data) => {
+        this.projects = Array.isArray(data) ? data : [];
+        this.existingProjectNames = this.projects.map(p => p.projectName);
+        this.isLoadingProjects = false;
+        this.cdr.detectChanges();
       },
-      {
-        validators: [this.dateDependencyValidator],
-      }
-    );
+      error: (err) => {
+        console.error('Load projects failed', err);
+        this.projects = [];
+        this.existingProjectNames = [];
+        this.loadError = 'Cannot reach the server. Check your connection.';
+        this.isLoadingProjects = false;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
-  createFormulaRow(): FormulaRow {
-    return {
-      parameter1: '',
-      operator: '',
-      parameter2: '',
-      value1: null,
-      value2: null,
-      extraFields: [],
-    };
+  isExpanded(id: number): boolean { return this.expandedProjectIds.has(id); }
+
+  toggleExpand(id: number, event: Event): void {
+    event.stopPropagation();
+    this.expandedProjectIds.has(id)
+      ? this.expandedProjectIds.delete(id)
+      : this.expandedProjectIds.add(id);
   }
 
-  openProjectPopup(): void {
+  getEditDateValue(project: Project, field: 'projectReceivedDate' | 'startDate' | 'dueDate'): string {
+    return project[field] ? project[field].substring(0, 10) : '';
+  }
+
+  onEditDateChange(project: Project, field: 'projectReceivedDate' | 'startDate' | 'dueDate', event: Event): void {
+  const val = (event.target as HTMLInputElement).value;
+  if (!val) return;
+
+  const oldValue = project[field];
+
+  const payload: ProjectPayload = {
+    projectName:         project.projectName,
+    projectDescription:  project.projectDescription || '',
+    projectReceivedDate: field === 'projectReceivedDate' ? val : project.projectReceivedDate.substring(0, 10),
+    startDate:           field === 'startDate'           ? val : project.startDate.substring(0, 10),
+    dueDate:             field === 'dueDate'             ? val : project.dueDate.substring(0, 10),
+    assignedUsers:       project.assignedUsers,
+    formulaRows:         project.formulaRows || [],
+  };
+
+  project[field] = val;
+
+  this.apiService.updateProject(project.id, payload).subscribe({
+    next: (updatedProject) => {
+      this.projects = this.projects.map(p =>
+        p.id === project.id ? { ...p, ...updatedProject } : p
+      );
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('Inline date update failed', err);
+      project[field] = oldValue;
+      this.cdr.detectChanges();
+    },
+  });
+}
+
+  toggleExpandUserDropdown(id: number, event: Event): void {
+    event.stopPropagation();
+    this.expandUserDropdownId = this.expandUserDropdownId === id ? null : id;
+  }
+
+  getUnassignedUsers(project: Project): string[] {
+    return this.users.filter(u => !project.assignedUsers.includes(u));
+  }
+
+  addUserToProject(project: Project, user: string): void {
+    this.patchProjectUsers(project, [...project.assignedUsers, user]);
+  }
+
+  removeUserFromProject(project: Project, user: string, event: Event): void {
+    event.stopPropagation();
+    if (project.assignedUsers.length <= 1) return;
+    this.patchProjectUsers(project, project.assignedUsers.filter(u => u !== user));
+  }
+
+  private patchProjectUsers(project: Project, assignedUsers: string[]): void {
+  const oldUsers = [...project.assignedUsers];
+
+  const payload: ProjectPayload = {
+    projectName:         project.projectName,
+    projectDescription:  project.projectDescription || '',
+    projectReceivedDate: project.projectReceivedDate.substring(0, 10),
+    startDate:           project.startDate.substring(0, 10),
+    dueDate:             project.dueDate.substring(0, 10),
+    assignedUsers,
+    formulaRows:         project.formulaRows || [],
+  };
+
+  project.assignedUsers = assignedUsers;
+  this.expandUserDropdownId = null;
+
+  this.apiService.updateProject(project.id, payload).subscribe({
+    next: (updatedProject) => {
+      this.projects = this.projects.map(p =>
+        p.id === project.id ? { ...p, ...updatedProject } : p
+      );
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error('User update failed', err);
+      project.assignedUsers = oldUsers;
+      this.cdr.detectChanges();
+    },
+  });
+}
+
+  openProjectPopup(project?: Project, event?: Event): void {
+    event?.stopPropagation();
+
+    this.editingProject = project ?? null;
     this.showProjectPopup = true;
+    this.projectForm = this.buildForm();
+    this.showUserDropdown = false;
+    this.showAddChoiceIndex = null;
+
+    if (project) {
+      this.projectForm.patchValue({
+        projectName:         project.projectName,
+        projectReceivedDate: ProjectsList.dateInputToDDMMYYYY(project.projectReceivedDate.substring(0, 10)),
+        startDate:           ProjectsList.dateInputToDDMMYYYY(project.startDate.substring(0, 10)),
+        dueDate:             ProjectsList.dateInputToDDMMYYYY(project.dueDate.substring(0, 10)),
+        assignedUsers:       [...project.assignedUsers],
+        projectDescription:  project.projectDescription || '',
+      });
+
+      this.formulaRows = (project.formulaRows || []).map(row => ({
+        parameter1:  row.parameter1,
+        operator:    row.operator as Operator | '',
+        parameter2:  row.parameter2,
+        value1:      row.value1,
+        value2:      row.value2,
+        extraFields: (row.extraFields || []).map(ef => ({
+          type:      ef.type as 'parameter' | 'operator',
+          parameter: ef.parameter || '',
+          operator:  ef.operator as Operator | '',
+          value:     ef.value,
+        })),
+      }));
+
+      if (this.formulaRows.length === 0) {
+        this.formulaRows = [this.createFormulaRow()];
+      }
+    } else {
+      this.formulaRows = [this.createFormulaRow()];
+    }
+
+    this.calculateFormulaTarget();
   }
 
   closeProjectPopup(): void {
     this.showProjectPopup = false;
-    this.showAddChoiceIndex = null;
+    this.editingProject = null;
     this.showUserDropdown = false;
+    this.showAddChoiceIndex = null;
     this.isSavingProject = false;
-
-    this.projectForm.reset({
-      projectName: '',
-      projectReceivedDate: '',
-      assignedUsers: [],
-      startDate: '',
-      dueDate: '',
-      target: '',
-      projectDescription: '',
-    });
-
-    this.formulaRows = [this.createFormulaRow()];
-    this.calculateFormulaTarget();
-  }
-
-  toggleUserDropdown(): void {
-    this.showUserDropdown = !this.showUserDropdown;
-  }
-
-  getAssignedUsers(): string[] {
-    const value = this.projectForm.get('assignedUsers')?.value;
-    return Array.isArray(value) ? value : [];
-  }
-
-  getAssignedUsersLabel(): string {
-    const selectedUsers = this.getAssignedUsers();
-
-    if (selectedUsers.length === 0) {
-      return 'Select users...';
-    }
-
-    return selectedUsers.join(', ');
-  }
-
-  isUserSelected(user: string): boolean {
-    return this.getAssignedUsers().includes(user);
-  }
-
-  toggleAssignedUser(user: string): void {
-    const selectedUsers = this.getAssignedUsers();
-    const nextUsers = selectedUsers.includes(user)
-      ? selectedUsers.filter(item => item !== user)
-      : [...selectedUsers, user];
-
-    this.projectForm.get('assignedUsers')?.setValue(nextUsers);
-    this.projectForm.get('assignedUsers')?.markAsTouched();
-    this.projectForm.get('assignedUsers')?.updateValueAndValidity();
   }
 
   saveProject(): void {
-    if (this.isSavingProject) {
-      return;
-    }
+    if (this.isSavingProject) return;
 
-    if (this.projectForm.invalid || !this.canAddFormulaRow()) {
-      this.projectForm.markAllAsTouched();
-      return;
-    }
+    this.projectForm.markAllAsTouched();
+    if (this.projectForm.invalid || !this.canAddFormulaRow()) return;
 
-    const formValue = this.projectForm.getRawValue();
-    const assignedUsers = Array.isArray(formValue.assignedUsers) ? formValue.assignedUsers : [];
-
-    const payload = {
-      projectName: formValue.projectName || '',
-      projectDescription: formValue.projectDescription || '',
-      projectReceivedDate: ProjectsList.ddmmyyyyToDateInput(formValue.projectReceivedDate || ''),
-      startDate: ProjectsList.ddmmyyyyToDateInput(formValue.startDate || ''),
-      dueDate: ProjectsList.ddmmyyyyToDateInput(formValue.dueDate || ''),
-      assignedUsers,
-      formulaRows: this.formulaRows.map(row => ({
-        parameter1: row.parameter1,
-        value1: Number(row.value1),
-        operator: row.operator || '',
-        parameter2: row.parameter2,
-        value2: Number(row.value2),
-        extraFields: row.extraFields.map(extra => ({
-          type: extra.type,
-          parameter: extra.parameter || '',
-          operator: extra.operator || '',
-          value: extra.value === null ? null : Number(extra.value),
-        })),
-      })),
+    const fv = this.projectForm.getRawValue();
+    const payload: ProjectPayload = {
+      projectName:         fv.projectName || '',
+      projectDescription:  fv.projectDescription || '',
+      projectReceivedDate: ProjectsList.ddmmyyyyToDateInput(fv.projectReceivedDate || ''),
+      startDate:           ProjectsList.ddmmyyyyToDateInput(fv.startDate || ''),
+      dueDate:             ProjectsList.ddmmyyyyToDateInput(fv.dueDate || ''),
+      assignedUsers:       Array.isArray(fv.assignedUsers) ? fv.assignedUsers : [],
+      formulaRows:         this.serializeFormulaRows(this.formulaRows),
     };
 
     this.isSavingProject = true;
 
-    this.apiService.createProject(payload).subscribe({
-      next: (res: unknown) => {
-        console.log('Project saved successfully', res);
+    const request$ = this.editingProject
+      ? this.apiService.updateProject(this.editingProject.id, payload)
+      : this.apiService.createProject(payload);
+
+    request$.subscribe({
+      next: () => {
         this.isSavingProject = false;
         this.closeProjectPopup();
+        this.loadProjects();
       },
-      error: (err: unknown) => {
-        console.error('Project save failed', err);
+      error: (err) => {
+        console.error(this.editingProject ? 'Update failed' : 'Save failed', err);
         this.isSavingProject = false;
-        this.projectForm.markAllAsTouched();
       },
     });
   }
 
+  deleteProject(id: number, event: Event): void {
+    event.stopPropagation();
+    const project = this.projects.find(p => p.id === id);
+    this.deletingProjectId = id;
+    this.deletingProjectName = project?.projectName || '';
+    this.showDeleteConfirm = true;
+  }
+
+  cancelDelete(): void {
+    this.showDeleteConfirm = false;
+    this.deletingProjectId = null;
+    this.deletingProjectName = '';
+    this.isDeletingProject = false;
+  }
+
+  confirmDelete(): void {
+    if (!this.deletingProjectId) return;
+
+    this.isDeletingProject = true;
+    this.apiService.deleteProject(this.deletingProjectId).subscribe({
+      next: () => {
+        this.isDeletingProject = false;
+        this.cancelDelete();
+        this.loadProjects();
+      },
+      error: (err) => {
+        console.error('Delete failed', err);
+        this.isDeletingProject = false;
+      },
+    });
+  }
+
+  createFormulaRow(): FormulaRow {
+    return { parameter1: '', operator: '', parameter2: '', value1: null, value2: null, extraFields: [] };
+  }
+
+  toggleUserDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showUserDropdown = !this.showUserDropdown;
+  }
+
+  getAssignedUsers(): string[] {
+    const v = this.projectForm.get('assignedUsers')?.value;
+    return Array.isArray(v) ? v : [];
+  }
+
+  getAssignedUsersLabel(): string {
+    const s = this.getAssignedUsers();
+    return s.length === 0 ? 'Select users...' : s.join(', ');
+  }
+
+  isUserSelected(user: string): boolean { return this.getAssignedUsers().includes(user); }
+
+  toggleAssignedUser(user: string): void {
+    const next = this.isUserSelected(user)
+      ? this.getAssignedUsers().filter(u => u !== user)
+      : [...this.getAssignedUsers(), user];
+
+    this.projectForm.get('assignedUsers')?.setValue(next);
+    this.projectForm.get('assignedUsers')?.markAsTouched();
+    this.projectForm.get('assignedUsers')?.updateValueAndValidity();
+  }
+
   getAllParameterOptions(): string[] {
-    const parameter1List = this.formulaOptions.map(item => item.parameter1);
-    const parameter2List = this.formulaOptions.map(item => item.parameter2);
-    return [...new Set([...parameter1List, ...parameter2List])];
+    return [...new Set([
+      ...this.formulaOptions.map(i => i.parameter1),
+      ...this.formulaOptions.map(i => i.parameter2),
+    ])];
   }
 
   getSampleValue(parameter: string): number | null {
-    const asParameter1 = this.formulaOptions.find(item => item.parameter1 === parameter);
-    if (asParameter1) return asParameter1.sampleValue1;
-
-    const asParameter2 = this.formulaOptions.find(item => item.parameter2 === parameter);
-    if (asParameter2) return asParameter2.sampleValue2;
-
-    return null;
+    const a = this.formulaOptions.find(i => i.parameter1 === parameter);
+    if (a) return a.sampleValue1;
+    const b = this.formulaOptions.find(i => i.parameter2 === parameter);
+    return b ? b.sampleValue2 : null;
   }
 
-  onParameter1Change(index: number): void {
-    const row = this.formulaRows[index];
-    row.value1 = this.getSampleValue(row.parameter1);
+  onParameter1Change(i: number): void {
+    this.formulaRows[i].value1 = this.getSampleValue(this.formulaRows[i].parameter1);
     this.calculateFormulaTarget();
   }
 
-  onParameter2Change(index: number): void {
-    const row = this.formulaRows[index];
-    row.value2 = this.getSampleValue(row.parameter2);
+  onParameter2Change(i: number): void {
+    this.formulaRows[i].value2 = this.getSampleValue(this.formulaRows[i].parameter2);
     this.calculateFormulaTarget();
   }
 
@@ -226,172 +397,201 @@ export class ProjectsList {
     this.calculateFormulaTarget();
   }
 
-  onAnyFormulaChange(): void {
-    this.calculateFormulaTarget();
+  onAnyFormulaChange(): void { this.calculateFormulaTarget(); }
+
+  toggleAddChoice(i: number, event: Event): void {
+    event.stopPropagation();
+    this.showAddChoiceIndex = this.showAddChoiceIndex === i ? null : i;
   }
 
-  toggleAddChoice(index: number): void {
-    this.showAddChoiceIndex = this.showAddChoiceIndex === index ? null : index;
-  }
-
-  addExtraField(index: number, type: 'parameter' | 'operator'): void {
-    this.formulaRows[index].extraFields.push({
-      type,
-      parameter: '',
-      operator: '',
-      value: null,
-    });
-
+  addExtraField(i: number, type: 'parameter' | 'operator'): void {
+    this.formulaRows[i].extraFields.push({ type, parameter: '', operator: '', value: null });
     this.showAddChoiceIndex = null;
     this.calculateFormulaTarget();
   }
 
-  removeExtraField(rowIndex: number, extraIndex: number): void {
-    this.formulaRows[rowIndex].extraFields.splice(extraIndex, 1);
+  removeExtraField(ri: number, ei: number): void {
+    this.formulaRows[ri].extraFields.splice(ei, 1);
     this.calculateFormulaTarget();
   }
 
-  isPositiveNumber(value: number | string | null | undefined): boolean {
-    return value !== null && value !== undefined && Number(value) > 0;
+  isPositiveNumber(v: number | string | null | undefined): boolean {
+    return v !== null && v !== undefined && Number(v) > 0;
   }
 
   canAddFormulaRow(): boolean {
     return this.formulaRows.every(row => {
-      const mainRowValid =
-        !!row.parameter1 &&
-        !!row.operator &&
-        !!row.parameter2 &&
-        this.isPositiveNumber(row.value1) &&
-        this.isPositiveNumber(row.value2);
+      const main = !!row.parameter1 && !!row.operator && !!row.parameter2
+        && this.isPositiveNumber(row.value1) && this.isPositiveNumber(row.value2);
 
-      const extraFieldsValid = row.extraFields.every(extra => {
-        if (extra.type === 'operator') return !!extra.operator;
-        return !!extra.parameter && this.isPositiveNumber(extra.value);
-      });
+      const extras = row.extraFields.every(e =>
+        e.type === 'operator' ? !!e.operator : !!e.parameter && this.isPositiveNumber(e.value));
 
-      return mainRowValid && extraFieldsValid;
+      return main && extras;
     });
   }
 
   calculateFormulaTarget(): void {
     let total = 0;
-    let hasCalculatedValue = false;
+    let hasValue = false;
 
     for (const row of this.formulaRows) {
-      if (
-        !row.parameter1 ||
-        !row.operator ||
-        !row.parameter2 ||
-        !this.isPositiveNumber(row.value1) ||
-        !this.isPositiveNumber(row.value2)
-      ) {
-        continue;
-      }
+      if (!row.parameter1 || !row.operator || !row.parameter2
+        || !this.isPositiveNumber(row.value1) || !this.isPositiveNumber(row.value2)) continue;
 
-      let rowValue = this.applyOperator(Number(row.value1), row.operator, Number(row.value2));
-      if (rowValue === null) continue;
+      let v = this.applyOperator(Number(row.value1), row.operator, Number(row.value2));
+      if (v === null) continue;
 
-      hasCalculatedValue = true;
-      let pendingOperator: Operator | '' = '';
+      hasValue = true;
+      let pending: Operator | '' = '';
 
-      for (const extra of row.extraFields) {
-        if (extra.type === 'operator') {
-          pendingOperator = extra.operator;
+      for (const e of row.extraFields) {
+        if (e.type === 'operator') {
+          pending = e.operator;
+          continue;
         }
 
-        if (extra.type === 'parameter') {
-          if (!pendingOperator || !extra.parameter || !this.isPositiveNumber(extra.value)) continue;
+        if (!pending || !e.parameter || !this.isPositiveNumber(e.value)) continue;
 
-          const nextValue = this.applyOperator(rowValue, pendingOperator, Number(extra.value));
-          if (nextValue === null) continue;
-
-          rowValue = nextValue;
-          pendingOperator = '';
+        const next = this.applyOperator(v, pending, Number(e.value));
+        if (next !== null) {
+          v = next;
+          pending = '';
         }
       }
 
-      total += rowValue;
+      total += v;
     }
 
-    this.projectForm.get('target')?.setValue(hasCalculatedValue ? total.toFixed(2) : '', {
-      emitEvent: false,
-    });
+    this.projectForm.get('target')?.setValue(hasValue ? total.toFixed(2) : '', { emitEvent: false });
   }
 
-  applyOperator(value1: number, operator: Operator | '', value2: number): number | null {
-    if (operator === '+') return value1 + value2;
-    if (operator === '-') return value1 - value2;
-    if (operator === '×') return value1 * value2;
-    if (operator === '÷') return value2 > 0 ? value1 / value2 : null;
-    return null;
-  }
+  applyOperator(v1: number, op: Operator | '', v2: number): number | null {
+  if (op === '+') return v1 + v2;
+  if (op === '-') return v1 - v2;
+  if (op === '*') return v1 * v2;
+  if (op === '/') return v2 > 0 ? v1 / v2 : null;
+  return null;
+}
 
-  onDatePickerChange(
-    controlName: 'projectReceivedDate' | 'startDate' | 'dueDate',
-    event: Event
-  ): void {
-    const input = event.target as HTMLInputElement;
-    const formattedDate = ProjectsList.dateInputToDDMMYYYY(input.value);
-
-    this.projectForm.get(controlName)?.setValue(formattedDate);
-    this.projectForm.get(controlName)?.markAsTouched();
+  onDatePickerChange(ctrl: 'projectReceivedDate' | 'startDate' | 'dueDate', e: Event): void {
+    const val = ProjectsList.dateInputToDDMMYYYY((e.target as HTMLInputElement).value);
+    this.projectForm.get(ctrl)?.setValue(val);
+    this.projectForm.get(ctrl)?.markAsTouched();
     this.projectForm.updateValueAndValidity();
   }
 
-  getDatePickerValue(controlName: 'projectReceivedDate' | 'startDate' | 'dueDate'): string {
-    return ProjectsList.ddmmyyyyToDateInput(this.projectForm.get(controlName)?.value || '');
+  getDatePickerValue(ctrl: 'projectReceivedDate' | 'startDate' | 'dueDate'): string {
+    return ProjectsList.ddmmyyyyToDateInput(this.projectForm.get(ctrl)?.value || '');
+  }
+
+  formatDate(dateStr: string): string {
+    if (!dateStr) return 'â€”';
+    const d = new Date(dateStr);
+    return isNaN(d.getTime()) ? 'â€”' : d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+  }
+
+  getInitials(name: string): string {
+    if (!name) return '?';
+    return name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+  }
+
+  getMonthYear(dateStr: string): string {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+
+  getCalendarCells(dateStr: string): { day: number | null; isSelected: boolean }[] {
+    if (!dateStr) return [];
+
+    const d = new Date(dateStr);
+    const year = d.getFullYear();
+    const month = d.getMonth();
+    const selectedDay = d.getDate();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const cells: { day: number | null; isSelected: boolean }[] = [];
+    for (let i = 0; i < firstDay; i++) cells.push({ day: null, isSelected: false });
+    for (let i = 1; i <= daysInMonth; i++) cells.push({ day: i, isSelected: i === selectedDay });
+
+    return cells;
+  }
+
+  targetBadgeClasses = [
+    'bg-purple-100 text-purple-700',
+    'bg-blue-100 text-blue-700',
+    'bg-green-100 text-green-700',
+    'bg-orange-100 text-orange-700',
+    'bg-pink-100 text-pink-700',
+  ];
+
+  getTargetBadgeClass(i: number): string {
+    return this.targetBadgeClasses[i % this.targetBadgeClasses.length];
+  }
+
+  getTargetLabel(project: Project): string {
+    return project.target ? project.target.toString() : 'â€”';
+  }
+
+  private serializeFormulaRows(rows: FormulaRow[]) {
+    return rows.map(row => ({
+      parameter1:  row.parameter1,
+      value1:      Number(row.value1) || 0,
+      operator:    row.operator || '',
+      parameter2:  row.parameter2,
+      value2:      Number(row.value2) || 0,
+      extraFields: row.extraFields.map(ef => ({
+        type:      ef.type,
+        parameter: ef.parameter || '',
+        operator:  ef.operator || '',
+        value:     ef.value !== null ? Number(ef.value) : 0,
+      })),
+    }));
   }
 
   uniqueProjectName(control: AbstractControl): ValidationErrors | null {
-    const value = String(control.value || '').trim();
-    if (!value) return null;
+    const v = String(control.value || '').trim();
+    if (!v) return null;
 
-    const exists = this.existingProjects.some(
-      name => name.toLowerCase() === value.toLowerCase()
-    );
+    const editId = this.editingProject?.id ?? null;
+    const names = editId
+      ? this.existingProjectNames.filter((_, i) => this.projects[i]?.id !== editId)
+      : this.existingProjectNames;
 
-    return exists ? { duplicateProject: true } : null;
+    return names.some(n => n.toLowerCase() === v.toLowerCase()) ? { duplicateProject: true } : null;
   }
 
   maxWords(max: number) {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const value = String(control.value || '').trim();
-      if (!value) return null;
-
-      const words = value.split(/\s+/).length;
-      return words > max ? { maxWords: true } : null;
+    return (c: AbstractControl): ValidationErrors | null => {
+      const v = String(c.value || '').trim();
+      return v && v.split(/\s+/).length > max ? { maxWords: true } : null;
     };
   }
 
-  validDDMMYYYY(control: AbstractControl): ValidationErrors | null {
-    const value = String(control.value || '').trim();
-    if (!value) return null;
-
-    return ProjectsList.parseDate(value) ? null : { invalidDateFormat: true };
+  validDDMMYYYY(c: AbstractControl): ValidationErrors | null {
+    const v = String(c.value || '').trim();
+    return v ? (ProjectsList.parseDate(v) ? null : { invalidDateFormat: true }) : null;
   }
 
-  notFutureDate(control: AbstractControl): ValidationErrors | null {
-    const date = ProjectsList.parseDate(control.value);
-    if (!date) return null;
+  notFutureDate(c: AbstractControl): ValidationErrors | null {
+    const d = ProjectsList.parseDate(c.value);
+    if (!d) return null;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    return date > today ? { futureDate: true } : null;
+    return d > today ? { futureDate: true } : null;
   }
 
-  dateDependencyValidator(group: AbstractControl): ValidationErrors | null {
-    const received = ProjectsList.parseDate(group.get('projectReceivedDate')?.value);
-    const start = ProjectsList.parseDate(group.get('startDate')?.value);
-    const due = ProjectsList.parseDate(group.get('dueDate')?.value);
+  dateDependencyValidator(g: AbstractControl): ValidationErrors | null {
+    const rec   = ProjectsList.parseDate(g.get('projectReceivedDate')?.value);
+    const start = ProjectsList.parseDate(g.get('startDate')?.value);
+    const due   = ProjectsList.parseDate(g.get('dueDate')?.value);
 
-    if (received && start && start < received) {
-      return { startBeforeReceived: true };
-    }
-
-    if (start && due && due < start) {
-      return { dueBeforeStart: true };
-    }
+    if (rec && start && start < rec) return { startBeforeReceived: true };
+    if (start && due && due < start) return { dueBeforeStart: true };
 
     return null;
   }
@@ -399,44 +599,28 @@ export class ProjectsList {
   static parseDate(value: string | null | undefined): Date | null {
     if (!value) return null;
 
-    const dateValue = String(value).trim();
-    const regex = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
-    if (!regex.test(dateValue)) return null;
+    const v = String(value).trim();
+    if (!/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/.test(v)) return null;
 
-    const [day, month, year] = dateValue.split('/').map(Number);
-    const date = new Date(year, month - 1, day);
+    const [d, m, y] = v.split('/').map(Number);
+    const date = new Date(y, m - 1, d);
     date.setHours(0, 0, 0, 0);
 
-    if (
-      date.getFullYear() !== year ||
-      date.getMonth() !== month - 1 ||
-      date.getDate() !== day
-    ) {
-      return null;
-    }
-
-    return date;
+    return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d ? date : null;
   }
 
-  static dateInputToDDMMYYYY(value: string): string {
-    if (!value) return '';
-
-    const [year, month, day] = value.split('-');
-    return `${day}/${month}/${year}`;
+  static dateInputToDDMMYYYY(v: string): string {
+    if (!v) return '';
+    const [y, m, d] = v.split('-');
+    return `${d}/${m}/${y}`;
   }
 
-  static ddmmyyyyToDateInput(value: string): string {
-    const date = ProjectsList.parseDate(value);
-    if (!date) return '';
-
-    return ProjectsList.toDateInputValue(date);
+  static ddmmyyyyToDateInput(v: string): string {
+    const d = ProjectsList.parseDate(v);
+    return d ? ProjectsList.toDateInputValue(d) : '';
   }
 
-  static toDateInputValue(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
+  static toDateInputValue(d: Date): string {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 }
