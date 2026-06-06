@@ -92,6 +92,47 @@
         }
       </div>
 
+
+      <!-- Tasks Dropdown -->
+<div>
+  <a
+    routerLink="/dashboard/tasks"
+    routerLinkActive="!bg-[#5a4bb3] !text-white !shadow-[0_10px_24px_rgba(90,75,179,0.28)]"
+    (click)="openTasksMenu()"
+    class="h-12 px-4 rounded-xl bg-white/80 shadow-sm flex items-center justify-between text-sm font-bold text-gray-900 hover:bg-white hover:shadow-md transition-all duration-200"
+  >
+    <span class="flex items-center gap-3">
+      <span class="w-8 h-8 rounded-lg bg-[#eef0ff] text-[#5a4bb3] flex items-center justify-center">
+        <i class="fa-solid fa-list-check text-sm"></i>
+      </span>
+
+      @if (isSidebarOpen) {
+        <span>Tasks</span>
+      }
+    </span>
+
+    @if (isSidebarOpen) {
+      <i
+        class="fa-solid fa-chevron-right text-xs opacity-60 transition-transform duration-300"
+        [class.rotate-90]="isTasksOpen"
+      ></i>
+    }
+  </a>
+
+  @if (isTasksOpen && isSidebarOpen) {
+    <div class="mt-2 ml-5 pl-4 border-l-2 border-[#ddd6ff] space-y-2">
+      <a
+        routerLink="/dashboard/task-list"
+        routerLinkActive="!bg-[#5a4bb3] !text-white"
+        class="h-10 px-4 rounded-xl bg-white/70 shadow-sm flex items-center justify-between text-sm font-bold text-gray-700 hover:bg-white hover:shadow-md transition"
+      >
+        <span>Task List</span>
+        <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
+      </a>
+    </div>
+  }
+</div>
+
     
 
       <!-- Settings -->

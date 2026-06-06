@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
 export class Dashboard implements OnInit {
 
   isProjectsOpen = false;
+  isTasksOpen = false;
   isSidebarOpen = true;
   loggedInUser: any = null;
 
@@ -34,10 +35,20 @@ export class Dashboard implements OnInit {
     this.isProjectsOpen = false;
   }
 
+  openTasksMenu() {
+  this.isTasksOpen = true;
+}
+
+closeTasksMenu() {
+  this.isTasksOpen = false;
+}
+
   toggleSidebar() {
-    this.isSidebarOpen = !this.isSidebarOpen;
-    if (!this.isSidebarOpen) {
-      this.isProjectsOpen = false;
-    }
+  this.isSidebarOpen = !this.isSidebarOpen;
+
+  if (!this.isSidebarOpen) {
+    this.isProjectsOpen = false;
+    this.isTasksOpen = false;
   }
+}
 }

@@ -29,6 +29,13 @@ export type ProjectPayload = {
   formulaRows: FormulaRow[];
 };
 
+export interface AppUser {
+  id:       number;
+  username: string;
+  email:    string;
+  active:   boolean;
+}
+
 export type Project = ProjectPayload & {
   id: number;
   target: number;
@@ -80,6 +87,12 @@ export class ApiService {
   loginUser(data: unknown): Observable<unknown> {
     return this.http.post(`${this.usersUrl}/login`, data);
   }
+
+  getUsers(): Observable<AppUser[]> {
+  return this.http.get<AppUser[]>(this.usersUrl, {
+    headers: this.getAuthHeaders(),
+  });
+}
 
   // ── Projects ──────────────────────────────────────────────────────
 
