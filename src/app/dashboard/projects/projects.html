@@ -1,1 +1,418 @@
-<p>projects works!</p>
+<div class="min-h-screen p-6" style="background: linear-gradient(160deg, #fce8fb 0%, #f7eeff 45%, #fde8f4 100%);">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-5">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Project Performance</h1>
+      <p class="text-sm text-gray-500 mt-1">Real-time health indicators and resource metrics for active initiatives.</p>
+    </div>
+    <div class="flex rounded-lg overflow-hidden border border-[#7c69d4] bg-white">
+      <button type="button" (click)="switchTab('project')"
+        [class]="activeTab==='project' ? 'bg-[#5a4bb3] text-white' : 'bg-white text-gray-600'"
+        class="px-5 py-2 text-sm font-semibold transition">Project</button>
+      <button type="button" (click)="switchTab('tasks')"
+        [class]="activeTab === 'tasks' ? 'bg-[#5a4bb3] text-white' : 'bg-white text-gray-600'"
+        class="px-5 py-2 text-sm font-semibold transition">Task</button>
+    </div>
+  </div>
+
+  <!-- Session expired banner -->
+  @if (sessionExpired) {
+    <div class="mb-4 flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
+      <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      </svg>
+      Your session has expired. Redirecting to login...
+    </div>
+  }
+
+  <!-- PROJECT TAB -->
+  @if (activeTab === 'project') {
+
+    <!-- Project Selector -->
+<div class="rounded-xl px-5 py-4 mb-4 flex items-center gap-3" style="background: rgba(255,255,255,0.6); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.8);">      <label class="text-sm font-semibold text-gray-700 whitespace-nowrap">Select Project:</label>
+      <div class="relative">
+        <select (change)="onProjectSelect($event)"
+          [disabled]="isLoadingProjects"
+          class="appearance-none border border-[#7c69d4] rounded-lg px-3 py-2 pr-8 text-sm text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#5a4bb3] min-w-[240px] disabled:opacity-50 disabled:cursor-not-allowed">
+          <option value="" disabled [selected]="!selectedProject">
+            {{ isLoadingProjects ? 'Loading projects...' : 'Select a project' }}
+          </option>
+          @for (p of projects; track p.id) {
+            <option [value]="p.id">{{ p.projectName }}</option>
+          }
+        </select>
+        <svg class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </div>
+
+      <!-- Refresh -->
+      <button type="button" (click)="refreshProject()"
+        [disabled]="isLoadingProjects || isLoadingTasks"
+        class="ml-auto flex items-center gap-1.5 text-xs font-semibold text-[#5a4bb3] hover:text-[#4b3ca0] disabled:opacity-40 disabled:cursor-not-allowed transition">
+        <svg class="w-3.5 h-3.5" [class.animate-spin]="isLoadingProjects || isLoadingTasks"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Refresh
+      </button>
+    </div>
+
+    <!-- Projects load error -->
+    @if (projectLoadError) {
+      <div class="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-4 flex items-start gap-3">
+        <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        </svg>
+        <div class="flex-1">
+          <p class="text-sm font-semibold text-red-700">{{ projectLoadError }}</p>
+          <button type="button" (click)="loadProjects()"
+            class="mt-1.5 text-xs font-semibold text-red-600 underline hover:text-red-800">
+            Retry
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- No project selected info -->
+    @if (!selectedProject && !isLoadingProjects && !projectLoadError) {
+      <div class="mb-4 flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-sm text-blue-700">
+        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+            clip-rule="evenodd"/>
+        </svg>
+        Select a project above to view its performance data.
+      </div>
+    }
+
+    <!-- Task load error -->
+    @if (selectedProject && taskLoadError) {
+      <div class="mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-4 flex items-start gap-3">
+        <svg class="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        </svg>
+        <div class="flex-1">
+          <p class="text-sm font-semibold text-red-700">{{ taskLoadError }}</p>
+          <button type="button" (click)="retryTaskLoad()"
+            class="mt-1.5 text-xs font-semibold text-red-600 underline hover:text-red-800">
+            Retry
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- No data for selected project -->
+    @if (selectedProject && !isLoadingTasks && !taskLoadError && tasks.length === 0) {
+      <div class="mb-4 flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 text-sm text-amber-700">
+        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd"
+            d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+            clip-rule="evenodd"/>
+        </svg>
+        No data available for the selected project.
+      </div>
+    }
+
+    <!-- Loading skeleton -->
+    @if (isLoadingTasks) {
+      <div class="grid grid-cols-5 gap-3 mb-4">
+        @for (i of [1,2,3,4,5]; track i) {
+          <div class="bg-white/70 rounded-xl p-4 h-24 animate-pulse">
+            <div class="h-2.5 bg-gray-200 rounded w-2/3 mb-3"></div>
+            <div class="h-7 bg-gray-200 rounded w-1/2 mb-2"></div>
+            <div class="h-2 bg-gray-200 rounded w-3/4"></div>
+          </div>
+        }
+      </div>
+      <div class="grid grid-cols-3 gap-3">
+        @for (i of [1,2,3]; track i) {
+          <div class="bg-white/70 rounded-xl p-4 h-48 animate-pulse">
+            <div class="h-3 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div class="space-y-3">
+              <div class="h-8 bg-gray-200 rounded"></div>
+              <div class="h-8 bg-gray-200 rounded"></div>
+              <div class="h-8 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Dashboard data -->
+    @if (selectedProject && !isLoadingTasks && !taskLoadError) {
+
+      <!-- ── Metrics Row ── -->
+      <div class="grid grid-cols-5 gap-3 mb-4 items-stretch">
+
+        <!-- Total Target -->
+        <div class="rounded-xl p-4 shadow-sm" style="background:#eae6f5; border:1px solid #d4cdf0;">
+          <div class="flex items-center gap-1.5 mb-2 uppercase tracking-wide"
+               style="font-size:11px; font-weight:600; color:#6c5fc7;">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10" stroke-width="2"/>
+              <circle cx="12" cy="12" r="6"  stroke-width="2"/>
+              <circle cx="12" cy="12" r="2"  stroke-width="2"/>
+            </svg>
+            Total Target
+          </div>
+          <div class="text-3xl font-bold text-gray-900">{{ selectedProject.target || '—' }}</div>
+          <div class="text-xs text-gray-500 mt-1">Units or milestones</div>
+        </div>
+
+        <!-- Achieved -->
+        <div class="rounded-xl p-4 shadow-sm" style="background:#fdf8e8; border:1px solid #ece4b0;">
+          <div class="flex items-center gap-1.5 mb-2 uppercase tracking-wide"
+               style="font-size:11px; font-weight:600; color:#b8860b;">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Achieved
+          </div>
+          <div class="text-3xl font-bold text-gray-900">{{ achievedCount }}</div>
+          <div class="mt-1 flex items-center gap-1" style="font-size:11px; color:#22a06b;">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+            </svg>
+            +12% from last week
+          </div>
+        </div>
+
+        <!-- Completion Rate Donut -->
+        <div class="bg-white border border-gray-200 rounded-xl p-4 flex flex-col items-center justify-center shadow-sm">
+          <div class="relative w-20 h-20">
+            <svg class="w-20 h-20 -rotate-90" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="30" fill="none" stroke="#eae6f5" stroke-width="9"/>
+              <circle cx="40" cy="40" r="30" fill="none" stroke="#5a4bb3" stroke-width="9"
+                [attr.stroke-dasharray]="188.5"
+                [attr.stroke-dashoffset]="188.5 * (1 - completionRate / 100)"
+                stroke-linecap="round"/>
+            </svg>
+            <span class="absolute inset-0 flex items-center justify-center text-base font-bold text-gray-900">
+              {{ completionRate }}%
+            </span>
+          </div>
+          <div class="text-xs text-gray-500 mt-2">Completion Rate</div>
+        </div>
+
+        <!-- Duration -->
+        <div class="rounded-xl p-4 shadow-sm" style="background:#fdf5e0; border:1px solid #ecdfa8;">
+          <div class="flex items-center gap-1.5 mb-2 uppercase tracking-wide"
+               style="font-size:11px; font-weight:600; color:#c8960c;">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            Duration
+          </div>
+          <div class="text-3xl font-bold text-gray-900">{{ durationDays }}</div>
+          <div class="text-xs text-gray-500 mt-1">Total days scheduled</div>
+        </div>
+
+        <!-- Active Delay -->
+        <div class="rounded-xl p-4 shadow-sm" style="background:#fdf0e8; border:1px solid #f0c8a0;">
+          <div class="flex items-center gap-1.5 mb-2 uppercase tracking-wide"
+               style="font-size:11px; font-weight:600; color:#d4640a;">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            </svg>
+            Active Delay
+          </div>
+          <div class="text-3xl font-bold" style="color:#d4640a;">{{ delayDays }}</div>
+          <div class="text-xs mt-1" style="color:#d4640a;">Days behind schedule</div>
+        </div>
+
+      </div>
+
+      <!-- ── Bottom Row ── -->
+      <div class="grid grid-cols-3 gap-3">
+
+        <!-- Project Status -->
+        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-sm font-semibold text-gray-900">Project Status</span>
+            <button type="button"
+              class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Not Started -->
+          <div class="flex items-center justify-between py-2.5 border border-gray-100 rounded-lg px-3 mb-2 bg-gray-50">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                <div class="w-2 h-2 rounded-full bg-gray-300"></div>
+              </div>
+              <span class="text-sm text-gray-600">Not Started</span>
+            </div>
+            <span class="text-xs font-semibold text-gray-500">
+              {{ notStartedCount.toString().padStart(2,'0') }} Tasks
+            </span>
+          </div>
+
+          <!-- In Progress -->
+          <div class="flex items-center justify-between py-2.5 rounded-lg px-3 mb-2"
+               style="background:#f0eeff; border:1px solid #d8d0f0;">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full flex items-center justify-center"
+                   style="background:#5a4bb3;">
+                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                </svg>
+              </div>
+              <span class="text-sm font-medium text-gray-800">In Progress</span>
+            </div>
+            <span class="text-[10px] font-bold text-white px-2.5 py-1 rounded-full tracking-wide"
+                  style="background:#5a4bb3;">ACTIVE</span>
+          </div>
+
+          <!-- Completed -->
+          <div class="flex items-center justify-between py-2.5 border border-gray-100 rounded-lg px-3 opacity-60">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <span class="text-sm text-gray-500">Completed</span>
+            </div>
+            <span class="text-xs font-semibold text-gray-400">
+              {{ completedCount.toString().padStart(2,'0') }} Tasks
+            </span>
+          </div>
+        </div>
+
+        <!-- Project Priority -->
+        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-sm font-semibold text-gray-900">Project Priority</span>
+            <div class="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="space-y-3 mb-4">
+            <!-- High -->
+            <div>
+              <div class="text-xs font-medium text-gray-600 mb-1.5">High</div>
+              <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500"
+                     style="background:#e05050;"
+                     [style.width.%]="highPct"></div>
+              </div>
+            </div>
+            <!-- Medium -->
+            <div>
+              <div class="text-xs font-medium text-gray-600 mb-1.5">Medium</div>
+              <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500"
+                     style="background:#c8c4d8;"
+                     [style.width.%]="medPct"></div>
+              </div>
+            </div>
+            <!-- Low -->
+            <div>
+              <div class="text-xs font-medium text-gray-600 mb-1.5">Low</div>
+              <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-500"
+                     style="background:#d8d4e8;"
+                     [style.width.%]="lowPct"></div>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-lg p-2.5 leading-relaxed">
+            Priority escalated based on executive stakeholder quarterly review requirements.
+          </p>
+        </div>
+
+        <!-- Risk Exposure -->
+        <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-semibold text-gray-900">Risk Exposure</span>
+            <a href="#" class="text-xs font-semibold hover:underline" style="color:#5a4bb3;">
+              View Mitigation
+            </a>
+          </div>
+
+          <!-- Gauge SVG -->
+          <div class="flex justify-center my-1">
+            <svg width="160" height="90" viewBox="0 0 160 90">
+              <!-- Low segment (green) -->
+              <path d="M 20,78 A 60,60 0 0,1 58,20"
+                fill="none" stroke="#b8e8c8" stroke-width="14" stroke-linecap="butt"/>
+              <!-- Medium segment (peach/orange) -->
+              <path d="M 58,20 A 60,60 0 0,1 102,20"
+                fill="none" stroke="#f5d0b0" stroke-width="14" stroke-linecap="butt"/>
+              <!-- High segment (pink/red) -->
+              <path d="M 102,20 A 60,60 0 0,1 140,78"
+                fill="none" stroke="#f5c0c0" stroke-width="14" stroke-linecap="butt"/>
+              <!-- Needle -->
+              <line x1="80" y1="78" x2="80" y2="24"
+                stroke="#8b7dd4" stroke-width="2.5" stroke-linecap="round"
+                transform="rotate(10 80 78)"/>
+              <circle cx="80" cy="78" r="5" fill="#8b7dd4"/>
+            </svg>
+          </div>
+
+          <div class="text-center text-2xl font-bold text-gray-900 mb-3">Med</div>
+
+          <div class="flex gap-1.5 mb-3">
+            <button type="button" (click)="riskLevel='low'"
+              [style.background]="riskLevel==='low' ? '#5a4bb3' : 'white'"
+              [style.color]="riskLevel==='low' ? 'white' : '#6b7280'"
+              [style.borderColor]="riskLevel==='low' ? '#5a4bb3' : '#e5e7eb'"
+              class="flex-1 py-1.5 rounded-lg text-xs font-semibold border transition">Low</button>
+            <button type="button" (click)="riskLevel='medium'"
+              [style.background]="riskLevel==='medium' ? '#5a4bb3' : 'white'"
+              [style.color]="riskLevel==='medium' ? 'white' : '#6b7280'"
+              [style.borderColor]="riskLevel==='medium' ? '#5a4bb3' : '#e5e7eb'"
+              class="flex-1 py-1.5 rounded-lg text-xs font-semibold border transition">Medium</button>
+            <button type="button" (click)="riskLevel='high'"
+              [style.background]="riskLevel==='high' ? '#5a4bb3' : 'white'"
+              [style.color]="riskLevel==='high' ? 'white' : '#6b7280'"
+              [style.borderColor]="riskLevel==='high' ? '#5a4bb3' : '#e5e7eb'"
+              class="flex-1 py-1.5 rounded-lg text-xs font-semibold border transition">High</button>
+          </div>
+
+          <div class="border-t border-gray-100 pt-3 space-y-1.5">
+            <div class="flex justify-between text-xs text-gray-600">
+              <span>Financial Risk</span>
+              <span class="font-semibold text-gray-800">Low (15%)</span>
+            </div>
+            <div class="flex justify-between text-xs text-gray-600">
+              <span>Operational Risk</span>
+              <span class="font-semibold text-gray-800">Moderate (42%)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    }
+  }
+
+  <!-- TASK TAB -->
+  @if (activeTab === 'task') {
+    <div class="flex items-center justify-center py-24">
+      <div class="flex flex-col items-center gap-3 text-gray-400">
+        <div class="w-8 h-8 border-4 border-[#5a4bb3] border-t-transparent rounded-full animate-spin"></div>
+        <span class="text-sm">Navigating to Task dashboard...</span>
+      </div>
+    </div>
+  }
+
+</div>

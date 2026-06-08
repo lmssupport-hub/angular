@@ -102,14 +102,12 @@ export class ProjectsList implements OnInit {
   loadProjects(): void {
     this.isLoadingProjects = true;
     this.loadError = null;
-    this.cdr.detectChanges();
 
     this.apiService.getProjects().subscribe({
       next: (data) => {
         this.projects = Array.isArray(data) ? data : [];
         this.existingProjectNames = this.projects.map(p => p.projectName);
         this.isLoadingProjects = false;
-        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Load projects failed', err);
@@ -117,7 +115,6 @@ export class ProjectsList implements OnInit {
         this.existingProjectNames = [];
         this.loadError = 'Cannot reach the server. Check your connection.';
         this.isLoadingProjects = false;
-        this.cdr.detectChanges();
       },
     });
   }
@@ -136,37 +133,36 @@ export class ProjectsList implements OnInit {
   }
 
   onEditDateChange(project: Project, field: 'projectReceivedDate' | 'startDate' | 'dueDate', event: Event): void {
-  const val = (event.target as HTMLInputElement).value;
-  if (!val) return;
+    const val = (event.target as HTMLInputElement).value;
+    if (!val) return;
 
-  const oldValue = project[field];
+    const oldValue = project[field];
 
-  const payload: ProjectPayload = {
-    projectName:         project.projectName,
-    projectDescription:  project.projectDescription || '',
-    projectReceivedDate: field === 'projectReceivedDate' ? val : project.projectReceivedDate.substring(0, 10),
-    startDate:           field === 'startDate'           ? val : project.startDate.substring(0, 10),
-    dueDate:             field === 'dueDate'             ? val : project.dueDate.substring(0, 10),
-    assignedUsers:       project.assignedUsers,
-    formulaRows:         project.formulaRows || [],
-  };
+    const payload: ProjectPayload = {
+      projectName:         project.projectName,
+      projectDescription:  project.projectDescription || '',
+      projectReceivedDate: field === 'projectReceivedDate' ? val : project.projectReceivedDate.substring(0, 10),
+      startDate:           field === 'startDate'           ? val : project.startDate.substring(0, 10),
+      dueDate:             field === 'dueDate'             ? val : project.dueDate.substring(0, 10),
+      assignedUsers:       project.assignedUsers,
+      formulaRows:         project.formulaRows || [],
+    };
 
-  project[field] = val;
+    project[field] = val;
 
-  this.apiService.updateProject(project.id, payload).subscribe({
-    next: (updatedProject) => {
-      this.projects = this.projects.map(p =>
-        p.id === project.id ? { ...p, ...updatedProject } : p
-      );
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      console.error('Inline date update failed', err);
-      project[field] = oldValue;
-      this.cdr.detectChanges();
-    },
-  });
-}
+    this.apiService.updateProject(project.id, payload).subscribe({
+      next: (updatedProject) => {
+        // Update local state only — no reload
+        this.projects = this.projects.map(p =>
+          p.id === project.id ? { ...p, ...updatedProject } : p
+        );
+      },
+      error: (err) => {
+        console.error('Inline date update failed', err);
+        project[field] = oldValue;
+      },
+    });
+  }
 
   toggleExpandUserDropdown(id: number, event: Event): void {
     event.stopPropagation();
@@ -188,35 +184,34 @@ export class ProjectsList implements OnInit {
   }
 
   private patchProjectUsers(project: Project, assignedUsers: string[]): void {
-  const oldUsers = [...project.assignedUsers];
+    const oldUsers = [...project.assignedUsers];
 
-  const payload: ProjectPayload = {
-    projectName:         project.projectName,
-    projectDescription:  project.projectDescription || '',
-    projectReceivedDate: project.projectReceivedDate.substring(0, 10),
-    startDate:           project.startDate.substring(0, 10),
-    dueDate:             project.dueDate.substring(0, 10),
-    assignedUsers,
-    formulaRows:         project.formulaRows || [],
-  };
+    const payload: ProjectPayload = {
+      projectName:         project.projectName,
+      projectDescription:  project.projectDescription || '',
+      projectReceivedDate: project.projectReceivedDate.substring(0, 10),
+      startDate:           project.startDate.substring(0, 10),
+      dueDate:             project.dueDate.substring(0, 10),
+      assignedUsers,
+      formulaRows:         project.formulaRows || [],
+    };
 
-  project.assignedUsers = assignedUsers;
-  this.expandUserDropdownId = null;
+    project.assignedUsers = assignedUsers;
+    this.expandUserDropdownId = null;
 
-  this.apiService.updateProject(project.id, payload).subscribe({
-    next: (updatedProject) => {
-      this.projects = this.projects.map(p =>
-        p.id === project.id ? { ...p, ...updatedProject } : p
-      );
-      this.cdr.detectChanges();
-    },
-    error: (err) => {
-      console.error('User update failed', err);
-      project.assignedUsers = oldUsers;
-      this.cdr.detectChanges();
-    },
-  });
-}
+    this.apiService.updateProject(project.id, payload).subscribe({
+      next: (updatedProject) => {
+        // Update local state only — no reload
+        this.projects = this.projects.map(p =>
+          p.id === project.id ? { ...p, ...updatedProject } : p
+        );
+      },
+      error: (err) => {
+        console.error('User update failed', err);
+        project.assignedUsers = oldUsers;
+      },
+    });
+  }
 
   openProjectPopup(project?: Project, event?: Event): void {
     event?.stopPropagation();
@@ -288,21 +283,38 @@ export class ProjectsList implements OnInit {
 
     this.isSavingProject = true;
 
-    const request$ = this.editingProject
-      ? this.apiService.updateProject(this.editingProject.id, payload)
-      : this.apiService.createProject(payload);
-
-    request$.subscribe({
-      next: () => {
-        this.isSavingProject = false;
-        this.closeProjectPopup();
-        this.loadProjects();
-      },
-      error: (err) => {
-        console.error(this.editingProject ? 'Update failed' : 'Save failed', err);
-        this.isSavingProject = false;
-      },
-    });
+    if (this.editingProject) {
+      // UPDATE — patch local state, no reload
+      const editId = this.editingProject.id;
+      this.apiService.updateProject(editId, payload).subscribe({
+        next: (updatedProject) => {
+          this.projects = this.projects.map(p =>
+            p.id === editId ? { ...p, ...updatedProject } : p
+          );
+          this.existingProjectNames = this.projects.map(p => p.projectName);
+          this.isSavingProject = false;
+          this.closeProjectPopup();
+        },
+        error: (err) => {
+          console.error('Update failed', err);
+          this.isSavingProject = false;
+        },
+      });
+    } else {
+      // CREATE — append to local list, no reload
+      this.apiService.createProject(payload).subscribe({
+        next: (newProject) => {
+          this.projects = [...this.projects, newProject];
+          this.existingProjectNames = this.projects.map(p => p.projectName);
+          this.isSavingProject = false;
+          this.closeProjectPopup();
+        },
+        error: (err) => {
+          console.error('Save failed', err);
+          this.isSavingProject = false;
+        },
+      });
+    }
   }
 
   deleteProject(id: number, event: Event): void {
@@ -322,13 +334,17 @@ export class ProjectsList implements OnInit {
 
   confirmDelete(): void {
     if (!this.deletingProjectId) return;
+    const deleteId = this.deletingProjectId;
 
     this.isDeletingProject = true;
-    this.apiService.deleteProject(this.deletingProjectId).subscribe({
+    this.apiService.deleteProject(deleteId).subscribe({
       next: () => {
+        // Remove from local state — no reload
+        this.projects = this.projects.filter(p => p.id !== deleteId);
+        this.existingProjectNames = this.projects.map(p => p.projectName);
+        this.expandedProjectIds.delete(deleteId);
         this.isDeletingProject = false;
         this.cancelDelete();
-        this.loadProjects();
       },
       error: (err) => {
         console.error('Delete failed', err);
@@ -467,12 +483,12 @@ export class ProjectsList implements OnInit {
   }
 
   applyOperator(v1: number, op: Operator | '', v2: number): number | null {
-  if (op === '+') return v1 + v2;
-  if (op === '-') return v1 - v2;
-  if (op === '*') return v1 * v2;
-  if (op === '/') return v2 > 0 ? v1 / v2 : null;
-  return null;
-}
+    if (op === '+') return v1 + v2;
+    if (op === '-') return v1 - v2;
+    if (op === '*') return v1 * v2;
+    if (op === '/') return v2 > 0 ? v1 / v2 : null;
+    return null;
+  }
 
   onDatePickerChange(ctrl: 'projectReceivedDate' | 'startDate' | 'dueDate', e: Event): void {
     const val = ProjectsList.dateInputToDDMMYYYY((e.target as HTMLInputElement).value);
@@ -486,9 +502,9 @@ export class ProjectsList implements OnInit {
   }
 
   formatDate(dateStr: string): string {
-    if (!dateStr) return 'â€”';
+    if (!dateStr) return '—';
     const d = new Date(dateStr);
-    return isNaN(d.getTime()) ? 'â€”' : d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+    return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
   }
 
   getInitials(name: string): string {
@@ -504,18 +520,15 @@ export class ProjectsList implements OnInit {
 
   getCalendarCells(dateStr: string): { day: number | null; isSelected: boolean }[] {
     if (!dateStr) return [];
-
     const d = new Date(dateStr);
     const year = d.getFullYear();
     const month = d.getMonth();
     const selectedDay = d.getDate();
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-
     const cells: { day: number | null; isSelected: boolean }[] = [];
     for (let i = 0; i < firstDay; i++) cells.push({ day: null, isSelected: false });
     for (let i = 1; i <= daysInMonth; i++) cells.push({ day: i, isSelected: i === selectedDay });
-
     return cells;
   }
 
@@ -532,7 +545,7 @@ export class ProjectsList implements OnInit {
   }
 
   getTargetLabel(project: Project): string {
-    return project.target ? project.target.toString() : 'â€”';
+    return project.target ? project.target.toString() : '—';
   }
 
   private serializeFormulaRows(rows: FormulaRow[]) {
@@ -554,12 +567,10 @@ export class ProjectsList implements OnInit {
   uniqueProjectName(control: AbstractControl): ValidationErrors | null {
     const v = String(control.value || '').trim();
     if (!v) return null;
-
     const editId = this.editingProject?.id ?? null;
     const names = editId
       ? this.existingProjectNames.filter((_, i) => this.projects[i]?.id !== editId)
       : this.existingProjectNames;
-
     return names.some(n => n.toLowerCase() === v.toLowerCase()) ? { duplicateProject: true } : null;
   }
 
@@ -578,10 +589,8 @@ export class ProjectsList implements OnInit {
   notFutureDate(c: AbstractControl): ValidationErrors | null {
     const d = ProjectsList.parseDate(c.value);
     if (!d) return null;
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     return d > today ? { futureDate: true } : null;
   }
 
@@ -589,23 +598,18 @@ export class ProjectsList implements OnInit {
     const rec   = ProjectsList.parseDate(g.get('projectReceivedDate')?.value);
     const start = ProjectsList.parseDate(g.get('startDate')?.value);
     const due   = ProjectsList.parseDate(g.get('dueDate')?.value);
-
     if (rec && start && start < rec) return { startBeforeReceived: true };
     if (start && due && due < start) return { dueBeforeStart: true };
-
     return null;
   }
 
   static parseDate(value: string | null | undefined): Date | null {
     if (!value) return null;
-
     const v = String(value).trim();
     if (!/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/.test(v)) return null;
-
     const [d, m, y] = v.split('/').map(Number);
     const date = new Date(y, m - 1, d);
     date.setHours(0, 0, 0, 0);
-
     return date.getFullYear() === y && date.getMonth() === m - 1 && date.getDate() === d ? date : null;
   }
 

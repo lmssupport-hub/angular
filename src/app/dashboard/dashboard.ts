@@ -27,28 +27,31 @@ export class Dashboard implements OnInit {
     }
   }
 
+  // Toggle Projects — closes Tasks
   openProjectsMenu() {
-    this.isProjectsOpen = true;
+    this.isProjectsOpen = !this.isProjectsOpen;
+    this.isTasksOpen = false;
   }
 
   closeProjectsMenu() {
     this.isProjectsOpen = false;
   }
 
+  // Toggle Tasks — closes Projects
   openTasksMenu() {
-  this.isTasksOpen = true;
-}
-
-closeTasksMenu() {
-  this.isTasksOpen = false;
-}
-
-  toggleSidebar() {
-  this.isSidebarOpen = !this.isSidebarOpen;
-
-  if (!this.isSidebarOpen) {
+    this.isTasksOpen = !this.isTasksOpen;
     this.isProjectsOpen = false;
+  }
+
+  closeTasksMenu() {
     this.isTasksOpen = false;
   }
-}
+
+  toggleSidebar() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+    if (!this.isSidebarOpen) {
+      this.isProjectsOpen = false;
+      this.isTasksOpen = false;
+    }
+  }
 }

@@ -1,1 +1,388 @@
-<p>tasks works!</p>
+<!-- ═══════════════════════════════════════════════════════════════
+     TASK PERFORMANCE DASHBOARD
+     Background: soft pink/lavender gradient (matches screenshot)
+═══════════════════════════════════════════════════════════════ -->
+<div class="min-h-screen px-6 py-6"
+     style="background: linear-gradient(160deg, #fce8fb 0%, #f3eeff 40%, #fde8f4 100%);">
+
+  <!-- ── Header ──────────────────────────────────────────────────── -->
+  <div class="flex items-start justify-between mb-5">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Task Performance Dashboard</h1>
+      <p class="text-sm text-gray-500 mt-0.5">Real-time analytical breakdown of execution efficiency.</p>
+    </div>
+
+    <!-- Project / Task tab toggle -->
+    <div class="flex rounded-lg overflow-hidden border border-[#7c69d4]" style="background:white;">
+      <button type="button" (click)="switchTab('project')"
+        class="px-5 py-2 text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 transition">
+        Project
+      </button>
+      <button type="button"
+        class="px-5 py-2 text-sm font-semibold text-white"
+        style="background:#5a4bb3;">
+        Task
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Select Task Card ────────────────────────────────────────── -->
+  <!-- ── Select Task Card ────────────────────────────────────────── -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm px-6 py-5 mb-5">
+
+  <div class="flex items-center gap-6 flex-wrap">
+
+    <!-- Project selector -->
+    <div class="flex items-center gap-4" *ngIf="projects().length > 0 || isLoadingProjects()">
+      <label class="text-sm font-semibold text-gray-700 whitespace-nowrap">Select Project:</label>
+      <div class="relative w-64">
+        <select (change)="onProjectSelect($event)"
+          [disabled]="isLoadingProjects()"
+          class="w-full appearance-none rounded-xl border border-gray-300 bg-white px-4 py-2.5 pr-9 text-sm text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#5a4bb3] transition disabled:opacity-50">
+          <option value="" disabled [selected]="!selectedProjectId()">
+            {{ isLoadingProjects() ? 'Loading...' : '--- Select Project ---' }}
+          </option>
+          <option *ngFor="let p of projects()" [value]="p.id">{{ p.projectName }}</option>
+        </select>
+        <svg class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="h-8 w-px bg-gray-200" *ngIf="projects().length > 0 || isLoadingProjects()"></div>
+
+    <!-- Task selector -->
+    <div class="flex items-center gap-4">
+      <label class="text-sm font-semibold text-gray-700 whitespace-nowrap">Select Task:</label>
+      <div class="relative w-72">
+        <select (change)="onTaskSelect($event)"
+          [disabled]="!selectedProjectId() || isLoadingTasks()"
+          class="w-full appearance-none rounded-xl border-2 bg-white px-4 py-2.5 pr-9 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#5a4bb3] transition disabled:opacity-50 disabled:cursor-not-allowed"
+          [class.border-[#5a4bb3]]="selectedProjectId()"
+          [class.border-gray-200]="!selectedProjectId()">
+          <option value="" disabled [selected]="!selectedTaskId()">
+            {{ isLoadingTasks() ? 'Loading tasks...' : '--- Select Task ---' }}
+          </option>
+          <option *ngFor="let t of tasks()" [value]="t.id">{{ t.taskName }}</option>
+        </select>
+        <svg class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Validation error -->
+  <div *ngIf="showValidation() && !selectedTaskId()"
+    class="flex items-center gap-1.5 mt-2 text-xs text-red-500">
+    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+      <path fill-rule="evenodd"
+        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+        clip-rule="evenodd"/>
+    </svg>
+    Task selection is required
+  </div>
+
+  <!-- No tasks warning -->
+  <div *ngIf="selectedProjectId() && !isLoadingTasks() && tasks().length === 0"
+    class="mt-3 flex items-center gap-2 text-xs text-amber-600 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+      <path fill-rule="evenodd"
+        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+        clip-rule="evenodd"/>
+    </svg>
+    No tasks found for this project.
+  </div>
+
+  <!-- Task load error -->
+  <div *ngIf="taskLoadError()"
+    class="mt-3 flex items-center gap-2 text-xs text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+    <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+    </svg>
+    {{ taskLoadError() }}
+    <button type="button" (click)="retryTasks()" class="ml-1 underline font-semibold">Retry</button>
+  </div>
+
+</div>
+
+  <!-- ── 4 Metric Cards ──────────────────────────────────────────── -->
+  <div class="grid grid-cols-4 gap-4 mb-5">
+
+    <!-- TOTAL TARGET — lavender/purple -->
+    <div class="rounded-2xl p-5 shadow-sm" style="background:#eae6f5; border:1px solid #d4cdf0;">
+      <div class="flex items-center gap-2 mb-3">
+        <svg class="w-5 h-5" style="color:#6c5fc7;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" stroke-width="2"/>
+          <circle cx="12" cy="12" r="6"  stroke-width="2"/>
+          <circle cx="12" cy="12" r="2"  stroke-width="2"/>
+        </svg>
+        <span class="text-xs font-bold uppercase tracking-wider" style="color:#6c5fc7;">Total Target</span>
+      </div>
+      <div class="text-4xl font-bold text-gray-900 mb-1">{{ taskTarget() }}</div>
+      <div class="text-xs text-gray-500">Units or milestones</div>
+    </div>
+
+    <!-- ACHIEVED — warm yellow -->
+    <div class="rounded-2xl p-5 shadow-sm" style="background:#fdf8e8; border:1px solid #ece4b0;">
+      <div class="flex items-center gap-2 mb-3">
+        <svg class="w-5 h-5" style="color:#b8860b;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="text-xs font-bold uppercase tracking-wider" style="color:#b8860b;">Achieved</span>
+      </div>
+      <div class="text-4xl font-bold text-gray-900 mb-1">{{ taskAchieved() }}</div>
+      <div class="flex items-center gap-1" style="font-size:11px; color:#22a06b;">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+        </svg>
+        +12% from last week
+      </div>
+    </div>
+
+    <!-- DURATION — cream yellow -->
+    <div class="rounded-2xl p-5 shadow-sm" style="background:#fdf5e0; border:1px solid #ecdfa8;">
+      <div class="flex items-center gap-2 mb-3">
+        <svg class="w-5 h-5" style="color:#c8960c;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="text-xs font-bold uppercase tracking-wider" style="color:#c8960c;">Duration</span>
+      </div>
+      <div class="text-4xl font-bold text-gray-900 mb-1">{{ taskDuration() }}</div>
+      <div class="text-xs text-gray-500">Total days scheduled</div>
+    </div>
+
+    <!-- ACTIVE DELAY — orange/peach -->
+    <div class="rounded-2xl p-5 shadow-sm" style="background:#fdf0e8; border:1px solid #f0c8a0;">
+      <div class="flex items-center gap-2 mb-3">
+        <svg class="w-5 h-5" style="color:#d4640a;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+        </svg>
+        <span class="text-xs font-bold uppercase tracking-wider" style="color:#d4640a;">Active Delay</span>
+      </div>
+      <div class="text-4xl font-bold mb-1" style="color:#d4640a;">{{ taskDelay() }}</div>
+      <div class="text-xs" style="color:#d4640a;">Days behind schedule</div>
+    </div>
+  </div>
+
+  <!-- ── Middle Row: Target Completion + Velocity Trend ─────────── -->
+  <div class="grid grid-cols-2 gap-4 mb-5">
+
+    <!-- Target Completion donut -->
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col">
+      <h3 class="text-sm font-semibold text-gray-900 mb-5">Target Completion</h3>
+      <div class="flex flex-col items-center justify-center flex-1">
+        <!-- SVG donut -->
+        <div class="relative mb-4" style="width:160px;height:160px;">
+          <svg width="160" height="160" viewBox="0 0 160 160" class="-rotate-90 block">
+            <!-- Track ring -->
+            <circle cx="80" cy="80" r="60"
+              fill="none" stroke="#e5e7eb" stroke-width="18"/>
+            <!-- Progress ring: circumference = 2π×60 ≈ 376.99 -->
+            <circle cx="80" cy="80" r="60"
+              fill="none" stroke="#374151" stroke-width="18"
+              stroke-linecap="round"
+              stroke-dasharray="376.99"
+              [attr.stroke-dashoffset]="376.99 * (1 - taskCompletionRate() / 100)"/>
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <span class="text-3xl font-bold text-gray-900">{{ taskCompletionRate() }}%</span>
+            <span class="text-[9px] font-bold uppercase tracking-widest text-gray-400 mt-0.5">OF TOTAL GOAL</span>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400 text-center leading-relaxed">
+          Maintaining a 2.3% acceleration rate<br>since project inception.
+        </p>
+      </div>
+    </div>
+
+    <!-- Velocity Trend bar chart -->
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-semibold text-gray-900">Velocity Trend</h3>
+        <div class="flex items-center gap-4 text-xs text-gray-500">
+          <span class="flex items-center gap-1.5">
+            <span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:#374151;"></span>
+            Actual
+          </span>
+          <span class="flex items-center gap-1.5">
+            <span class="inline-block w-2.5 h-2.5 rounded-sm" style="background:#c7d2fe;"></span>
+            Predicted
+          </span>
+        </div>
+      </div>
+
+      <!-- Bar chart container -->
+      <div class="flex-1 flex items-end justify-around gap-1 px-2" style="min-height:150px;">
+        <div *ngFor="let bar of velocityBars" class="flex flex-col items-center gap-1 flex-1">
+          <div class="w-full flex items-end justify-center gap-0.5" style="height:140px;">
+            <!-- Actual bar -->
+            <div class="flex-1 rounded-t-sm transition-all duration-700"
+              style="background:#3d4663; min-width:8px;"
+              [style.height.px]="bar.actual"></div>
+            <!-- Predicted bar -->
+            <div class="flex-1 rounded-t-sm transition-all duration-700"
+              style="background:#c7d2fe; min-width:8px;"
+              [style.height.px]="bar.predicted"></div>
+          </div>
+          <span class="text-[10px] font-medium text-gray-400 uppercase tracking-wider">{{ bar.day }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Operational Task Parameters ───────────────────────────────── -->
+  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+      <h3 class="text-sm font-semibold text-gray-900">Operational Task Parameters</h3>
+      <button type="button"
+        class="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-700 transition">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 4a1 1 0 011-1h16a1 1 0 010 2H4a1 1 0 01-1-1zm3 5h12M7 14h8"/>
+        </svg>
+        Filter View
+      </button>
+    </div>
+
+    <!-- No task selected state -->
+    <div *ngIf="!selectedTaskId()"
+      class="py-12 text-center text-sm text-gray-400">
+      Select a project and task above to view operational parameters.
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="selectedTaskId() && isLoadingTasks()"
+      class="py-12 text-center">
+      <div class="inline-block w-6 h-6 border-3 border-[#5a4bb3] border-t-transparent rounded-full animate-spin"></div>
+    </div>
+
+    <!-- Table -->
+    <div *ngIf="selectedTaskId() && !isLoadingTasks()" class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-100 bg-gray-50/50">
+            <th class="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Requirement</th>
+            <th class="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Priority</th>
+            <th class="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Risk Level</th>
+            <th class="px-6 py-3 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">Owner</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Main task row -->
+          <tr class="border-b border-gray-50 hover:bg-indigo-50/20 transition-colors"
+            *ngIf="selectedTask()">
+            <td class="px-6 py-4 text-sm font-semibold text-gray-800">
+              {{ selectedTask()?.taskName }}
+            </td>
+            <td class="px-6 py-4">
+              <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
+                [ngClass]="statusBadgeClass(selectedTask()?.status)">
+                {{ selectedTask()?.status }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-1.5 text-xs font-semibold"
+                [ngClass]="priorityTextClass(selectedTask()?.priority)">
+                <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd"
+                    d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
+                    clip-rule="evenodd"/>
+                </svg>
+                {{ selectedTask()?.priority }}
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <ng-container *ngIf="{ risk: taskRiskLevel() } as vm">
+                <div class="flex items-center gap-2">
+                  <div class="flex gap-0.5">
+                    <div class="w-5 h-2 rounded-sm"
+                      [ngClass]="riskBarClass(vm.risk, 1)"></div>
+                    <div class="w-5 h-2 rounded-sm"
+                      [ngClass]="riskBarClass(vm.risk, 2)"></div>
+                    <div class="w-5 h-2 rounded-sm"
+                      [ngClass]="riskBarClass(vm.risk, 3)"></div>
+                  </div>
+                  <span class="text-xs font-bold uppercase tracking-wide"
+                    [ngClass]="riskTextClass(vm.risk)">
+                    {{ vm.risk }}
+                  </span>
+                </div>
+              </ng-container>
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                  style="background:#818cf8;">
+                  {{ (selectedTask()?.assignedUserName ?? 'U').charAt(0).toUpperCase() }}
+                </div>
+                <span class="text-sm text-gray-700">{{ selectedTask()?.assignedUserName ?? '—' }}</span>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Sub-task rows -->
+          <ng-container *ngIf="selectedTask()?.subTasks?.length">
+            <tr *ngFor="let sub of selectedTask()?.subTasks; let i = index"
+              class="border-b border-gray-50 hover:bg-indigo-50/10 transition-colors">
+              <td class="px-6 py-3.5 text-sm text-gray-600 pl-10">
+                <span class="inline-block w-1.5 h-1.5 rounded-full bg-gray-300 mr-2 align-middle"></span>
+                {{ sub.title }}
+              </td>
+              <td class="px-6 py-3.5">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
+                  [ngClass]="statusBadgeClass(selectedTask()?.status)">
+                  {{ selectedTask()?.status }}
+                </span>
+              </td>
+              <td class="px-6 py-3.5">
+                <div class="flex items-center gap-1.5 text-xs font-semibold text-gray-400">—</div>
+              </td>
+              <td class="px-6 py-3.5">
+                <span class="text-xs text-gray-400">—</span>
+              </td>
+              <td class="px-6 py-3.5">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                    style="background:#818cf8;">
+                    {{ (selectedTask()?.assignedUserName ?? 'U').charAt(0).toUpperCase() }}
+                  </div>
+                  <span class="text-sm text-gray-700">{{ selectedTask()?.assignedUserName ?? '—' }}</span>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Task detail info footer -->
+    <div *ngIf="selectedTask()"
+      class="px-6 py-3.5 border-t border-gray-100 bg-gray-50/40 flex items-center justify-between">
+      <div class="flex items-center gap-2 text-sm text-[#5a4bb3]">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd"
+            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+            clip-rule="evenodd"/>
+        </svg>
+        Task: <span class="font-semibold ml-1">{{ selectedTask()?.taskName }}</span>
+      </div>
+      <div class="flex items-center gap-6 text-xs text-gray-500">
+        <span>Start: <strong class="text-gray-700">{{ selectedTask()?.startDate }}</strong></span>
+        <span>Due: <strong class="text-gray-700">{{ selectedTask()?.dueDate }}</strong></span>
+        <span>Target: <strong class="text-gray-700">{{ selectedTask()?.targetCount }}</strong></span>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -24,6 +24,7 @@ export interface TaskResponse {
   taskName:          string;
   description:       string;
   targetCount:       number;
+  achievedCount?:    number;   // actual completed units; optional until API supports it
   priority:          Priority;
   status:            TaskStatus;
   assignedUserId:    number;
