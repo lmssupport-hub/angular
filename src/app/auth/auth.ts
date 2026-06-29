@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ApiService } from '../services/api.service';
+import { AuthService  } from '../services/auth.service';
 
 @Component({
   selector: 'app-auth',
@@ -68,7 +68,7 @@ export class Auth {
   ];
 
   constructor(
-    private apiService: ApiService,
+    private apiService: AuthService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -143,6 +143,10 @@ export class Auth {
     this.resetLoginErrors();
     this.loginSubmitted = false;
   }
+
+  goToForgotPassword() {
+  this.router.navigate(['/Forgot-Password']);
+}
 
   validateLoginForm(): boolean {
     this.resetLoginErrors();

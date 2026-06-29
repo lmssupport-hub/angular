@@ -1,0 +1,312 @@
+@if (isOpen) {
+  <!-- Backdrop -->
+  <div
+    class="fixed inset-0 bg-black/40 z-40 flex items-center justify-center"
+    (click)="onBackdropClick()"
+  >
+    <!-- Modal Card -->
+    <div
+      class="bg-white rounded-[20px] w-[740px] max-h-[90vh] overflow-y-auto p-8 shadow-xl z-50"
+      (click)="$event.stopPropagation()"
+    >
+      <h2 class="text-lg font-bold text-gray-900 mb-6">Create Meeting</h2>
+
+      <div class="grid grid-cols-2 gap-x-8 gap-y-5">
+
+        <!-- ── COL 1 ──────────────────────────────────────────── -->
+        <div class="flex flex-col gap-5">
+
+          <!-- Meeting Title -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[13px] font-medium text-gray-700">
+              Meeting Title <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              [(ngModel)]="form.title"
+              [maxlength]="maxTitle"
+              placeholder="Enter meeting title"
+              class="w-full px-3 py-2 text-[13px] border rounded-lg focus:outline-none focus:ring-1 text-gray-800 bg-white"
+              [class.border-red-400]="errors['title']"
+              [class.focus:ring-red-300]="errors['title']"
+              [class.border-gray-200]="!errors['title']"
+              [class.focus:ring-blue-300]="!errors['title']"
+            />
+            <div class="flex justify-between">
+              <span class="text-[11px] text-red-500">{{ errors['title'] }}</span>
+              <span class="text-[11px] text-gray-400">{{ form.title.length }}/{{ maxTitle }}</span>
+            </div>
+          </div>
+
+          <!-- Members (dropdown trigger + multi-select checkbox panel) -->
+          <div class="flex flex-col gap-1.5 relative">
+            <label class="text-[13px] font-medium text-gray-700">
+              Members <span class="text-red-500">*</span>
+            </label>
+
+            <!-- Dropdown trigger — styled like the Projects/Status selects -->
+            <div class="relative">
+              <button
+                type="button"
+                (click)="toggleMembersDropdown()"
+                class="w-full flex items-center justify-between px-3 py-2 text-[13px] border rounded-lg focus:outline-none focus:ring-1 text-left bg-white"
+                [class.border-red-400]="errors['members']"
+                [class.border-gray-200]="!errors['members']"
+              >
+                <span class="text-gray-800 truncate">
+                  @if (form.memberIds.length === 0) {
+                    <span class="text-gray-400">Select members</span>
+                  } @else {
+                    {{ form.memberIds.length }} member{{ form.memberIds.length !== 1 ? 's' : '' }} selected
+                  }
+                </span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-gray-400 flex-shrink-0 transition-transform duration-150"
+                  [class.rotate-180]="isMembersDropdownOpen()"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </button>
+
+              <!-- Backdrop to close on outside click -->
+              @if (isMembersDropdownOpen()) {
+                <div class="fixed inset-0 z-10" (click)="closeMembersDropdown()"></div>
+              }
+
+              <!-- Checkbox panel -->
+              @if (isMembersDropdownOpen()) {
+                <div class="absolute left-0 right-0 top-[calc(100%+4px)] z-20 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                  <div class="max-h-[160px] overflow-y-auto divide-y divide-gray-100">
+                    @for (user of users; track user.id) {
+                      <label class="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-gray-50 select-none">
+                        <input
+                          type="checkbox"
+                          [checked]="isMemberSelected(user.id)"
+                          (change)="toggleMember(user.id)"
+                          (click)="$event.stopPropagation()"
+                          class="accent-blue-500 w-3.5 h-3.5"
+                        />
+                        <span class="text-[13px] text-gray-800">{{ user.username }}</span>
+                        <span class="text-[11px] text-gray-400 ml-auto">{{ user.email }}</span>
+                      </label>
+                    }
+                    @if (users.length === 0) {
+                      <div class="px-3 py-2 text-[12px] text-gray-400">No users available</div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Selected chips -->
+            @if (form.memberIds.length > 0) {
+              <div class="flex flex-wrap gap-1.5">
+                @for (id of form.memberIds; track id) {
+                  <span class="flex items-center gap-1 bg-blue-50 text-blue-700 text-[12px] px-2 py-0.5 rounded-full">
+                    {{ getMemberName(id) }}
+                    <button type="button" (click)="removeMember(id)" class="text-blue-400 hover:text-blue-700 leading-none">&times;</button>
+                  </span>
+                }
+              </div>
+            }
+
+            @if (errors['members']) {
+              <span class="text-[11px] text-red-500">{{ errors['members'] }}</span>
+            }
+          </div>
+
+          <!-- Projects -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[13px] font-medium text-gray-700">Projects</label>
+            <div class="relative">
+              <select
+                [(ngModel)]="form.projectId"
+                class="w-full appearance-none px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-300 text-gray-800 bg-white"
+              >
+                <option [ngValue]="null">Select project</option>
+                @for (p of projects; track p.id) {
+                  <option [ngValue]="p.id">{{ p.projectName }}</option>
+                }
+              </select>
+              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </span>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[13px] font-medium text-gray-700">
+              Meeting Status <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <select
+                [(ngModel)]="form.status"
+                class="w-full appearance-none px-3 py-2 text-[13px] border rounded-lg focus:outline-none focus:ring-1 text-gray-800 bg-white"
+                [class.border-red-400]="errors['status']"
+                [class.border-gray-200]="!errors['status']"
+              >
+                @for (opt of statusOptions; track opt) {
+                  <option [value]="opt">{{ opt }}</option>
+                }
+              </select>
+              <span class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </span>
+            </div>
+            @if (errors['status']) {
+              <span class="text-[11px] text-red-500">{{ errors['status'] }}</span>
+            }
+          </div>
+
+          <!-- Decisions & Polls -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[13px] font-medium text-gray-700">Decisions &amp; Polls</label>
+            <textarea
+              [maxlength]="maxDecisions"
+              [(ngModel)]="form.decisionsPolls"
+              class="h-[90px] w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-300 text-gray-800 bg-white resize-none"
+            ></textarea>
+            <div class="flex justify-end">
+              <span class="text-[11px] text-gray-400">{{ form.decisionsPolls.length }}/{{ maxDecisions }}</span>
+            </div>
+          </div>
+
+          <!-- Polls -->
+          <div class="flex flex-col gap-2 bg-gray-50 rounded-lg p-3">
+            <label class="text-[13px] font-medium text-gray-700">Polls</label>
+            @for (poll of form.polls; track $index) {
+              <div class="flex items-center gap-2">
+                <div class="flex flex-col gap-1 flex-1">
+                  <span class="text-[12px] text-gray-500">Question {{ $index + 1 }}</span>
+                  <input
+                    type="text"
+                    [(ngModel)]="poll.question"
+                    placeholder="Enter poll question"
+                    class="w-full px-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-300 text-gray-800 bg-white"
+                  />
+                </div>
+                @if (form.polls.length > 1) {
+                  <button type="button" (click)="removePoll($index)"
+                    class="mt-5 text-gray-400 hover:text-red-500 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                }
+              </div>
+            }
+            <button type="button" (click)="addPollQuestion()"
+              class="self-center mt-1 px-6 py-1.5 text-[13px] font-medium text-gray-600 border border-gray-200 rounded-full hover:bg-gray-100 transition-colors">
+              Add +
+            </button>
+          </div>
+
+        </div>
+
+        <!-- ── COL 2 ──────────────────────────────────────────── -->
+        <div class="flex flex-col gap-5">
+
+          <!-- Date & Time -->
+<div class="flex flex-col gap-1.5">
+  <label class="text-[13px] font-medium text-gray-700">
+    Date &amp; Time <span class="text-red-500">*</span>
+  </label>
+  <div class="flex items-center gap-2">
+    <!-- Date -->
+    <input
+      type="date"
+      [(ngModel)]="form.date"
+      class="flex-1 px-3 py-2 text-[13px] border rounded-lg focus:outline-none focus:ring-1 text-gray-800 bg-white [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+      [class.border-red-400]="errors['dateTime']"
+      [class.border-gray-200]="!errors['dateTime']"
+      [class.focus:ring-red-300]="errors['dateTime']"
+      [class.focus:ring-blue-300]="!errors['dateTime']"
+    />
+    <!-- Time -->
+    <input
+      type="time"
+      [(ngModel)]="form.time"
+      class="px-3 py-2 text-[13px] border rounded-lg focus:outline-none focus:ring-1 text-gray-800 bg-white [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+      [class.border-red-400]="errors['dateTime']"
+      [class.border-gray-200]="!errors['dateTime']"
+      [class.focus:ring-red-300]="errors['dateTime']"
+      [class.focus:ring-blue-300]="!errors['dateTime']"
+    />
+  </div>
+  @if (errors['dateTime']) {
+    <span class="text-[11px] text-red-500">{{ errors['dateTime'] }}</span>
+  }
+</div>
+
+          <!-- Agenda -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[13px] font-medium text-gray-700">
+              Agenda <span class="text-red-500">*</span>
+            </label>
+            <textarea
+              [maxlength]="maxAgenda"
+              [(ngModel)]="form.agenda"
+              placeholder="Enter agenda items (one per line — each becomes an action item)"
+              class="h-[140px] w-full px-3 py-2 text-[13px] border rounded-lg focus:outline-none focus:ring-1 text-gray-800 bg-white resize-none"
+              [class.border-red-400]="errors['agenda']"
+              [class.border-gray-200]="!errors['agenda']"
+              [class.focus:ring-red-300]="errors['agenda']"
+              [class.focus:ring-blue-300]="!errors['agenda']"
+            ></textarea>
+            <div class="flex justify-between">
+              <span class="text-[11px] text-red-500">{{ errors['agenda'] }}</span>
+              <span class="text-[11px] text-gray-400">{{ form.agenda.length }}/{{ maxAgenda }}</span>
+            </div>
+          </div>
+
+          <!-- Documents -->
+          <div class="flex flex-col gap-1.5">
+            <label class="text-[13px] font-medium text-gray-700">Documents</label>
+            <div
+              (click)="triggerFileInput(fileInput)"
+              class="h-[90px] border border-dashed rounded-lg flex flex-col items-center justify-center py-4 px-3 text-center hover:bg-gray-50 transition-colors cursor-pointer"
+              [class.border-red-400]="errors['documents']"
+              [class.border-gray-300]="!errors['documents']"
+            >
+              <p class="text-[12px] text-blue-400 font-medium">Click or drag and drop files</p>
+              <p class="text-[11px] text-gray-400 mt-0.5">PDF, DOC, DOCX, XLS, XLSX, JPG, PNG · Max 10 MB each</p>
+            </div>
+            <input #fileInput type="file" multiple class="hidden" (change)="onFilesSelected($event)"/>
+
+            @if (errors['documents']) {
+              <span class="text-[11px] text-red-500">{{ errors['documents'] }}</span>
+            }
+
+            @if (selectedFiles.length > 0) {
+              <ul class="flex flex-col gap-0.5 mt-1">
+                @for (file of selectedFiles; track $index) {
+                  <li class="flex items-center justify-between text-[12px] text-gray-600 bg-gray-50 rounded px-2 py-1">
+                    <span class="truncate max-w-[80%]">{{ file.name }}</span>
+                    <button type="button" (click)="removeFile($index)" class="text-gray-400 hover:text-red-500 ml-2">&times;</button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+
+          <!-- Action buttons -->
+          <div class="flex items-center justify-end gap-3 mt-auto pt-4">
+            <button type="button" (click)="close()"
+              class="px-7 py-2 border border-gray-300 text-gray-600 font-medium text-[13px] rounded-lg hover:bg-gray-50 transition-colors">
+              Cancel
+            </button>
+            <button type="button" (click)="submit()"
+              class="px-7 py-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold text-[13px] rounded-lg transition-colors">
+              Create
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+}

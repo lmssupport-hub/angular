@@ -1,86 +1,77 @@
-<div class="min-h-screen flex bg-gradient-to-br from-[#f7eaf8] via-[#fff7fb] to-[#fff0dd]">
-  <!-- Sidebar -->
+<div class="h-screen flex bg-[#F4F4F5] dark:bg-[#0f0f13] pl-6 pt-6 pb-6 overflow-hidden transition-colors duration-300">
+
   <aside
-    class="relative min-h-screen bg-white/70 backdrop-blur-xl border-r border-white/70 shadow-[8px_0_30px_rgba(90,75,179,0.08)] transition-all duration-300 ease-in-out"
-    [class.w-[270px]]="isSidebarOpen"
-    [class.w-[88px]]="!isSidebarOpen"
+  class="relative h-full bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] rounded-2xl overflow-hidden transition-all duration-300 ease-in-out"
+  [style.width.px]="isSidebarOpen ? 230 : 88"
+>
+  <div
+    class="pt-8 pb-6 flex flex-col items-center transition-all duration-300"
+    [class.px-6]="isSidebarOpen"
+    [class.px-3]="!isSidebarOpen"
   >
-    <!-- Logo -->
-    <div
-      class="h-[130px] flex items-center justify-center transition-all duration-300"
-      [class.px-6]="isSidebarOpen"
-      [class.px-3]="!isSidebarOpen"
+    <button
+      type="button"
+      (click)="toggleSidebar($event)"
+      class="p-0 border-0 bg-transparent cursor-pointer"
     >
-      <div class="flex items-center gap-3">
-        <img
-          src="Group 9.png"
-          alt="Logo"
-          (click)="toggleSidebar()"
-          class="h-auto cursor-pointer transition-all duration-500 hover:scale-105"
-          [class.w-20]="isSidebarOpen"
-          [class.w-12]="!isSidebarOpen"
-        />
-      </div>
-    </div>
+      <img
+        src="/Group 9.png"
+        alt="Logo"
+        class="h-auto transition-all duration-500 hover:scale-105"
+        [class.w-16]="isSidebarOpen"
+        [class.w-10]="!isSidebarOpen"
+      />
+    </button>
+
+    @if (isSidebarOpen) {
+      <p class="mt-3 text-[11px] font-bold text-gray-700 dark:text-gray-300 text-center leading-tight">
+        VativaHub Design &amp;<br />Development
+      </p>
+    }
+  </div>
 
     <!-- Menu -->
-    <nav class="px-4 space-y-2">
+    <nav class="px-5 mt-2 space-y-1.5">
 
       <!-- Dashboard -->
       <a
         routerLink="/dashboard/home"
-        routerLinkActive="!bg-[#5a4bb3] !text-white !shadow-[0_10px_24px_rgba(90,75,179,0.28)]"
+        routerLinkActive="!bg-[#eef0ff] dark:!bg-[#2a2560] !text-[#5a4bb3]"
         [routerLinkActiveOptions]="{ exact: true }"
-        (click)="closeProjectsMenu(); closeTasksMenu()"
-        class="group h-12 px-4 rounded-xl bg-white/80 shadow-sm flex items-center justify-between text-sm font-bold text-gray-900 hover:bg-white hover:shadow-md transition-all duration-200"
+        (click)=" closeProjectsMenu(); closeTasksMenu()"
+        class="h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
       >
-        <span class="flex items-center gap-3">
-          <span class="w-8 h-8 rounded-lg bg-[#eef0ff] text-[#5a4bb3] group-[.active]:bg-white/20 flex items-center justify-center">
-            <i class="fa-solid fa-table-columns text-sm"></i>
-          </span>
-          @if (isSidebarOpen) {
-            <span>Dashboard</span>
-          }
-        </span>
-        @if (isSidebarOpen) {
-          <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
-        }
+        <i class="fa-solid fa-table-columns text-sm w-4 text-center"></i>
+        @if (isSidebarOpen) { <span>Dashboard</span> }
       </a>
 
       <!-- Projects Dropdown -->
       <div>
         <a
           routerLink="/dashboard/projects"
-          routerLinkActive="!bg-[#5a4bb3] !text-white !shadow-[0_10px_24px_rgba(90,75,179,0.28)]"
-          (click)="openProjectsMenu()"
-          class="h-12 px-4 rounded-xl bg-white/80 shadow-sm flex items-center justify-between text-sm font-bold text-gray-900 hover:bg-white hover:shadow-md transition-all duration-200"
+          routerLinkActive="!bg-[#eef0ff] dark:!bg-[#2a2560] !text-[#5a4bb3]"
+          (click)=" openProjectsMenu()"
+          class="h-11 px-3 rounded-xl flex items-center justify-between text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
         >
           <span class="flex items-center gap-3">
-            <span class="w-8 h-8 rounded-lg bg-[#eef0ff] text-[#5a4bb3] flex items-center justify-center">
-              <i class="fa-regular fa-folder text-sm"></i>
-            </span>
-            @if (isSidebarOpen) {
-              <span>Projects</span>
-            }
+            <i class="fa-regular fa-folder text-sm w-4 text-center"></i>
+            @if (isSidebarOpen) { <span>Projects</span> }
           </span>
           @if (isSidebarOpen) {
             <i
-              class="fa-solid fa-chevron-right text-xs opacity-60 transition-transform duration-300"
+              class="fa-solid fa-chevron-right text-[10px] opacity-50 transition-transform duration-300"
               [class.rotate-90]="isProjectsOpen"
             ></i>
           }
         </a>
 
         @if (isProjectsOpen && isSidebarOpen) {
-          <div class="mt-2 ml-5 pl-4 border-l-2 border-[#ddd6ff] space-y-2">
+          <div class="mt-1 ml-7 pl-3 border-l-2 border-gray-100 dark:border-[#2a2a3a] space-y-1">
             <a
               routerLink="/dashboard/projects-list"
-              routerLinkActive="!bg-[#5a4bb3] !text-white"
-              class="h-10 px-4 rounded-xl bg-white/70 shadow-sm flex items-center justify-between text-sm font-bold text-gray-700 hover:bg-white hover:shadow-md transition"
-            >
-              <span>Projects List</span>
-              <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
-            </a>
+              routerLinkActive="!text-[#5a4bb3]"
+              class="h-9 flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-[#5a4bb3] transition-colors duration-150"
+            >Projects List</a>
           </div>
         }
       </div>
@@ -89,106 +80,138 @@
       <div>
         <a
           routerLink="/dashboard/tasks"
-          routerLinkActive="!bg-[#5a4bb3] !text-white !shadow-[0_10px_24px_rgba(90,75,179,0.28)]"
+          routerLinkActive="!bg-[#eef0ff] dark:!bg-[#2a2560] !text-[#5a4bb3]"
           (click)="openTasksMenu()"
-          class="h-12 px-4 rounded-xl bg-white/80 shadow-sm flex items-center justify-between text-sm font-bold text-gray-900 hover:bg-white hover:shadow-md transition-all duration-200"
+          class="h-11 px-3 rounded-xl flex items-center justify-between text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
         >
           <span class="flex items-center gap-3">
-            <span class="w-8 h-8 rounded-lg bg-[#eef0ff] text-[#5a4bb3] flex items-center justify-center">
-              <i class="fa-solid fa-list-check text-sm"></i>
-            </span>
-            @if (isSidebarOpen) {
-              <span>Tasks</span>
-            }
+            <i class="fa-solid fa-list-check text-sm w-4 text-center"></i>
+            @if (isSidebarOpen) { <span>Tasks</span> }
           </span>
           @if (isSidebarOpen) {
             <i
-              class="fa-solid fa-chevron-right text-xs opacity-60 transition-transform duration-300"
+              class="fa-solid fa-chevron-right text-[10px] opacity-50 transition-transform duration-300"
               [class.rotate-90]="isTasksOpen"
             ></i>
           }
         </a>
 
         @if (isTasksOpen && isSidebarOpen) {
-          <div class="mt-2 ml-5 pl-4 border-l-2 border-[#ddd6ff] space-y-2">
+          <div class="mt-1 ml-7 pl-3 border-l-2 border-gray-100 dark:border-[#2a2a3a] space-y-1">
             <a
               routerLink="/dashboard/task-list"
-              routerLinkActive="!bg-[#5a4bb3] !text-white"
-              class="h-10 px-4 rounded-xl bg-white/70 shadow-sm flex items-center justify-between text-sm font-bold text-gray-700 hover:bg-white hover:shadow-md transition"
-            >
-              <span>Task List</span>
-              <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
-            </a>
+              routerLinkActive="!text-[#5a4bb3]"
+              class="h-9 flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-[#5a4bb3] transition-colors duration-150"
+            >Task List</a>
           </div>
         }
       </div>
 
-      <!-- Settings -->
+      <!-- Connect / Meeting workspace -->
       <a
-        routerLink="/dashboard/settings"
-        routerLinkActive="!bg-[#5a4bb3] !text-white !shadow-[0_10px_24px_rgba(90,75,179,0.28)]"
-        (click)="closeProjectsMenu(); closeTasksMenu()"
-        class="h-12 px-4 rounded-xl bg-white/80 shadow-sm flex items-center justify-between text-sm font-bold text-gray-900 hover:bg-white hover:shadow-md transition-all duration-200"
+        routerLink="/dashboard/meeting-workspace"
+        routerLinkActive="!bg-[#eef0ff] dark:!bg-[#2a2560] !text-[#5a4bb3]"
+        (click)=" closeProjectsMenu(); closeTasksMenu()"
+        class="group h-11 px-3 rounded-xl flex items-center justify-between text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
       >
         <span class="flex items-center gap-3">
-          <span class="w-8 h-8 rounded-lg bg-[#eef0ff] text-[#5a4bb3] flex items-center justify-center">
-            <i class="fa-solid fa-gear text-sm"></i>
-          </span>
-          @if (isSidebarOpen) {
-            <span>Settings</span>
-          }
+          <i class="fa-solid fa-link text-sm w-4 text-center"></i>
+          @if (isSidebarOpen) { <span>Connect</span> }
         </span>
         @if (isSidebarOpen) {
-          <i class="fa-solid fa-chevron-right text-xs opacity-60"></i>
+          <i class="fa-solid fa-chevron-right text-[10px] opacity-50 group-[.active]:opacity-100"></i>
         }
       </a>
 
     </nav>
+
+    <!-- Bottom: Settings / Logout -->
+    <nav class="absolute bottom-8 left-0 right-0 px-5 space-y-1.5">
+      <a
+        routerLink="/dashboard/settings"
+        routerLinkActive="!bg-[#eef0ff] dark:!bg-[#2a2560] !text-[#5a4bb3]"
+        class="h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
+      >
+        <i class="fa-solid fa-gear text-sm w-4 text-center"></i>
+        @if (isSidebarOpen) { <span>Settings</span> }
+      </a>
+
+      <button
+        type="button"
+        (click)="logout()"
+        class="w-full h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
+      >
+        <i class="fa-solid fa-arrow-right-from-bracket text-sm w-4 text-center"></i>
+        @if (isSidebarOpen) { <span>Log out</span> }
+      </button>
+    </nav>
   </aside>
 
   <!-- Main -->
-  <main class="flex-1 min-h-screen">
-    <header class="h-[90px] bg-white/40 px-10 flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-extrabold text-gray-900">
-          HELLO! {{ loggedInUser?.firstName || 'User' }}
-        </h1>
-        <p class="text-xs text-gray-500 mt-1">Welcome back!</p>
-      </div>
+  <main class="flex-1 h-full flex flex-col overflow-hidden">
+    <header class="h-[80px] px-10 flex items-center justify-between shrink-0">
+      <h1 class="text-[17px] font-bold text-gray-900 dark:text-gray-100">
+        {{ activePageTitle }}
+      </h1>
 
-      <div class="flex items-center gap-4">
-        <div class="w-[260px] h-10 rounded-xl bg-[#f1e6f6] flex items-center gap-2 px-4">
-          <i class="fa-solid fa-magnifying-glass text-xs text-gray-500"></i>
+      <div class="flex items-center gap-3">
+
+        <!-- Search -->
+        <div class="w-[220px] h-10 rounded-full bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] shadow-sm flex items-center gap-2 px-4">
+          <i class="fa-solid fa-magnifying-glass text-xs text-gray-400 dark:text-gray-500"></i>
           <input
             type="text"
             placeholder="Search"
-            class="w-full bg-transparent outline-none text-sm text-gray-700 placeholder:text-gray-400"
+            class="w-full bg-transparent outline-none text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 dark:placeholder:text-gray-600"
           />
         </div>
 
-        <button class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm hover:bg-gray-100 transition">
-          <i class="fa-regular fa-bell text-gray-600 text-sm"></i>
+        <!-- Notes -->
+        <button class="w-10 h-10 rounded-full bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] shadow-sm flex items-center justify-center hover:bg-gray-50 dark:hover:bg-[#23233a] transition">
+          <i class="fa-regular fa-note-sticky text-gray-600 dark:text-gray-400 text-sm"></i>
         </button>
 
-        <button class="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm hover:bg-gray-100 transition">
-          <i class="fa-regular fa-message text-gray-600 text-sm"></i>
+        <!-- Messages -->
+        <button class="w-10 h-10 rounded-full bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] shadow-sm flex items-center justify-center hover:bg-gray-50 dark:hover:bg-[#23233a] transition">
+          <i class="fa-regular fa-message text-gray-600 dark:text-gray-400 text-sm"></i>
         </button>
 
-        <div class="pl-6 border-l border-gray-300 flex items-center gap-3">
-          <div class="w-10 h-10 rounded-sm flex items-center justify-center bg-[#5a4bb3] text-white text-sm font-bold uppercase">
-            {{ loggedInUser?.firstName?.charAt(0) || '' }}{{ loggedInUser?.lastName?.charAt(0) || '' }}
-          </div>
-          <div>
-            <p class="text-xs font-extrabold text-gray-900">
-              {{ loggedInUser?.firstName }} {{ loggedInUser?.lastName }}
-            </p>
-            <p class="text-[10px] text-gray-500">{{ loggedInUser?.email }}</p>
-          </div>
+        <!-- Dark / Light toggle -->
+        <button
+          type="button"
+          (click)="toggleDarkMode()"
+          class="w-10 h-10 rounded-full bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] shadow-sm flex items-center justify-center hover:bg-gray-50 dark:hover:bg-[#23233a] transition"
+          [title]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+        >
+          <i
+            class="text-sm"
+            [ngClass]="isDarkMode ? 'fa-solid fa-sun text-yellow-400' : 'fa-solid fa-moon text-gray-600 dark:text-gray-300'"
+          ></i>
+        </button>
+
+        <!-- User -->
+        <div class="pl-3 flex items-center gap-2">
+          @if (userPhotoUrl) {
+            <img
+              [src]="userPhotoUrl"
+              alt="avatar"
+              (error)="onUserPhotoError()"
+              class="w-9 h-9 rounded-full object-cover"
+            />
+          } @else {
+            <div class="w-9 h-9 rounded-full flex items-center justify-center bg-[#5a4bb3] text-white text-xs font-bold uppercase">
+              {{ userInitials }}
+            </div>
+          }
+          <p class="text-sm font-bold text-gray-900 dark:text-gray-100">
+            {{ userDisplayName }}
+          </p>
         </div>
+
       </div>
     </header>
 
-    <section class="p-0 min-h-[calc(100vh-90px)]">
+    <section class="flex-1 px-2 pb-2 overflow-y-auto">
       <router-outlet></router-outlet>
     </section>
   </main>

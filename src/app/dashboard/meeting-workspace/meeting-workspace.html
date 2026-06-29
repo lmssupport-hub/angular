@@ -1,0 +1,482 @@
+<div class="flex flex-col w-full bg-[#F4F4F5] dark:bg-[#0f0f13] rounded-[27px] p-5 gap-3">
+
+  <!-- Delete confirmation dialog -->
+  @if (deleteConfirmId !== null) {
+    <div class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+      <div class="bg-white dark:bg-[#1a1a24] rounded-[16px] p-6 shadow-xl w-[340px] flex flex-col gap-4 border border-transparent dark:border-[#2a2a3a]">
+        <h3 class="text-[15px] font-semibold text-gray-900 dark:text-gray-100">Delete Meeting</h3>
+        <p class="text-[13px] text-gray-600 dark:text-gray-400">Are you sure you want to delete this meeting? This action cannot be undone.</p>
+        <div class="flex justify-end gap-3">
+          <button (click)="cancelDelete()"
+            class="px-5 py-2 text-[13px] font-medium text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-[#2a2a3a] rounded-lg hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors">
+            Cancel
+          </button>
+          <button (click)="confirmDelete()"
+            class="px-5 py-2 text-[13px] font-semibold text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Error banner -->
+  @if (errorMsg) {
+    <div class="flex items-center justify-between bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-[13px] px-4 py-3 rounded-[12px]">
+      <span>{{ errorMsg }}</span>
+      <button (click)="errorMsg = ''" class="text-red-400 hover:text-red-600 dark:hover:text-red-300 ml-4 font-bold">&times;</button>
+    </div>
+  }
+
+  <!-- Page Header -->
+  <div class="flex items-center gap-3">
+
+    <!-- Search input -->
+    <div class="relative flex-1 max-w-[320px]">
+      <input
+        type="text"
+        [(ngModel)]="searchKeyword"
+        (input)="onSearch()"
+        placeholder="Search meetings…"
+        class="w-full pl-9 pr-3 py-[7px] text-[13px] border border-gray-200 dark:border-[#2a2a3a] rounded-full bg-white dark:bg-[#1a1a24] focus:outline-none focus:ring-1 focus:ring-blue-300 dark:focus:ring-blue-700 text-gray-800 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-600"
+      />
+      <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+      </svg>
+    </div>
+
+    <!-- Filter button -->
+    <div class="relative filter-wrapper" (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        (click)="toggleFilter($event)"
+        class="flex items-center gap-2 px-4 py-[7px] border border-gray-300 dark:border-[#2a2a3a] rounded-full text-sm font-medium text-blue-500 dark:text-blue-400 bg-white dark:bg-[#1a1a24] hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors cursor-pointer"
+      >
+        Filter
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-400 dark:text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+        </svg>
+      </button>
+
+      <!-- Filter dropdown -->
+      @if (isFilterOpen()) {
+        <div class="absolute top-10 left-0 z-30 bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] rounded-[14px] shadow-lg p-4 w-[240px] flex flex-col gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="text-[12px] font-medium text-gray-600 dark:text-gray-400">Status</label>
+            <select [(ngModel)]="filterStatus"
+              class="w-full appearance-none px-3 py-2 text-[13px] border border-gray-200 dark:border-[#2a2a3a] rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-300 dark:focus:ring-blue-700 text-gray-700 dark:text-gray-300 bg-white dark:bg-[#23233a]">
+              <option value="">All statuses</option>
+              @for (opt of statusOptions; track opt) {
+                <option [value]="opt">{{ opt }}</option>
+              }
+            </select>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-[12px] font-medium text-gray-600 dark:text-gray-400">Owner</label>
+            <select [(ngModel)]="filterOwnerId"
+              class="w-full appearance-none px-3 py-2 text-[13px] border border-gray-200 dark:border-[#2a2a3a] rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-300 dark:focus:ring-blue-700 text-gray-700 dark:text-gray-300 bg-white dark:bg-[#23233a]">
+              <option [ngValue]="null">All owners</option>
+              @for (u of users; track u.id) {
+                <option [ngValue]="u.id">{{ u.username }}</option>
+              }
+            </select>
+          </div>
+          <div class="flex gap-2 justify-end pt-1">
+            <button (click)="clearFilter()" class="text-[12px] text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 px-3 py-1 border border-gray-200 dark:border-[#2a2a3a] rounded-lg dark:bg-transparent hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors cursor-pointer">Clear</button>
+            <button (click)="applyFilter()" class="text-[12px] font-semibold text-white bg-blue-500 hover:bg-blue-600 px-4 py-1 rounded-lg transition-colors cursor-pointer">Apply</button>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="ml-auto">
+      <button (click)="openCreateMeeting()"
+        class="flex items-center gap-1.5 px-4 py-[7px] border border-gray-300 dark:border-[#2a2a3a] rounded-full text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-[#1a1a24] hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors cursor-pointer">
+        <span class="text-base font-normal leading-none">+</span>
+        Create meeting
+      </button>
+    </div>
+  </div>
+
+  <!-- Header Row -->
+  <div class="bg-white dark:bg-[#1a1a24] rounded-[16px] border border-[#26262619] dark:border-[#2a2a3a] px-5 py-3">
+    <div class="grid items-center" style="grid-template-columns: 32px 1fr 160px 130px 130px 120px 130px 85px;">
+      <div></div>
+      <div class="text-[13px] font-normal text-gray-500 dark:text-gray-400">Meeting Title</div>
+      <div class="text-[13px] font-normal text-gray-500 dark:text-gray-400 text-center">Date &amp; Time</div>
+      <div class="text-[13px] font-normal text-gray-500 dark:text-gray-400 text-center">Members</div>
+      <div class="text-[13px] font-normal text-gray-500 dark:text-gray-400 text-center">Status</div>
+      <div class="text-[13px] font-normal text-gray-500 dark:text-gray-400 text-center">Owner</div>
+      <div class="text-[13px] font-normal text-gray-500 dark:text-gray-400 text-center">Start Meeting</div>
+      <div class="text-[13px] font-normal text-gray-500 dark:text-gray-400 text-right">Actions</div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="flex flex-col bg-white dark:bg-[#1a1a24] rounded-[16px] border border-[#26262619] dark:border-[#2a2a3a] overflow-hidden">
+
+    @if (isLoading) {
+      <div class="flex items-center justify-center py-12 text-[13px] text-gray-400 dark:text-gray-500">Loading…</div>
+    } @else if (meetings.length === 0) {
+      <div class="flex flex-col items-center justify-center py-12 gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        <span class="text-[13px] text-gray-400 dark:text-gray-500">No meetings found</span>
+      </div>
+    } @else {
+      <div class="flex flex-col divide-y divide-gray-100 dark:divide-[#2a2a3a]">
+        @for (meeting of meetings; track meeting.id) {
+          <div class="flex flex-col">
+
+            <!-- Row -->
+            <div
+              class="grid items-center px-5 py-[11px] hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors cursor-pointer"
+              style="grid-template-columns: 32px 1fr 160px 130px 130px 120px 130px 85px;"
+              (click)="toggleRow(meeting)"
+            >
+              <!-- Chevron -->
+              <div class="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                  class="w-3.5 h-3.5 transition-transform duration-200"
+                  [class.rotate-90]="isExpanded(meeting.id!)"
+                  [class.text-gray-500]="isExpanded(meeting.id!)"
+                  [class.text-gray-400]="!isExpanded(meeting.id!)"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
+              </div>
+
+              <!-- Title -->
+              <div class="text-[13px] font-medium text-gray-800 dark:text-gray-200 truncate pr-3">{{ meeting.title }}</div>
+
+              <!-- Date & Time -->
+              <div class="text-[13px] text-gray-600 dark:text-gray-400 text-center">
+                {{ formatDateTime(meeting.meetingDateTime).date }}
+                <span class="text-gray-400 dark:text-gray-500">&nbsp;{{ formatDateTime(meeting.meetingDateTime).time }}</span>
+              </div>
+
+              <!-- Members avatars -->
+              <div class="flex items-center justify-center">
+                <div class="flex -space-x-2">
+                  @for (m of getMeetingMembers(meeting); track m.id) {
+                    <div class="w-6 h-6 rounded-full border-2 border-white dark:border-[#1a1a24] bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-[9px] font-bold text-blue-600 dark:text-blue-400 uppercase">
+                      {{ m.username.charAt(0) }}
+                    </div>
+                  }
+                </div>
+                @if (getExtraMembers(meeting) > 0) {
+                  <span class="ml-1.5 text-[12px] text-gray-500 dark:text-gray-400">+{{ getExtraMembers(meeting) }}</span>
+                }
+              </div>
+
+              <!-- Status badge -->
+              <div class="flex items-center justify-center" (click)="$event.stopPropagation()">
+                <span class="px-2.5 py-0.5 text-[12px] font-medium rounded-full" [class]="getStatusBadgeClass(meeting.status)">
+                  {{ meeting.status }}
+                </span>
+              </div>
+
+              <!-- Owner -->
+              <div class="text-[13px] text-gray-600 dark:text-gray-400 text-center">{{ meeting.ownerName ?? '—' }}</div>
+
+              <!-- Start meeting -->
+              <div class="flex items-center justify-center gap-1.5" (click)="$event.stopPropagation()">
+                @if (canStartMeeting(meeting.status)) {
+                  <button (click)="startMeeting($event, meeting)"
+                    class="flex items-center gap-1 text-[13px] font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                      <circle cx="12" cy="12" r="10"/>
+                    </svg>
+                    Start
+                  </button>
+                } @else {
+                  <span class="text-[13px] text-gray-400 dark:text-gray-500">
+                    {{ meeting.status === 'In Progress' ? 'In Progress' : 'Yet to start' }}
+                  </span>
+                }
+              </div>
+
+              <!-- Actions -->
+              <div class="flex items-center justify-end gap-2.5" (click)="$event.stopPropagation()">
+                <button (click)="toggleRow(meeting)" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer" title="Edit">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
+                </button>
+                <button (click)="requestDelete($event, meeting.id!)" class="text-gray-400 dark:text-gray-500 hover:text-red-500 dark:hover:text-red-400 transition-colors cursor-pointer" title="Delete">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Expanded edit card -->
+            @if (isExpanded(meeting.id!)) {
+              <div class="mx-4 mb-4 rounded-[16px] border border-[#26262619] dark:border-[#2a2a3a] bg-[#FAFAFA] dark:bg-[#16161f]">
+                <div class="grid grid-cols-3 gap-x-6 gap-y-4 p-5">
+
+                  <!-- COL 1 -->
+                  <div class="flex flex-col gap-3">
+
+                   <!-- Title -->
+<div class="flex flex-col gap-1 w-full">
+  <label class="text-[12px] font-medium text-gray-700 dark:text-gray-300">
+    Meeting Title <span class="text-red-500">*</span>
+  </label>
+
+  <div class="relative w-full">
+    <input type="text"
+      [(ngModel)]="getRowForm(meeting.id!).title"
+      [maxlength]="maxTitle"
+      class="w-full px-3 py-[7px] pr-14 text-[13px] border rounded-lg focus:outline-none focus:ring-1 text-gray-800 dark:text-gray-200 bg-white dark:bg-[#23233a] placeholder:text-gray-400 dark:placeholder:text-gray-600"
+      [class.border-red-400]="getRowErrors(meeting.id!)['title']"
+      [class.border-gray-200]="!getRowErrors(meeting.id!)['title']"
+      [class.dark:border-red-700]="getRowErrors(meeting.id!)['title']"
+      [class.dark:border-[#2a2a3a]]="!getRowErrors(meeting.id!)['title']"
+      [class.focus:ring-red-300]="getRowErrors(meeting.id!)['title']"
+      [class.focus:ring-blue-300]="!getRowErrors(meeting.id!)['title']" />
+
+    <!-- counter inside the input, bottom-right -->
+    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-gray-400 dark:text-gray-500 pointer-events-none">
+      {{ getRowForm(meeting.id!).title.length }}/{{ maxTitle }}
+    </span>
+  </div>
+
+  <!-- error message stays below, outside the box -->
+  <span class="text-[11px] text-red-500 dark:text-red-400">
+    {{ getRowErrors(meeting.id!)['title'] }}
+  </span>
+</div>
+
+
+                    <!-- Date & Time -->
+                        <div class="flex gap-3">
+                          <!-- Date -->
+                          <div class="flex flex-col gap-1 flex-1">
+                            <label class="text-[12px] font-medium text-gray-700 dark:text-gray-300">
+                              Date <span class="text-red-500">*</span>
+                            </label>
+                            <input type="date"
+                              [(ngModel)]="getRowForm(meeting.id!).date"
+                              class="w-full px-3 py-[7px] text-[13px] border rounded-lg focus:outline-none focus:ring-1 text-gray-800 dark:text-gray-200 bg-white dark:bg-[#23233a] [&::-webkit-calendar-picker-indicator]:dark:invert"
+                              [class.border-red-400]="getRowErrors(meeting.id!)['date']"
+                              [class.border-gray-200]="!getRowErrors(meeting.id!)['date']"
+                              [class.dark:border-red-700]="getRowErrors(meeting.id!)['date']"
+                              [class.dark:border-[#2a2a3a]]="!getRowErrors(meeting.id!)['date']"
+                              [class.focus:ring-red-300]="getRowErrors(meeting.id!)['date']"
+                              [class.focus:ring-blue-300]="!getRowErrors(meeting.id!)['date']" />
+                            <span class="text-[11px] text-red-500 dark:text-red-400">
+                              {{ getRowErrors(meeting.id!)['date'] }}
+                            </span>
+                          </div>
+
+                       <!-- Time -->
+<div class="flex flex-col gap-1 flex-1">
+  <label class="text-[12px] font-medium text-gray-700 dark:text-gray-300">
+    Time <span class="text-red-500">*</span>
+  </label>
+  <input type="time"
+    [(ngModel)]="getRowForm(meeting.id!).time"
+    [ngClass]="getRowErrors(meeting.id!)['time']
+      ? 'border-red-400 dark:border-red-700 focus:ring-red-300'
+      : 'border-gray-200 dark:border-[#2a2a3a] focus:ring-blue-300'"
+    class="w-full px-3 py-[7px] text-[13px] border rounded-lg focus:outline-none focus:ring-1 text-gray-800 dark:text-gray-200 bg-white dark:bg-[#23233a] [&::-webkit-calendar-picker-indicator]:dark:invert" />
+  <span class="text-[11px] text-red-500 dark:text-red-400">
+    {{ getRowErrors(meeting.id!)['time'] }}
+  </span>
+</div>
+</div>
+
+                    <!-- Documents -->
+                    <div class="flex flex-col gap-1">
+                      <label class="text-[12px] font-medium text-gray-700 dark:text-gray-300">Documents</label>
+                      <div class="h-[88px] border border-dashed border-gray-300 dark:border-[#3a3a4a] rounded-lg flex flex-col items-center justify-center text-center hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors cursor-pointer">
+                        <p class="text-[12px] text-blue-400 dark:text-blue-400 font-medium">Click or drag and drop files</p>
+                        <p class="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">PDF, DOC, DOCX, XLS, XLSX, JPG, PNG · Max 10 MB</p>
+                      </div>
+                      @if (meeting.documentUrls && meeting.documentUrls.length > 0) {
+                        <ul class="mt-1 flex flex-col gap-0.5">
+                          @for (url of meeting.documentUrls; track $index) {
+                            <li class="text-[12px] text-blue-500 dark:text-blue-400 truncate px-1">{{ url }}</li>
+                          }
+                        </ul>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- COL 2 -->
+                  <div class="flex flex-col gap-3">
+
+                   <!-- Members multi-select -->
+<div class="flex flex-col gap-1">
+  <label class="text-[12px] font-medium text-gray-700 dark:text-gray-300">Members <span class="text-red-500">*</span></label>
+
+  <!-- Dropdown wrapper -->
+  <div class="relative member-dropdown-wrapper">
+
+    <!-- Chips + dropdown trigger --->
+    <div
+      (click)="toggleMemberDropdown(meeting.id!)"
+      class="w-full min-h-[36px] px-3 py-2 border rounded-lg cursor-pointer bg-white dark:bg-[#23233a] flex flex-wrap items-center gap-1"
+      [class.border-red-400]="getRowErrors(meeting.id!)['members']"
+      [class.border-gray-200]="!getRowErrors(meeting.id!)['members']"
+      [class.dark:border-red-700]="getRowErrors(meeting.id!)['members']"
+      [class.dark:border-\[#2a2a3a\]]="!getRowErrors(meeting.id!)['members']">
+
+      <!-- Selected chips inside the box -->
+      @for (uid of getRowForm(meeting.id!).memberIds; track uid) {
+        <span class="flex items-center gap-1 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-[10px] px-2 py-0.5 rounded-full">
+          {{ getMemberName(uid) }}
+          <button type="button"
+            (click)="$event.stopPropagation(); removeRowMember(meeting.id!, uid)"
+            class="text-blue-400 dark:text-blue-500 hover:text-blue-700 dark:hover:text-blue-300">&times;</button>
+        </span>
+      }
+
+      <!-- Placeholder - chips -->
+      @if (getRowForm(meeting.id!).memberIds.length === 0) {
+        <span class="text-gray-400 dark:text-gray-500 text-[12px]">Select members…</span>
+      }
+
+      <!-- Arrow icon -->
+      <svg xmlns="http://www.w3.org/2000/svg"
+        class="w-3.5 h-3.5 text-gray-400 ml-auto transition-transform duration-200 flex-shrink-0"
+        [class.rotate-180]="isMemberDropdownOpen(meeting.id!)"
+        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+      </svg>
+    </div>
+
+    <!-- Floating checklist dropdown -->
+    @if (isMemberDropdownOpen(meeting.id!)) {
+      <div class="absolute top-full left-0 mt-1 z-40 w-full bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] rounded-lg shadow-lg max-h-[160px] overflow-y-auto divide-y divide-gray-100 dark:divide-[#2a2a3a]">
+        @for (u of users; track u.id) {
+          <label class="flex items-center gap-2 px-3 py-1.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#23233a] select-none">
+            <input type="checkbox"
+              [checked]="isRowMemberSelected(meeting.id!, u.id)"
+              (change)="toggleRowMember(meeting.id!, u.id)"
+              class="accent-blue-500 w-3 h-3"/>
+            <span class="text-[12px] text-gray-800 dark:text-gray-200">{{ u.username }}</span>
+          </label>
+        }
+      </div>
+    }
+  </div>
+
+  @if (getRowErrors(meeting.id!)['members']) {
+    <span class="text-[11px] text-red-500 dark:text-red-400">{{ getRowErrors(meeting.id!)['members'] }}</span>
+  }
+</div>
+
+                    <!-- Agenda -->
+                    <div class="flex flex-col gap-1">
+                      <label class="text-[12px] font-medium text-gray-700 dark:text-gray-300">Agenda <span class="text-red-500">*</span></label>
+                      <textarea [maxlength]="maxAgenda" [(ngModel)]="getRowForm(meeting.id!).agenda"
+                        class="h-[130px] w-full px-3 py-2 text-[13px] border rounded-lg focus:outline-none focus:ring-1 text-gray-800 dark:text-gray-200 bg-white dark:bg-[#23233a] resize-none placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                        [class.border-red-400]="getRowErrors(meeting.id!)['agenda']"
+                        [class.border-gray-200]="!getRowErrors(meeting.id!)['agenda']"
+                        [class.focus:ring-red-300]="getRowErrors(meeting.id!)['agenda']"
+                        [class.focus:ring-blue-300]="!getRowErrors(meeting.id!)['agenda']"></textarea>
+                      <div class="flex justify-between">
+                        <span class="text-[11px] text-red-500 dark:text-red-400">{{ getRowErrors(meeting.id!)['agenda'] }}</span>
+                        <span class="text-[11px] text-gray-400 dark:text-gray-500">{{ getRowForm(meeting.id!).agenda.length }}/{{ maxAgenda }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- COL 3 -->
+                  <div class="flex flex-col gap-3 relative">
+                    <span class="absolute -top-6 right-0 text-[11px] text-gray-400 dark:text-gray-500">Schedule</span>
+
+                    <!-- Project -->
+                    <div class="flex flex-col gap-1">
+                      <label class="text-[12px] font-medium text-gray-700 dark:text-gray-300">Project</label>
+                      <div class="relative">
+                        <select [(ngModel)]="getRowForm(meeting.id!).projectId"
+                          class="w-full appearance-none px-3 py-[7px] text-[13px] border border-gray-200 dark:border-[#2a2a3a] rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-300 dark:focus:ring-blue-700 text-gray-800 dark:text-gray-200 bg-white dark:bg-[#23233a]">
+                          <option [ngValue]="null">Select project</option>
+                          @for (p of projects; track p.id) {
+                            <option [ngValue]="p.id">{{ p.projectName }}</option>
+                          }
+                        </select>
+                        <span class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 dark:text-gray-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                          </svg>
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="flex flex-col gap-1">
+                      <label class="text-[12px] font-medium text-gray-700 dark:text-gray-300">Status <span class="text-red-500">*</span></label>
+                      <div class="relative">
+                        <select [(ngModel)]="getRowForm(meeting.id!).status"
+                          class="w-full appearance-none px-3 py-[7px] text-[13px] border border-gray-200 dark:border-[#2a2a3a] rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-300 dark:focus:ring-blue-700 text-gray-800 dark:text-gray-200 bg-white dark:bg-[#23233a]">
+                          @for (opt of statusOptions; track opt) {
+                            <option [value]="opt">{{ opt }}</option>
+                          }
+                        </select>
+                        <span class="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400 dark:text-gray-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                          </svg>
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Decisions & Polls -->
+                    <div class="flex flex-col gap-1">
+                      <label class="text-[12px] font-medium text-gray-700 dark:text-gray-300">Decisions &amp; Polls</label>
+                      <textarea [maxlength]="maxDecisions" [(ngModel)]="getRowForm(meeting.id!).decisionsPolls"
+                        class="h-[90px] w-full px-3 py-2 text-[13px] border border-gray-200 dark:border-[#2a2a3a] rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-300 dark:focus:ring-blue-700 text-gray-800 dark:text-gray-200 bg-white dark:bg-[#23233a] resize-none placeholder:text-gray-400 dark:placeholder:text-gray-600"></textarea>
+                      <div class="flex justify-end">
+                        <span class="text-[11px] text-gray-400 dark:text-gray-500">{{ getRowForm(meeting.id!).decisionsPolls.length }}/{{ maxDecisions }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Row action buttons -->
+                    <div class="flex items-center justify-end gap-3 mt-auto pt-2">
+                      <button (click)="toggleRow(meeting)"
+                        class="text-[13px] font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors px-2">
+                        Cancel
+                      </button>
+                      <button (click)="updateMeeting(meeting)"
+                        class="px-6 py-[7px] bg-blue-500 hover:bg-blue-600 text-white font-semibold text-[13px] rounded-lg transition-colors">
+                        Update
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Footer / pagination -->
+  <div class="flex items-center justify-between bg-white dark:bg-[#1a1a24] rounded-[16px] border border-[#26262619] dark:border-[#2a2a3a] px-5 py-4">
+    <span class="text-[13px] text-gray-500 dark:text-gray-400">Showing {{ meetings.length }} meeting{{ meetings.length !== 1 ? 's' : '' }}</span>
+    <div class="flex items-center gap-1">
+      <button class="w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 dark:border-[#2a2a3a] text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#23233a] transition-colors text-sm font-medium cursor-pointer">&lt;</button>
+      <button class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-600 text-white font-semibold text-sm cursor-pointer">1</button>
+      <button class="w-8 h-8 flex items-center justify-center rounded-full border border-gray-200 dark:border-[#2a2a3a] text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-[#23233a] transition-colors text-sm font-medium cursor-pointer">&gt;</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Create meeting modal -->
+<app-create-meeting-modal
+  [isOpen]="isCreateMeetingOpen()"
+  [users]="users"
+  [projects]="projects"
+  (closed)="closeCreateMeeting()"
+  (created)="handleMeetingCreated($event)"
+></app-create-meeting-modal>

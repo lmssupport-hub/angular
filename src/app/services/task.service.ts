@@ -1,7 +1,6 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
-import { isPlatformBrowser } from '@angular/common';
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -24,7 +23,7 @@ export interface TaskResponse {
   taskName:          string;
   description:       string;
   targetCount:       number;
-  achievedCount?:    number;   // actual completed units; optional until API supports it
+  achievedCount?:    number;
   priority:          Priority;
   status:            TaskStatus;
   assignedUserId:    number;
@@ -57,46 +56,26 @@ export interface CreateTaskRequest {
 export class TaskService {
   private readonly baseUrl = 'https://nexus-backend-uoox.onrender.com/api/tasks';
 
-  constructor(
-    private http: HttpClient,
-    @Inject(PLATFORM_ID) private platformId: object,
-  ) {}
-
-  private getHeaders(): HttpHeaders {
-    if (!isPlatformBrowser(this.platformId)) return new HttpHeaders();
-    const token = localStorage.getItem('token');
-    return token
-      ? new HttpHeaders({ Authorization: `Bearer ${token}` })
-      : new HttpHeaders();
-  }
+  constructor(private http: HttpClient) {}  // PLATFORM_ID & headers no longer needed
 
   getTasksByProject(projectId: number): Observable<TaskResponse[]> {
-    return this.http.get<TaskResponse[]>(`${this.baseUrl}?projectId=${projectId}`, {
-      headers: this.getHeaders(),
-    });
+    return this.http.get<TaskResponse[]>(`${this.baseUrl}?projectId=${projectId}`);
   }
 
   getTaskById(id: number): Observable<TaskResponse> {
-    return this.http.get<TaskResponse>(`${this.baseUrl}/${id}`, {
-      headers: this.getHeaders(),
-    });
+    return this.http.get<TaskResponse>(`${this.baseUrl}/${id}`);
   }
 
   createTask(data: CreateTaskRequest): Observable<TaskResponse> {
-    return this.http.post<TaskResponse>(this.baseUrl, data, {
-      headers: this.getHeaders(),
-    });
+    return this.http.post<TaskResponse>(this.baseUrl, data);
   }
 
   updateTask(id: number, data: Partial<CreateTaskRequest>): Observable<TaskResponse> {
-    return this.http.put<TaskResponse>(`${this.baseUrl}/${id}`, data, {
-      headers: this.getHeaders(),
-    });
+    return this.http.put<TaskResponse>(`${this.baseUrl}/${id}`, data);
   }
 
   deleteTask(id: number): Observable<string> {
     return this.http.delete(`${this.baseUrl}/${id}`, {
-      headers: this.getHeaders(),
       responseType: 'text',
     });
   }

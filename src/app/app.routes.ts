@@ -7,6 +7,8 @@ import { Settings } from './dashboard/settings/settings';
 import { DashboardHome } from './dashboard/dashboard-home/dashboard-home';
 import { TaskListComponent } from './dashboard/task-list/task-list';
 import { Tasks } from './dashboard/tasks/tasks';
+import { ForgotPassword } from './forgot-password/forgot-password';
+import { MeetingWorkspace } from './dashboard/meeting-workspace/meeting-workspace';
 
 export const routes: Routes = [
   {
@@ -20,6 +22,11 @@ export const routes: Routes = [
     component: Auth
   },
 
+   {
+    path: 'Forgot-Password',
+    component: ForgotPassword
+  },
+
   {
     path: 'dashboard',
     component: Dashboard,
@@ -29,8 +36,9 @@ export const routes: Routes = [
       { path: 'projects', component: Projects },
       { path: 'projects-list', component: ProjectsList },
       { path: 'settings', component: Settings },
-       { path: 'task-list', component: TaskListComponent },
-       { path: 'tasks', component: Tasks}
+      { path: 'task-list', component: TaskListComponent },
+      { path: 'tasks', component: Tasks},
+      { path: 'meeting-workspace', component: MeetingWorkspace}
     ],
   },
 

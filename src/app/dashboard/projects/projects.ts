@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ApiService, Project } from '../../services/api.service';
+import { ProjectService, Project } from '../../services/project.service';
+import { AuthService } from '../../services/auth.service';
 import { TaskService, TaskResponse } from '../../services/task.service';
 
 
@@ -32,7 +33,8 @@ export class Projects implements OnInit, OnDestroy {
   private _refreshTimer: any = null;
 
   constructor(
-    private api: ApiService,
+    private api: ProjectService,
+    private authService: AuthService,
     private taskService: TaskService,
     private router: Router,
   ) {}
@@ -48,7 +50,7 @@ export class Projects implements OnInit, OnDestroy {
 
   // ── Session check (Scenario 10) ───────────────────────────────────
   private checkSession(): void {
-    if (!this.api.isAuthenticated()) {
+    if (!this.authService.isAuthenticated()) {
       this.sessionExpired = true;
       setTimeout(() => this.router.navigate(['/login']), 2500);
     }

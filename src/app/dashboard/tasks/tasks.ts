@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ApiService, Project } from '../../services/api.service';
+import { ProjectService, Project } from '../../services/project.service';
 import { TaskService, TaskResponse } from '../../services/task.service';
 import { isPlatformBrowser } from '@angular/common';
 
@@ -27,7 +27,7 @@ interface VelocityBar {
 })
 export class Tasks implements OnInit {
   private router      = inject(Router);
-  private api         = inject(ApiService);
+  private api = inject(ProjectService);
   private taskService = inject(TaskService);
   private platformId  = inject(PLATFORM_ID);
 
