@@ -15,7 +15,7 @@
       class="p-0 border-0 bg-transparent cursor-pointer"
     >
       <img
-        src="/Group 9.png"
+        src="/Vativa-logo.png"
         alt="Logo"
         class="h-auto transition-all duration-500 hover:scale-105"
         [class.w-16]="isSidebarOpen"
@@ -42,7 +42,7 @@
         class="h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
       >
         <i class="fa-solid fa-table-columns text-sm w-4 text-center"></i>
-        @if (isSidebarOpen) { <span>Dashboard</span> }
+        @if (isSidebarOpen) { <span class="text-xs">Dashboard</span> }
       </a>
 
       <!-- Projects Dropdown -->
@@ -55,7 +55,7 @@
         >
           <span class="flex items-center gap-3">
             <i class="fa-regular fa-folder text-sm w-4 text-center"></i>
-            @if (isSidebarOpen) { <span>Projects</span> }
+            @if (isSidebarOpen) { <span class="text-xs">Projects</span> }
           </span>
           @if (isSidebarOpen) {
             <i
@@ -70,7 +70,7 @@
             <a
               routerLink="/dashboard/projects-list"
               routerLinkActive="!text-[#5a4bb3]"
-              class="h-9 flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-[#5a4bb3] transition-colors duration-150"
+              class="h-9 flex items-center text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-[#5a4bb3] transition-colors duration-150"
             >Projects List</a>
           </div>
         }
@@ -86,7 +86,7 @@
         >
           <span class="flex items-center gap-3">
             <i class="fa-solid fa-list-check text-sm w-4 text-center"></i>
-            @if (isSidebarOpen) { <span>Tasks</span> }
+            @if (isSidebarOpen) { <span class="text-xs">Tasks</span> }
           </span>
           @if (isSidebarOpen) {
             <i
@@ -101,7 +101,7 @@
             <a
               routerLink="/dashboard/task-list"
               routerLinkActive="!text-[#5a4bb3]"
-              class="h-9 flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-[#5a4bb3] transition-colors duration-150"
+              class="h-9 flex items-center text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-[#5a4bb3] transition-colors duration-150"
             >Task List</a>
           </div>
         }
@@ -116,7 +116,24 @@
       >
         <span class="flex items-center gap-3">
           <i class="fa-solid fa-link text-sm w-4 text-center"></i>
-          @if (isSidebarOpen) { <span>Connect</span> }
+          @if (isSidebarOpen) { <span class="text-xs">Connect</span> }
+        </span>
+        @if (isSidebarOpen) {
+          <i class="fa-solid fa-chevron-right text-[10px] opacity-50 group-[.active]:opacity-100"></i>
+        }
+      </a>
+
+<!-- Error List -->
+
+      <a
+        routerLink="/dashboard/error-list"
+        routerLinkActive="!bg-[#eef0ff] dark:!bg-[#2a2560] !text-[#5a4bb3]"
+        (click)=" closeProjectsMenu(); closeTasksMenu()"
+        class="group h-11 px-3 rounded-xl flex items-center justify-between text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
+      >
+        <span class="flex items-center gap-3">
+          <i class="fa-solid fa-circle-exclamation text-sm w-4 text-center"></i> 
+          @if (isSidebarOpen) { <span class="text-xs">Error tracking</span> }
         </span>
         @if (isSidebarOpen) {
           <i class="fa-solid fa-chevron-right text-[10px] opacity-50 group-[.active]:opacity-100"></i>
@@ -124,6 +141,8 @@
       </a>
 
     </nav>
+
+    
 
     <!-- Bottom: Settings / Logout -->
     <nav class="absolute bottom-8 left-0 right-0 px-5 space-y-1.5">
@@ -133,7 +152,7 @@
         class="h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
       >
         <i class="fa-solid fa-gear text-sm w-4 text-center"></i>
-        @if (isSidebarOpen) { <span>Settings</span> }
+        @if (isSidebarOpen) { <span class="text-xs">Settings</span> }
       </a>
 
       <button
@@ -142,7 +161,7 @@
         class="w-full h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
       >
         <i class="fa-solid fa-arrow-right-from-bracket text-sm w-4 text-center"></i>
-        @if (isSidebarOpen) { <span>Log out</span> }
+        @if (isSidebarOpen) { <span class="text-xs">Log out</span> }
       </button>
     </nav>
   </aside>

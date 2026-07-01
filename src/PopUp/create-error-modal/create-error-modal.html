@@ -1,0 +1,163 @@
+@if (isOpen) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div class="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-[#1a1a24] rounded-2xl shadow-xl">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-[#2a2a3a]">
+        <h2 class="text-base font-bold text-gray-900 dark:text-gray-100">Create Error</h2>
+        <button type="button" (click)="close()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <form [formGroup]="form" (ngSubmit)="submit()" class="px-6 py-5 space-y-4">
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs font-semibold text-gray-500">Project Name<span class="text-red-500">*</span></label>
+            <select
+              formControlName="projectId"
+              (change)="onProjectChange()"
+              class="mt-1 w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#15151f] text-sm outline-none"
+            >
+              <option [ngValue]="null">Select project</option>
+              @for (p of projects; track p.id) {
+                <option [ngValue]="p.id">{{ p.projectName }}</option>
+              }
+            </select>
+            @if (form.get('projectId')?.touched && form.get('projectId')?.invalid) {
+              <p class="text-xs text-red-500 mt-1">Project is required</p>
+            }
+          </div>
+
+          <div>
+            <label class="text-xs font-semibold text-gray-500">Task Name<span class="text-red-500">*</span></label>
+            <select
+              formControlName="taskId"
+              (change)="onTaskChange()"
+              class="mt-1 w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#15151f] text-sm outline-none disabled:opacity-50"
+            >
+              <option [ngValue]="null">Select task</option>
+              @for (t of tasks; track t.id) {
+                <option [ngValue]="t.id">{{ t.taskName }}</option>
+              }
+            </select>
+            @if (form.get('taskId')?.touched && form.get('taskId')?.invalid) {
+              <p class="text-xs text-red-500 mt-1">Task is required</p>
+            }
+          </div>
+        </div>
+
+        <!-- Field 10: Assign User — read-only, auto-populated from Task -->
+        <div>
+          <label class="text-xs font-semibold text-gray-500">Assign User</label>
+          <div class="mt-1 w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-gray-50 dark:bg-[#23233a] text-sm flex items-center text-gray-500">
+            {{ assignedUserName || 'Auto-populated from selected task' }}
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-gray-500">Page Title / Page No<span class="text-red-500">*</span></label>
+          <input
+            type="text"
+            formControlName="pageTitle"
+            placeholder="Page title or page number"
+            class="mt-1 w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#15151f] text-sm outline-none"
+          />
+          @if (form.get('pageTitle')?.touched && form.get('pageTitle')?.invalid) {
+            <p class="text-xs text-red-500 mt-1">Page title/page no is required</p>
+          }
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-gray-500">Error Description<span class="text-red-500">*</span></label>
+          <textarea
+            formControlName="errorDescription"
+            rows="3"
+            maxlength="1000"
+            placeholder="Describe the error"
+            class="mt-1 w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#15151f] text-sm outline-none resize-none"
+          ></textarea>
+          @if (form.get('errorDescription')?.touched && form.get('errorDescription')?.invalid) {
+            <p class="text-xs text-red-500 mt-1">Error description is required</p>
+          }
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-gray-500">Expected Result / Expected Behavior<span class="text-red-500">*</span></label>
+          <textarea
+            formControlName="expectedResult"
+            rows="3"
+            maxlength="1000"
+            placeholder="Expected result or behavior"
+            class="mt-1 w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#15151f] text-sm outline-none resize-none"
+          ></textarea>
+          @if (form.get('expectedResult')?.touched && form.get('expectedResult')?.invalid) {
+            <p class="text-xs text-red-500 mt-1">Expected result is required</p>
+          }
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs font-semibold text-gray-500">Priority<span class="text-red-500">*</span></label>
+            <select
+              formControlName="priority"
+              class="mt-1 w-full h-10 px-3 rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#15151f] text-sm outline-none"
+            >
+              <option value="" disabled>Select priority</option>
+              @for (p of priorityOptions; track p) {
+                <option [value]="p">{{ p }}</option>
+              }
+            </select>
+            @if (form.get('priority')?.touched && form.get('priority')?.invalid) {
+              <p class="text-xs text-red-500 mt-1">Priority is required</p>
+            }
+          </div>
+
+          <div>
+            <label class="text-xs font-semibold text-gray-500">Screenshot</label>
+            <input
+              type="file"
+              accept=".jpg,.jpeg,.png"
+              (change)="onScreenshotSelected($event)"
+              class="mt-1 w-full h-10 px-2 rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#15151f] text-xs outline-none file:mr-2 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:bg-[#eef0ff] file:text-[#5a4bb3] file:text-xs file:font-semibold"
+            />
+            @if (screenshotError) {
+              <p class="text-xs text-red-500 mt-1">{{ screenshotError }}</p>
+            }
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-gray-500">Comments</label>
+          <textarea
+            formControlName="comments"
+            rows="2"
+            maxlength="500"
+            placeholder="Additional comments (optional)"
+            class="mt-1 w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#15151f] text-sm outline-none resize-none"
+          ></textarea>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex items-center justify-end gap-3 pt-2 border-t border-gray-100 dark:border-[#2a2a3a]">
+          <button
+            type="button"
+            (click)="close()"
+            class="h-10 px-5 rounded-full border border-gray-200 dark:border-[#2a2a3a] text-gray-600 dark:text-gray-300 text-sm font-semibold hover:bg-gray-50 dark:hover:bg-[#23233a] transition"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            [disabled]="submitting"
+            class="h-10 px-6 rounded-full bg-[#5a4bb3] text-white text-sm font-semibold hover:bg-[#4d3fa0] transition disabled:opacity-60"
+          >
+            {{ submitting ? 'Creating…' : 'Create Error' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

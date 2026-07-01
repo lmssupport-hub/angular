@@ -98,7 +98,9 @@
         '/dashboard/tasks': 'Tasks',
         '/dashboard/task-list': 'Task List',
         '/dashboard/meeting-workspace': 'Meeting workspace',
+        '/dashboard/error-list': 'Error List',
         '/dashboard/settings': 'Settings',
+        
       };
 
       return titles[currentUrl] ?? 'Dashboard';

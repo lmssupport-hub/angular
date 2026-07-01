@@ -9,6 +9,7 @@ import { TaskListComponent } from './dashboard/task-list/task-list';
 import { Tasks } from './dashboard/tasks/tasks';
 import { ForgotPassword } from './forgot-password/forgot-password';
 import { MeetingWorkspace } from './dashboard/meeting-workspace/meeting-workspace';
+import { ErrorList } from './dashboard/error-list/error-list';
 
 export const routes: Routes = [
   {
@@ -38,9 +39,11 @@ export const routes: Routes = [
       { path: 'settings', component: Settings },
       { path: 'task-list', component: TaskListComponent },
       { path: 'tasks', component: Tasks},
-      { path: 'meeting-workspace', component: MeetingWorkspace}
+      { path: 'meeting-workspace', component: MeetingWorkspace},
+      { path: 'error-list', component: ErrorList}
     ],
   },
+
 
   {
     path: '**',
