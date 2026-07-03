@@ -14,7 +14,7 @@ export interface AppUser {
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl   = 'http://localhost:8080/api';
+  private apiUrl   = 'https://nexus-backend-uoox.onrender.com/api';
   private usersUrl = `${this.apiUrl}/users`;
 
   constructor(

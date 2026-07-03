@@ -41,7 +41,7 @@ export interface ErrorFilterParams {
 @Injectable({ providedIn: 'root' })
 export class ErrorReportApiService {
 
-  private readonly base = 'http://localhost:8080/api/errors';
+  private readonly base = 'https://nexus-backend-uoox.onrender.com/api/errors';
 
   constructor(private http: HttpClient) {}
 
