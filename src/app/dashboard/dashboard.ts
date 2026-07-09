@@ -100,7 +100,8 @@
         '/dashboard/meeting-workspace': 'Meeting workspace',
         '/dashboard/error-list': 'Error List',
         '/dashboard/settings': 'Settings',
-        
+        '/dashboard/our-circle': 'Our Circle',
+        '/dashboard/create-package': 'Create Package',
       };
 
       return titles[currentUrl] ?? 'Dashboard';

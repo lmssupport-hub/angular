@@ -1,8 +1,9 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService  } from '../services/auth.service';
+import { InviteService } from '../services/invite.service';
 
 @Component({
   selector: 'app-auth',
@@ -15,7 +16,7 @@ import { AuthService  } from '../services/auth.service';
   templateUrl: './auth.html',
   styleUrl: './auth.css',
 })
-export class Auth {
+export class Auth implements OnInit {
 
   isLogin = true;
 
@@ -67,11 +68,44 @@ export class Auth {
     'welcome123'
   ];
 
+  // ── Invite-link registration ────────────────────────────────────────
+  inviteToken: string | null = null;
+  invitedRoleName: string | null = null;
+  inviteCheckError = '';
+  checkingInvite = false;
+
   constructor(
     private apiService: AuthService,
+    private inviteService: InviteService,
     private router: Router,
+    private route: ActivatedRoute,
     private cdr: ChangeDetectorRef
   ) {}
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      const token = params.get('invite');
+      if (!token) return;
+
+      this.inviteToken = token;
+      this.isLogin = false; // an invite link always lands on the Sign Up side
+      this.checkingInvite = true;
+
+      this.inviteService.getInvite(token).subscribe({
+        next: (info) => {
+          this.registerData.email = info.email;
+          this.invitedRoleName = info.roleName;
+          this.checkingInvite = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          this.inviteCheckError = err?.error?.message ?? 'This invite link is invalid or has expired';
+          this.checkingInvite = false;
+          this.cdr.detectChanges();
+        },
+      });
+    });
+  }
 
   setLogin(state: boolean) {
     setTimeout(() => {
@@ -122,7 +156,7 @@ export class Auth {
     this.registerData = {
       firstName: '',
       lastName: '',
-      email: '',
+      email: this.inviteToken ? this.registerData.email : '', // keep the locked invite email
       phone: '',
       password: '',
       confirmPassword: '',
@@ -356,11 +390,13 @@ export class Auth {
       termsAccepted: this.registerData.termsAccepted
     };
 
-    this.apiService.registerUser(payload).subscribe({
+    // inviteToken (if present) tells the backend: stamp createdByAdminId + assignedRoleId
+    // from the invite, and mark the invite used.
+    this.apiService.registerUser(payload, this.inviteToken).subscribe({
       next: (res) => {
         console.log('Register Success', res);
 
-        alert('User Registered Successfully');
+        alert(this.inviteToken ? 'Account created — you can now log in' : 'User Registered Successfully');
 
         this.resetRegisterForm();
         this.isLogin = true;
@@ -379,6 +415,8 @@ export class Auth {
           this.errorMessages.email = 'Email already exists';
         } else if (err.status === 0) {
           this.errorMessages.email = 'Server not connected';
+        } else if (err.error?.message) {
+          this.errorMessages.email = err.error.message;
         } else {
           this.errorMessages.email = 'Registration Failed';
         }

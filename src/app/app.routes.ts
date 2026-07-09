@@ -10,6 +10,8 @@ import { Tasks } from './dashboard/tasks/tasks';
 import { ForgotPassword } from './forgot-password/forgot-password';
 import { MeetingWorkspace } from './dashboard/meeting-workspace/meeting-workspace';
 import { ErrorList } from './dashboard/error-list/error-list';
+import { OurCircle } from './dashboard/our-circle/our-circle';
+import { CreatePackage } from './dashboard/create-package/create-package';
 
 export const routes: Routes = [
   {
@@ -40,7 +42,9 @@ export const routes: Routes = [
       { path: 'task-list', component: TaskListComponent },
       { path: 'tasks', component: Tasks},
       { path: 'meeting-workspace', component: MeetingWorkspace},
-      { path: 'error-list', component: ErrorList}
+      { path: 'error-list', component: ErrorList},
+      { path: 'our-circle', component: OurCircle},
+      { path: 'create-package', component: CreatePackage}
     ],
   },
 

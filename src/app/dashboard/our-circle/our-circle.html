@@ -1,0 +1,462 @@
+<div class="p-8 bg-[#f4f3f8] h-full flex flex-col gap-3">
+
+ <!-- TOOLBAR -->
+<div class="flex items-center mb-2 shrink-0">
+  <div class="flex items-center gap-3 ml-auto">
+    <ng-container *ngIf="isSuperAdmin">
+      <button
+        type="button"
+        (click)="openUpdateModal()"
+        class="bg-white border border-gray-200 text-[#5a4bb3] px-5 h-10 rounded-full text-sm font-semibold hover:bg-gray-50">
+        + Update package
+      </button>
+
+      <button
+        type="button"
+        (click)="goToCreatePackage()"
+        class="bg-white border border-gray-200 text-[#5a4bb3] px-5 h-10 rounded-full text-sm font-semibold hover:bg-gray-50">
+        + Create package
+      </button>
+    </ng-container>
+
+    <ng-container *ngIf="isAdmin">
+      <button
+        type="button"
+        (click)="openInviteModal()"
+        class="bg-white border border-gray-200 text-[#5a4bb3] px-5 h-10 rounded-full text-sm font-semibold hover:bg-gray-50">
+        + Invite People
+      </button>
+
+      <button
+        type="button"
+        (click)="goToCreateRole()"
+        class="bg-white border border-gray-200 text-[#5a4bb3] px-5 h-10 rounded-full text-sm font-semibold hover:bg-gray-50">
+        + Create Role
+      </button>
+    </ng-container>
+  </div>
+</div>
+
+  <!-- HEADER ROW -->
+  <div class="bg-white rounded-xl shadow-sm px-6 py-3 shrink-0">
+    <div class="grid items-center" style="grid-template-columns: 20% 10% 22% 12% 12% 12% 12%;">
+      <div class="text-xs font-medium text-gray-500">User</div>
+      <div class="text-xs font-medium text-gray-500">Role</div>
+      <div class="text-xs font-medium text-gray-500">Email</div>
+      <div class="text-xs font-medium text-gray-500">Package</div>
+      <div class="text-xs font-medium text-gray-500">Joined</div>
+      <div class="text-xs font-medium text-gray-500">Last active</div>
+      <div class="text-xs font-medium text-gray-500 text-right">Action</div>
+    </div>
+  </div>
+
+  <!-- TABLE CARD -->
+  <div class="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col">
+
+    <div class="overflow-x-auto">
+      <div class="min-w-[1000px] divide-y divide-gray-100">
+        <div
+          *ngFor="let u of pagedUsers"
+          class="grid items-center px-6 py-3 hover:bg-gray-50 transition"
+          style="grid-template-columns: 20% 10% 22% 12% 12% 12% 12%;"
+        >
+          <!-- User -->
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-[#eef2ff] text-[#5a4bb3] flex items-center justify-center text-xs font-semibold shrink-0">
+              {{ initials(u) }}
+            </div>
+            <span class="text-gray-800 font-medium text-xs truncate">{{ u.firstName }} {{ u.lastName }}</span>
+          </div>
+
+          <!-- Role -->
+          <div class="text-gray-600 text-xs">{{ u.role }}</div>
+
+          <!-- Email -->
+          <div class="text-gray-600 text-xs truncate pr-2">{{ u.email }}</div>
+
+          <!-- Package -->
+          <div class="text-gray-600 text-xs truncate pr-2">{{ packageName(u) }}</div>
+
+          <!-- Joined -->
+          <div class="text-gray-500 text-[11px]">{{ formatDate(u.createdAt) }}</div>
+
+          <!-- Last active -->
+          <div>
+            <span class="inline-flex items-center gap-2 text-[11px] text-gray-600">
+              <span class="w-2 h-2 rounded-full shrink-0" [ngClass]="lastActiveColor(u)"></span>{{ lastActive(u) }}
+            </span>
+          </div>
+
+          <!-- Action: delete only -->
+          <div class="flex items-center justify-end">
+            <button type="button" (click)="openDeleteModal(u)" class="text-gray-400 hover:text-red-500">
+              <i class="fa-solid fa-trash text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LOADING -->
+      <div *ngIf="loading" class="p-8 text-center text-gray-400 text-xs">
+        Loading members...
+      </div>
+
+      <!-- ERROR -->
+      <div *ngIf="!loading && errorMsg" class="p-8 text-center text-red-400 text-xs">
+        {{ errorMsg }}
+      </div>
+
+      <!-- EMPTY -->
+      <div *ngIf="!loading && !users.length && !errorMsg" class="p-8 text-center text-gray-400 text-xs">
+        No members yet
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div
+      *ngIf="!loading && users.length"
+      class="flex items-center justify-between px-6 py-4 text-xs text-gray-500 border-t border-gray-100 shrink-0"
+    >
+      <span>Showing {{ rangeStart }} to {{ rangeEnd }} of {{ users.length }} circle members</span>
+
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          (click)="prevPage()"
+          [disabled]="currentPage === 1"
+          class="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+          [ngClass]="currentPage === 1
+            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            : 'bg-[#5a4bb3] text-white hover:bg-[#4a3d99] cursor-pointer'"
+        >
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+        </button>
+
+        <button
+          type="button"
+          *ngFor="let p of pageNumbers"
+          (click)="goToPage(p)"
+          class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-colors cursor-pointer"
+          [ngClass]="p === currentPage
+            ? 'bg-[#5a4bb3] text-white'
+            : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'"
+        >
+          {{ p }}
+        </button>
+
+        <button
+          type="button"
+          (click)="nextPage()"
+          [disabled]="currentPage === totalPages"
+          class="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+          [ngClass]="currentPage === totalPages
+            ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            : 'bg-[#5a4bb3] text-white hover:bg-[#4a3d99] cursor-pointer'"
+        >
+          <i class="fa-solid fa-chevron-right text-xs"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ UPDATE PACKAGE MODAL ══════════════════ -->
+<div *ngIf="showUpdateModal()" class="fixed inset-0 bg-black/30 flex items-center justify-center z-[999]">    <div class="bg-white rounded-2xl shadow-lg w-full max-w-md p-6 flex flex-col gap-4 relative">
+
+      <button type="button" (click)="closeUpdateModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+
+      <h3 class="text-lg font-semibold text-[#5a4bb3]">Update package</h3>
+
+      <!-- Email ID -->
+      <div class="flex flex-col gap-2">
+        <label class="text-sm text-gray-700">Email ID<span class="text-red-500">*</span></label>
+
+        <div class="relative w-full">
+          <button
+            type="button"
+            (click)="toggleEmailDropdown()"
+            class="w-full flex items-center justify-between bg-[#f4f3f8] rounded-full pl-5 pr-4 h-10 text-xs outline-none"
+          >
+            <span [ngClass]="selectedUpdateEmail ? 'text-gray-800' : 'text-gray-400'">
+              {{ selectedUpdateEmail ?? 'Select email ID' }}
+            </span>
+            <svg class="h-3 w-3 text-gray-500 transition-transform" [ngClass]="emailDropdownOpen ? 'rotate-180' : ''"
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          <div *ngIf="emailDropdownOpen" class="mt-2 bg-[#f4f3f8] rounded-2xl overflow-hidden">
+            <div class="flex items-center gap-2 px-4 h-10 border-b border-white/70">
+              <i class="fa-solid fa-magnifying-glass text-xs text-gray-400"></i>
+              <input
+                type="text"
+                [(ngModel)]="emailSearchQuery"
+                placeholder="Search"
+                class="bg-transparent outline-none text-xs text-gray-700 placeholder-gray-400 w-full"
+              />
+            </div>
+
+            <div class="max-h-40 overflow-y-auto">
+              <div
+                *ngFor="let u of filteredEmailUsers"
+                (click)="selectUpdateEmail(u.email)"
+                class="flex items-center gap-3 px-4 py-2 hover:bg-white/60 cursor-pointer"
+              >
+                <div class="w-6 h-6 rounded-full bg-[#eef2ff] text-[#5a4bb3] flex items-center justify-center text-[10px] font-semibold shrink-0">
+                  {{ initials(u) }}
+                </div>
+                <span class="text-xs text-gray-700">{{ u.email }}</span>
+              </div>
+
+              <div *ngIf="!filteredEmailUsers.length" class="px-4 py-3 text-xs text-gray-400 text-center">
+                No matches
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Package -->
+      <div class="flex flex-col gap-2">
+        <label class="text-sm text-gray-700">Package<span class="text-red-500">*</span></label>
+
+        <div class="relative w-full">
+          <button
+            type="button"
+            (click)="togglePackageDropdown()"
+            class="w-full flex items-center justify-between bg-[#f4f3f8] rounded-full pl-5 pr-4 h-10 text-xs outline-none"
+          >
+            <span [ngClass]="selectedUpdatePackageId ? 'text-gray-800' : 'text-gray-400'">
+              {{ selectedPackageName ?? 'Select package' }}
+            </span>
+            <svg class="h-3 w-3 text-gray-500 transition-transform" [ngClass]="packageDropdownOpen ? 'rotate-180' : ''"
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          <div *ngIf="packageDropdownOpen" class="mt-2 bg-[#f4f3f8] rounded-2xl overflow-hidden">
+            <div class="flex items-center gap-2 px-4 h-10 border-b border-white/70">
+              <i class="fa-solid fa-magnifying-glass text-xs text-gray-400"></i>
+              <input
+                type="text"
+                [(ngModel)]="packageSearchQuery"
+                placeholder="Search"
+                class="bg-transparent outline-none text-xs text-gray-700 placeholder-gray-400 w-full"
+              />
+            </div>
+
+            <div class="max-h-40 overflow-y-auto">
+              <div
+                *ngFor="let p of filteredPackages"
+                (click)="selectUpdatePackage(p.id)"
+                class="flex items-center justify-between px-4 py-2 hover:bg-white/60 cursor-pointer"
+              >
+                <span class="text-xs text-gray-700">{{ p.name }}</span>
+                <i *ngIf="p.id === selectedUpdatePackageId" class="fa-solid fa-check text-[10px] text-[#5a4bb3]"></i>
+              </div>
+
+              <div *ngIf="!filteredPackages.length" class="px-4 py-3 text-xs text-gray-400 text-center">
+                No matches
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p *ngIf="updateError" class="text-xs text-red-500">{{ updateError }}</p>
+
+      <div class="border-t border-gray-100 pt-4 flex items-center justify-center">
+        <button
+          type="button"
+          (click)="saveUpdate()"
+          [disabled]="savingUpdate"
+          class="text-[#5a4bb3] text-sm font-semibold hover:text-[#4a3d99] disabled:opacity-50"
+        >
+          {{ savingUpdate ? 'Saving...' : 'Save update' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════ DELETE USER MODAL ══════════════════ -->
+
+<div *ngIf="showDeleteModal()" class="fixed inset-0 bg-black/30 flex items-center justify-center z-[999]">    <div class="bg-white rounded-2xl shadow-lg w-full max-w-md p-6 flex flex-col gap-4 relative">
+
+      <button type="button" (click)="closeDeleteModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <i class="fa-solid fa-xmark text-sm"></i>
+      </button>
+
+      <h3 class="text-lg font-semibold text-red-600">Delete member</h3>
+
+      <p class="text-sm text-gray-600">
+        You're about to permanently remove
+        <span class="font-semibold text-gray-800">{{ userToDelete?.firstName }} {{ userToDelete?.lastName }}</span>
+        ({{ userToDelete?.email }}) from Our Circle. This cannot be undone.
+      </p>
+
+      <div class="flex flex-col gap-2">
+        <label class="text-sm text-gray-700">
+          Type <span class="font-semibold text-red-600">DELETE</span> to confirm
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="deleteConfirmText"
+          placeholder="Type DELETE"
+          class="bg-[#f4f3f8] rounded-full px-5 h-10 text-xs text-gray-700 outline-none focus:ring-2 focus:ring-red-300"
+        />
+      </div>
+
+      <p *ngIf="deleteError" class="text-xs text-red-500">{{ deleteError }}</p>
+
+      <div class="flex items-center justify-end gap-3 pt-2">
+        <button
+          type="button"
+          (click)="closeDeleteModal()"
+          class="bg-white border border-gray-200 text-gray-500 px-5 h-9 rounded-full text-xs font-semibold hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          (click)="confirmDelete()"
+          [disabled]="!canConfirmDelete || deletingUser"
+          class="bg-red-600 text-white px-5 h-9 rounded-full text-xs font-semibold hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ deletingUser ? 'Deleting...' : 'Delete permanently' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- ══════════════════ INVITE PEOPLE MODAL ══════════════════ -->
+  <div *ngIf="showInviteModal()" class="fixed inset-0 bg-black/30 flex items-center justify-center z-[999]">
+    <div class="bg-white rounded-2xl shadow-lg w-full max-w-md p-6 flex flex-col relative">
+
+      <h3 class="text-lg font-semibold text-[#5a4bb3] mb-4">Invite peoples</h3>
+
+      <!-- Email input -->
+      <input
+        type="text"
+        [(ngModel)]="inviteEmailInput"
+        (keydown)="onInviteEmailKeydown($event)"
+        (blur)="addInviteEmail()"
+        placeholder="Enter email ID"
+        class="w-full bg-[#f4f3f8] rounded-lg px-4 h-11 text-sm text-gray-700 placeholder-gray-400 outline-none focus:ring-2 focus:ring-[#5a4bb3]/30 mb-3"
+      />
+
+      <!-- Added email chips -->
+      <div class="flex flex-col gap-2 mb-3" *ngIf="invitedEmails.length">
+        <div
+          *ngFor="let e of invitedEmails; let i = index"
+          class="flex items-center justify-between bg-[#f4f3f8] rounded-lg px-4 h-11"
+        >
+          <div class="flex items-center gap-2 min-w-0">
+            <div class="h-6 w-6 rounded-full bg-gray-300 flex items-center justify-center shrink-0">
+              <i class="fa-solid fa-user text-white text-[10px]"></i>
+            </div>
+            <span class="text-sm text-gray-700 truncate">{{ e.email }}</span>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <span
+              *ngIf="e.valid"
+              class="h-5 w-5 rounded-full bg-green-500 flex items-center justify-center"
+            >
+              <i class="fa-solid fa-check text-white text-[9px]"></i>
+            </span>
+            <span *ngIf="!e.valid" class="text-[10px] text-red-500">Invalid</span>
+            <button type="button" (click)="removeInviteEmail(i)" class="text-gray-400 hover:text-gray-600 text-xs">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories (role) dropdown — admin's own roles only, same source as create-package's role dropdown -->
+      <div class="relative w-full mb-2">
+        <button
+          type="button"
+          (click)="toggleInviteRoleDropdown()"
+          class="w-full flex items-start gap-3 bg-[#f4f3f8] rounded-lg px-4 py-3 text-left"
+        >
+          <div class="h-8 w-8 rounded-full bg-[#e4e0f7] flex items-center justify-center shrink-0 mt-0.5">
+            <i class="fa-solid fa-users text-[#5a4bb3] text-xs"></i>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-1 text-sm font-semibold text-gray-800">
+              {{ selectedInviteRoleName ?? 'Categories' }}
+              <svg
+                class="h-3 w-3 text-gray-500 transition-transform"
+                [ngClass]="inviteRoleDropdownOpen ? 'rotate-90' : ''"
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+              >
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </div>
+            <p class="text-xs text-gray-400 mt-0.5">
+              {{ selectedInviteRoleName ? 'Can access items allowed by this role.' : 'Can access all public items in your workspace.' }}
+            </p>
+          </div>
+        </button>
+
+        <div *ngIf="inviteRoleDropdownOpen" class="mt-2 bg-[#f4f3f8] rounded-2xl overflow-hidden">
+          <div class="flex items-center gap-2 px-4 h-10 border-b border-white/70">
+            <i class="fa-solid fa-magnifying-glass text-xs text-gray-400"></i>
+            <input
+              type="text"
+              [(ngModel)]="inviteRoleSearchQuery"
+              placeholder="Search"
+              class="bg-transparent outline-none text-xs text-gray-700 placeholder-gray-400 w-full"
+            />
+          </div>
+
+          <div class="max-h-40 overflow-y-auto">
+            <div *ngIf="loadingInviteRoles()" class="px-4 py-3 text-xs text-gray-400 text-center">
+              Loading roles...
+            </div>
+
+            <div
+              *ngFor="let role of filteredInviteRoles"
+              (click)="selectInviteRole(role.id)"
+              class="flex items-center justify-between px-4 py-2 hover:bg-white/60 cursor-pointer"
+            >
+              <span class="text-xs text-gray-700">{{ role.name }}</span>
+              <i *ngIf="role.id === selectedInviteRoleId" class="fa-solid fa-check text-[10px] text-[#5a4bb3]"></i>
+            </div>
+
+            <div *ngIf="!loadingInviteRoles() && !filteredInviteRoles.length" class="px-4 py-3 text-xs text-gray-400 text-center">
+              No roles created yet
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p *ngIf="inviteError" class="text-xs text-red-500 mb-2">{{ inviteError }}</p>
+
+      <!-- Footer actions -->
+      <div class="flex items-center justify-end gap-3 mt-4">
+        <button
+          type="button"
+          (click)="closeInviteModal()"
+          class="bg-white border border-gray-200 text-gray-500 px-6 h-10 rounded-full text-sm font-medium hover:bg-gray-50"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          (click)="sendInvite()"
+          [disabled]="!canSendInvite || sendingInvite"
+          class="bg-[#5a4bb3] text-white px-6 h-10 rounded-full text-sm font-medium hover:bg-[#4a3d99] disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ sendingInvite ? 'Sending...' : 'Send Invite' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

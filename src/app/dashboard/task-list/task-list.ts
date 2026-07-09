@@ -9,7 +9,7 @@ import { CommonModule } from '@angular/common';
 import { tap } from 'rxjs';
 import { TaskService, TaskResponse, CreateTaskRequest } from '../../services/task.service';
 import { ProjectService, Project } from '../../services/project.service';
-import { AppUser } from '../../services/auth.service';
+import { AuthService, AppUser } from '../../services/auth.service';
 
 // ── Import the new standalone modal ──────────────────────────────────────────
 import { CreateTaskModalComponent, TaskModalMode } from '../../../PopUp/create-task-modal/create-task-modal';
@@ -34,6 +34,7 @@ export class TaskListComponent implements OnInit {
   private fb          = inject(TaskService);   // kept for potential future use
   private taskService = inject(TaskService);
   private api         = inject(ProjectService);
+  private authService  = inject(AuthService);
 
   // ── State signals ─────────────────────────────────────────────────
   tasks      = signal<TaskResponse[]>([]);
@@ -44,11 +45,8 @@ export class TaskListComponent implements OnInit {
   selectedProjectId = signal<number | null>(null);
   expandedTasks     = signal<Set<number>>(new Set());
 
-  // Hardcoded users — replace with API call when available
-  allUsers = signal<AppUser[]>([
-    { id: 44, username: 'sing',      email: 'admin@test.com', active: true },
-    { id: 45, username: 'Test User', email: 'test@test.com',  active: true },
-  ]);
+  // ✅ Real registered users — loaded from backend, replaces hardcoded mock data
+  allUsers = signal<AppUser[]>([]);
 
   // ── Modal signals ─────────────────────────────────────────────────
   modalVisible = signal(false);
@@ -95,6 +93,12 @@ export class TaskListComponent implements OnInit {
   // ── Lifecycle ─────────────────────────────────────────────────────
   ngOnInit(): void {
     this.api.getProjects().subscribe({ next: p => this.projects.set(p), error: () => {} });
+
+    // ✅ Load real registered users for the "Assigned User" dropdown
+    this.authService.getUsers().subscribe({
+      next:  u => this.allUsers.set(u),
+      error: () => this.allUsers.set([]),
+    });
   }
 
   // ── Table interactions ────────────────────────────────────────────

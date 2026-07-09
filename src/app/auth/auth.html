@@ -105,9 +105,23 @@
           Create Your Account
         </h1>
 
-        <p class="text-gray-500 text-sm mb-6">
+        <p class="text-gray-500 text-sm mb-4">
           Fill in the details below to get started
         </p>
+
+        <!-- Invite banner: only shown when arriving via an admin's invite link -->
+        <div *ngIf="inviteToken && checkingInvite" class="bg-[#eef2ff] text-[#5a4bb3] text-xs rounded-lg px-4 py-3 mb-4">
+          Checking your invite link...
+        </div>
+
+        <div *ngIf="inviteToken && !checkingInvite && !inviteCheckError" class="bg-[#eef2ff] text-[#5a4bb3] text-xs rounded-lg px-4 py-3 mb-4">
+          You've been invited to join.
+          <span *ngIf="invitedRoleName"> Role: <span class="font-semibold">{{ invitedRoleName }}</span></span>
+        </div>
+
+        <div *ngIf="inviteToken && inviteCheckError" class="bg-red-50 text-red-600 text-xs rounded-lg px-4 py-3 mb-4">
+          {{ inviteCheckError }}
+        </div>
 
         <!-- NAME -->
         <div class="grid grid-cols-2 gap-3 mb-3">
@@ -168,9 +182,15 @@
               placeholder="Email Address"
               [(ngModel)]="registerData.email"
               (input)="clearError('email')"
-              class="w-full h-11 pl-9 rounded-lg border border-gray-300 text-sm outline-none bg-[#eef2ff]"
+              [readOnly]="!!inviteToken"
+              [ngClass]="inviteToken ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-[#eef2ff]'"
+              class="w-full h-11 pl-9 rounded-lg border border-gray-300 text-sm outline-none"
             />
           </div>
+
+          <p *ngIf="inviteToken" class="text-gray-400 text-xs mt-1">
+            This email came from your invite link and can't be changed.
+          </p>
 
           <p *ngIf="registerSubmitted && errorMessages.email" class="text-red-500 text-xs mt-1">
             {{ errorMessages.email }}

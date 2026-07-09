@@ -1,34 +1,44 @@
 <div class="h-screen flex bg-[#F4F4F5] dark:bg-[#0f0f13] pl-6 pt-6 pb-6 overflow-hidden transition-colors duration-300">
 
-  <aside
-  class="relative h-full bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] rounded-2xl overflow-hidden transition-all duration-300 ease-in-out"
-  [style.width.px]="isSidebarOpen ? 230 : 88"
->
+  <!-- Sidebar -->
   <div
-    class="pt-8 pb-6 flex flex-col items-center transition-all duration-300"
-    [class.px-6]="isSidebarOpen"
-    [class.px-3]="!isSidebarOpen"
+    class="relative h-full"
+    [style.width.px]="isSidebarOpen ? 230 : 88"
   >
+    <!-- Collapse / Expand toggle -->
     <button
       type="button"
       (click)="toggleSidebar($event)"
-      class="p-0 border-0 bg-transparent cursor-pointer"
+      [attr.aria-expanded]="isSidebarOpen"
+      [attr.title]="isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'"
+      class="absolute -right-3 top-6 z-10 w-6 h-6 rounded-full bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] shadow-sm flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-[#5a4bb3] hover:scale-105 transition-all duration-200"
+    >
+      <i
+        class="fa-solid fa-chevron-right text-[10px] transition-transform duration-300"
+        [class.rotate-180]="isSidebarOpen"
+      ></i>
+    </button>
+
+    <aside class="h-full w-full bg-white dark:bg-[#1a1a24] rounded-2xl overflow-hidden transition-all duration-300 ease-in-out">
+    <div
+      class="pt-8 pb-6 flex flex-col items-center transition-all duration-300"
+      [class.px-6]="isSidebarOpen"
+      [class.px-3]="!isSidebarOpen"
     >
       <img
         src="/Vativa-logo.png"
         alt="Logo"
-        class="h-auto transition-all duration-500 hover:scale-105"
+        class="h-auto transition-all duration-500"
         [class.w-16]="isSidebarOpen"
         [class.w-10]="!isSidebarOpen"
       />
-    </button>
 
-    @if (isSidebarOpen) {
-      <p class="mt-3 text-[11px] font-bold text-gray-700 dark:text-gray-300 text-center leading-tight">
-        VativaHub Design &amp;<br />Development
-      </p>
-    }
-  </div>
+      @if (isSidebarOpen) {
+        <p class="mt-3 text-[11px] font-bold text-gray-700 dark:text-gray-300 text-center leading-tight">
+          VativaHub Design &amp;<br />Development
+        </p>
+      }
+    </div>
 
     <!-- Menu -->
     <nav class="px-5 mt-2 space-y-1.5">
@@ -36,10 +46,10 @@
       <!-- Dashboard -->
       <a
         routerLink="/dashboard/home"
-        routerLinkActive="!bg-[#eef0ff] dark:!bg-[#2a2560] !text-[#5a4bb3]"
+        routerLinkActive="nav-tab-active !text-[#5a4bb3] !w-[calc(100%+20px)] !rounded-l-[20px] !rounded-r-none !bg-[#F4F4F5] dark:!bg-[#0f0f13] before:!opacity-100 after:!opacity-100"
         [routerLinkActiveOptions]="{ exact: true }"
-        (click)=" closeProjectsMenu(); closeTasksMenu()"
-        class="h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
+        (click)="closeProjectsMenu(); closeTasksMenu()"
+        class="relative h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-all duration-300 before:content-[''] before:absolute before:-right-px before:-top-5 before:w-5 before:h-5 before:pointer-events-none before:opacity-0 before:transition-opacity before:duration-300 before:bg-[radial-gradient(circle_at_top_left,transparent_20px,_#F4F4F5_20px)] dark:before:bg-[radial-gradient(circle_at_top_left,transparent_20px,_#0f0f13_20px)] after:content-[''] after:absolute after:-right-px after:-bottom-5 after:w-5 after:h-5 after:pointer-events-none after:opacity-0 after:transition-opacity after:duration-300 after:bg-[radial-gradient(circle_at_bottom_left,transparent_20px,_#F4F4F5_20px)] dark:after:bg-[radial-gradient(circle_at_bottom_left,transparent_20px,_#0f0f13_20px)]"
       >
         <i class="fa-solid fa-table-columns text-sm w-4 text-center"></i>
         @if (isSidebarOpen) { <span class="text-xs">Dashboard</span> }
@@ -49,9 +59,9 @@
       <div>
         <a
           routerLink="/dashboard/projects"
-          routerLinkActive="!bg-[#eef0ff] dark:!bg-[#2a2560] !text-[#5a4bb3]"
-          (click)=" openProjectsMenu()"
-          class="h-11 px-3 rounded-xl flex items-center justify-between text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
+          routerLinkActive="nav-tab-active !text-[#5a4bb3] !w-[calc(100%+20px)] !rounded-l-[20px] !rounded-r-none !bg-[#F4F4F5] dark:!bg-[#0f0f13] before:!opacity-100 after:!opacity-100"
+          (click)="openProjectsMenu()"
+          class="relative h-11 px-3 rounded-xl flex items-center justify-between text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-all duration-300 before:content-[''] before:absolute before:-right-px before:-top-5 before:w-5 before:h-5 before:pointer-events-none before:opacity-0 before:transition-opacity before:duration-300 before:bg-[radial-gradient(circle_at_top_left,transparent_20px,_#F4F4F5_20px)] dark:before:bg-[radial-gradient(circle_at_top_left,transparent_20px,_#0f0f13_20px)] after:content-[''] after:absolute after:-right-px after:-bottom-5 after:w-5 after:h-5 after:pointer-events-none after:opacity-0 after:transition-opacity after:duration-300 after:bg-[radial-gradient(circle_at_bottom_left,transparent_20px,_#F4F4F5_20px)] dark:after:bg-[radial-gradient(circle_at_bottom_left,transparent_20px,_#0f0f13_20px)]"
         >
           <span class="flex items-center gap-3">
             <i class="fa-regular fa-folder text-sm w-4 text-center"></i>
@@ -80,9 +90,9 @@
       <div>
         <a
           routerLink="/dashboard/tasks"
-          routerLinkActive="!bg-[#eef0ff] dark:!bg-[#2a2560] !text-[#5a4bb3]"
+          routerLinkActive="nav-tab-active !text-[#5a4bb3] !w-[calc(100%+20px)] !rounded-l-[20px] !rounded-r-none !bg-[#F4F4F5] dark:!bg-[#0f0f13] before:!opacity-100 after:!opacity-100"
           (click)="openTasksMenu()"
-          class="h-11 px-3 rounded-xl flex items-center justify-between text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
+          class="relative h-11 px-3 rounded-xl flex items-center justify-between text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-all duration-300 before:content-[''] before:absolute before:-right-px before:-top-5 before:w-5 before:h-5 before:pointer-events-none before:opacity-0 before:transition-opacity before:duration-300 before:bg-[radial-gradient(circle_at_top_left,transparent_20px,_#F4F4F5_20px)] dark:before:bg-[radial-gradient(circle_at_top_left,transparent_20px,_#0f0f13_20px)] after:content-[''] after:absolute after:-right-px after:-bottom-5 after:w-5 after:h-5 after:pointer-events-none after:opacity-0 after:transition-opacity after:duration-300 after:bg-[radial-gradient(circle_at_bottom_left,transparent_20px,_#F4F4F5_20px)] dark:after:bg-[radial-gradient(circle_at_bottom_left,transparent_20px,_#0f0f13_20px)]"
         >
           <span class="flex items-center gap-3">
             <i class="fa-solid fa-list-check text-sm w-4 text-center"></i>
@@ -110,9 +120,9 @@
       <!-- Connect / Meeting workspace -->
       <a
         routerLink="/dashboard/meeting-workspace"
-        routerLinkActive="!bg-[#eef0ff] dark:!bg-[#2a2560] !text-[#5a4bb3]"
-        (click)=" closeProjectsMenu(); closeTasksMenu()"
-        class="group h-11 px-3 rounded-xl flex items-center justify-between text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
+        routerLinkActive="nav-tab-active !text-[#5a4bb3] !w-[calc(100%+20px)] !rounded-l-[20px] !rounded-r-none !bg-[#F4F4F5] dark:!bg-[#0f0f13] before:!opacity-100 after:!opacity-100"
+        (click)="closeProjectsMenu(); closeTasksMenu()"
+        class="group relative h-11 px-3 rounded-xl flex items-center justify-between text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-all duration-300 before:content-[''] before:absolute before:-right-px before:-top-5 before:w-5 before:h-5 before:pointer-events-none before:opacity-0 before:transition-opacity before:duration-300 before:bg-[radial-gradient(circle_at_top_left,transparent_20px,_#F4F4F5_20px)] dark:before:bg-[radial-gradient(circle_at_top_left,transparent_20px,_#0f0f13_20px)] after:content-[''] after:absolute after:-right-px after:-bottom-5 after:w-5 after:h-5 after:pointer-events-none after:opacity-0 after:transition-opacity after:duration-300 after:bg-[radial-gradient(circle_at_bottom_left,transparent_20px,_#F4F4F5_20px)] dark:after:bg-[radial-gradient(circle_at_bottom_left,transparent_20px,_#0f0f13_20px)]"
       >
         <span class="flex items-center gap-3">
           <i class="fa-solid fa-link text-sm w-4 text-center"></i>
@@ -123,16 +133,15 @@
         }
       </a>
 
-<!-- Error List -->
-
+      <!-- Error List -->
       <a
         routerLink="/dashboard/error-list"
-        routerLinkActive="!bg-[#eef0ff] dark:!bg-[#2a2560] !text-[#5a4bb3]"
-        (click)=" closeProjectsMenu(); closeTasksMenu()"
-        class="group h-11 px-3 rounded-xl flex items-center justify-between text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
+        routerLinkActive="nav-tab-active !text-[#5a4bb3] !w-[calc(100%+20px)] !rounded-l-[20px] !rounded-r-none !bg-[#F4F4F5] dark:!bg-[#0f0f13] before:!opacity-100 after:!opacity-100"
+        (click)="closeProjectsMenu(); closeTasksMenu()"
+        class="group relative h-11 px-3 rounded-xl flex items-center justify-between text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-all duration-300 before:content-[''] before:absolute before:-right-px before:-top-5 before:w-5 before:h-5 before:pointer-events-none before:opacity-0 before:transition-opacity before:duration-300 before:bg-[radial-gradient(circle_at_top_left,transparent_20px,_#F4F4F5_20px)] dark:before:bg-[radial-gradient(circle_at_top_left,transparent_20px,_#0f0f13_20px)] after:content-[''] after:absolute after:-right-px after:-bottom-5 after:w-5 after:h-5 after:pointer-events-none after:opacity-0 after:transition-opacity after:duration-300 after:bg-[radial-gradient(circle_at_bottom_left,transparent_20px,_#F4F4F5_20px)] dark:after:bg-[radial-gradient(circle_at_bottom_left,transparent_20px,_#0f0f13_20px)]"
       >
         <span class="flex items-center gap-3">
-          <i class="fa-solid fa-circle-exclamation text-sm w-4 text-center"></i> 
+          <i class="fa-solid fa-circle-exclamation text-sm w-4 text-center"></i>
           @if (isSidebarOpen) { <span class="text-xs">Error tracking</span> }
         </span>
         @if (isSidebarOpen) {
@@ -142,14 +151,22 @@
 
     </nav>
 
-    
-
-    <!-- Bottom: Settings / Logout -->
+    <!-- Bottom: Our Circle / Settings / Logout -->
     <nav class="absolute bottom-8 left-0 right-0 px-5 space-y-1.5">
+
+      <a
+        routerLink="/dashboard/our-circle"
+        routerLinkActive="nav-tab-active !text-[#5a4bb3] !w-[calc(100%+20px)] !rounded-l-[20px] !rounded-r-none !bg-[#F4F4F5] dark:!bg-[#0f0f13] before:!opacity-100 after:!opacity-100"
+        class="relative h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-all duration-300 before:content-[''] before:absolute before:-right-px before:-top-5 before:w-5 before:h-5 before:pointer-events-none before:opacity-0 before:transition-opacity before:duration-300 before:bg-[radial-gradient(circle_at_top_left,transparent_20px,_#F4F4F5_20px)] dark:before:bg-[radial-gradient(circle_at_top_left,transparent_20px,_#0f0f13_20px)] after:content-[''] after:absolute after:-right-px after:-bottom-5 after:w-5 after:h-5 after:pointer-events-none after:opacity-0 after:transition-opacity after:duration-300 after:bg-[radial-gradient(circle_at_bottom_left,transparent_20px,_#F4F4F5_20px)] dark:after:bg-[radial-gradient(circle_at_bottom_left,transparent_20px,_#0f0f13_20px)]"
+      >
+        <i class="fa-solid fa-users text-sm w-4 text-center"></i>
+        @if (isSidebarOpen) { <span class="text-xs">Our Circle</span> }
+      </a>
+
       <a
         routerLink="/dashboard/settings"
-        routerLinkActive="!bg-[#eef0ff] dark:!bg-[#2a2560] !text-[#5a4bb3]"
-        class="h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150"
+        routerLinkActive="nav-tab-active !text-[#5a4bb3] !w-[calc(100%+20px)] !rounded-l-[20px] !rounded-r-none !bg-[#F4F4F5] dark:!bg-[#0f0f13] before:!opacity-100 after:!opacity-100"
+        class="relative h-11 px-3 rounded-xl flex items-center gap-3 text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#23233a] transition-all duration-300 before:content-[''] before:absolute before:-right-px before:-top-5 before:w-5 before:h-5 before:pointer-events-none before:opacity-0 before:transition-opacity before:duration-300 before:bg-[radial-gradient(circle_at_top_left,transparent_20px,_#F4F4F5_20px)] dark:before:bg-[radial-gradient(circle_at_top_left,transparent_20px,_#0f0f13_20px)] after:content-[''] after:absolute after:-right-px after:-bottom-5 after:w-5 after:h-5 after:pointer-events-none after:opacity-0 after:transition-opacity after:duration-300 after:bg-[radial-gradient(circle_at_bottom_left,transparent_20px,_#F4F4F5_20px)] dark:after:bg-[radial-gradient(circle_at_bottom_left,transparent_20px,_#0f0f13_20px)]"
       >
         <i class="fa-solid fa-gear text-sm w-4 text-center"></i>
         @if (isSidebarOpen) { <span class="text-xs">Settings</span> }
@@ -164,65 +181,72 @@
         @if (isSidebarOpen) { <span class="text-xs">Log out</span> }
       </button>
     </nav>
-  </aside>
+    </aside>
+  </div>
 
   <!-- Main -->
   <main class="flex-1 h-full flex flex-col overflow-hidden">
-    <header class="h-[80px] px-10 flex items-center justify-between shrink-0">
-      <h1 class="text-[17px] font-bold text-gray-900 dark:text-gray-100">
-        {{ activePageTitle }}
-      </h1>
+    <header class="min-h-[86px] px-10 flex items-start justify-between gap-6 pt-2">
+      <div>
+        <span class="mb-2 block text-[22px] font-bold text-gray-900 dark:text-gray-100">{{ activePageTitle }}</span>
+        <h1 class="m-0 text-[16px] font-semibold leading-tight text-gray-800 dark:text-gray-200">
+          Hey {{ userDisplayName || 'there' }}
+        </h1>
+        <p class="mt-1 text-[11px] text-gray-500 dark:text-gray-500">Here's your project analytics</p>
+      </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2.5 pt-1">
 
         <!-- Search -->
-        <div class="w-[220px] h-10 rounded-full bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] shadow-sm flex items-center gap-2 px-4">
-          <i class="fa-solid fa-magnifying-glass text-xs text-gray-400 dark:text-gray-500"></i>
+        <label class="w-[210px] h-9 rounded-[7px] bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] flex items-center gap-2 px-3">
+          <i class="fa-solid fa-magnifying-glass text-[10px] text-gray-400 dark:text-gray-500"></i>
           <input
-            type="text"
+            type="search"
             placeholder="Search"
-            class="w-full bg-transparent outline-none text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 dark:placeholder:text-gray-600"
+            aria-label="Search"
+            class="w-full bg-transparent outline-none text-xs text-gray-700 dark:text-gray-300 placeholder:text-gray-400 dark:placeholder:text-gray-600"
           />
-        </div>
+        </label>
 
         <!-- Notes -->
-        <button class="w-10 h-10 rounded-full bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] shadow-sm flex items-center justify-center hover:bg-gray-50 dark:hover:bg-[#23233a] transition">
-          <i class="fa-regular fa-note-sticky text-gray-600 dark:text-gray-400 text-sm"></i>
+        <button type="button" aria-label="Notes" class="w-9 h-9 rounded-[7px] bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] flex items-center justify-center hover:-translate-y-px hover:text-[#5a4bb3] transition-all duration-200">
+          <i class="fa-regular fa-note-sticky text-gray-600 dark:text-gray-400 text-xs"></i>
         </button>
 
         <!-- Messages -->
-        <button class="w-10 h-10 rounded-full bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] shadow-sm flex items-center justify-center hover:bg-gray-50 dark:hover:bg-[#23233a] transition">
-          <i class="fa-regular fa-message text-gray-600 dark:text-gray-400 text-sm"></i>
+        <button type="button" aria-label="Messages" class="w-9 h-9 rounded-[7px] bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] flex items-center justify-center hover:-translate-y-px hover:text-[#5a4bb3] transition-all duration-200">
+          <i class="fa-regular fa-message text-gray-600 dark:text-gray-400 text-xs"></i>
         </button>
 
         <!-- Dark / Light toggle -->
         <button
           type="button"
           (click)="toggleDarkMode()"
-          class="w-10 h-10 rounded-full bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] shadow-sm flex items-center justify-center hover:bg-gray-50 dark:hover:bg-[#23233a] transition"
+          [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
           [title]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+          class="w-9 h-9 rounded-[7px] bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] flex items-center justify-center hover:-translate-y-px transition-all duration-200"
         >
           <i
-            class="text-sm"
+            class="text-xs"
             [ngClass]="isDarkMode ? 'fa-solid fa-sun text-yellow-400' : 'fa-solid fa-moon text-gray-600 dark:text-gray-300'"
           ></i>
         </button>
 
         <!-- User -->
-        <div class="pl-3 flex items-center gap-2">
+        <div class="pl-2 flex items-center gap-2">
           @if (userPhotoUrl) {
             <img
               [src]="userPhotoUrl"
               alt="avatar"
               (error)="onUserPhotoError()"
-              class="w-9 h-9 rounded-full object-cover"
+              class="w-9 h-9 rounded-[7px] object-cover"
             />
           } @else {
-            <div class="w-9 h-9 rounded-full flex items-center justify-center bg-[#5a4bb3] text-white text-xs font-bold uppercase">
+            <div class="w-9 h-9 rounded-[7px] flex items-center justify-center bg-[#5a4bb3] text-white text-[10px] font-bold uppercase">
               {{ userInitials }}
             </div>
           }
-          <p class="text-sm font-bold text-gray-900 dark:text-gray-100">
+          <p class="text-xs font-bold text-gray-900 dark:text-gray-100 max-[900px]:hidden">
             {{ userDisplayName }}
           </p>
         </div>
