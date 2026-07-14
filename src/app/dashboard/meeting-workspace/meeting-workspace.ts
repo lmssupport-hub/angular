@@ -73,9 +73,12 @@ export class MeetingWorkspace implements OnInit {
   isLoading  = false;
   errorMsg   = '';
 
+viewMode = signal<'grid' | 'list'>('grid');
+
+  
+
   // ── Create-modal ───────────────────────────────────────────────
-  // Signal instead of plain boolean: guarantees the view updates the
-  // instant this changes, even under OnPush / zoneless change detection.
+  
   isCreateMeetingOpen = signal(false);
 
   // ── Expanded row ───────────────────────────────────────────────
@@ -133,6 +136,16 @@ constructor(
     if (!isPlatformBrowser(this.platformId)) return;
     this.loadAll();
   }
+
+  setViewMode(mode: 'grid' | 'list'): void {
+  console.log('setViewMode called with:', mode, 'current viewMode:', this.viewMode());
+  this.viewMode.set(mode);
+  console.log('after set, viewMode is:', this.viewMode());
+}
+
+getProjectName(id: number | null | undefined): string {
+  return this.projects.find(p => p.id === id)?.projectName ?? '—';
+}
 
   private loadAll(): void {
     this.isLoading = true;

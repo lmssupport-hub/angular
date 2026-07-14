@@ -6,8 +6,6 @@ import { FormsModule } from '@angular/forms';
 
 import { MeetingDTO } from '../../app/services/meeting-api.service';
 
-// These interfaces mirror what your existing ApiService already returns.
-// Import the real ones from your api.service.ts if preferred.
 export interface UserOption  { id: number; username: string; email: string; }
 export interface ProjectOption { id: number; projectName: string; }
 
@@ -78,6 +76,7 @@ const ALLOWED_TYPES = [
   'image/png',
 ];
 
+
 // ── Component ──────────────────────────────────────────────────────────────────
 
 @Component({
@@ -98,17 +97,47 @@ export class CreateMeetingModalComponent implements OnInit {
   errors: FormErrors = {};
   selectedFiles: File[] = [];
 
+  currentStep = signal<number>(1);
+stepOneErrors: FormErrors = {};
+
   readonly statusOptions = ['Scheduled', 'In Progress', 'Completed', 'Expiry'];
   readonly maxAgenda = 2000;
   readonly maxDecisions = 1000;
   readonly maxTitle = 200;
 
-  // Members dropdown — closed by default; opens to reveal the
-  // multi-select checkbox panel, closes on backdrop click or
-  // when a selection click happens outside it.
+  
   isMembersDropdownOpen = signal(false);
 
   ngOnInit(): void {}
+
+
+
+  // ── Step control ───────────────────────────────────────────────
+
+/** Validates only Step 1 fields (title, members) */
+private validateStepOne(): boolean {
+  this.stepOneErrors = {};
+
+  if (!this.form.title.trim())
+    this.stepOneErrors['title'] = 'Meeting title is required';
+  else if (this.form.title.length > this.maxTitle)
+    this.stepOneErrors['title'] = `Max ${this.maxTitle} characters`;
+
+  if (!this.form.memberIds.length)
+    this.stepOneErrors['members'] = 'At least one member is required';
+
+  return Object.keys(this.stepOneErrors).length === 0;
+}
+
+goNext(): void {
+  if (this.validateStepOne()) {
+    this.currentStep.set(2);
+  }
+}
+
+goBack(): void {
+  this.currentStep.set(1);
+}
 
   // ── Member multi-select ────────────────────────────────────────
 

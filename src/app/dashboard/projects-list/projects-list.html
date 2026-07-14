@@ -1,41 +1,91 @@
-<div class="min-h-screen bg-gray-50 p-6">
+<div class="min-h-[calc(100vh-150px)] text-gray-800 [.dashboard-dark_&_.bg-white]:!bg-[var(--panel)] [.dashboard-dark_&_.bg-gray-50]:!bg-[var(--surface)] [.dashboard-dark_&_.bg-gray-100]:!bg-[var(--active)] [.dashboard-dark_&_.bg-indigo-50]:!bg-[var(--active)] [.dashboard-dark_&_.text-gray-900]:!text-[var(--text)] [.dashboard-dark_&_.text-gray-800]:!text-[var(--text)] [.dashboard-dark_&_.text-gray-700]:!text-[var(--text)] [.dashboard-dark_&_.text-gray-600]:!text-[var(--muted)] [.dashboard-dark_&_.text-gray-500]:!text-[var(--muted)] [.dashboard-dark_&_.text-gray-400]:!text-[var(--muted)] [.dashboard-dark_&_.text-gray-300]:!text-[var(--muted)] [.dashboard-dark_&_.border-gray-100]:!border-[var(--line)] [.dashboard-dark_&_.border-gray-200]:!border-[var(--line)] [.dashboard-dark_&_.hover\\:bg-gray-50:hover]:!bg-[var(--surface)]">
 
-  <!-- Header -->
-  <div class="flex items-center justify-between mb-6">
-    <div>
-      <h2 class="text-3xl font-extrabold text-gray-900">Project Hub</h2>
-      <p class="text-sm text-gray-500 mt-1">Track project progress, assignments, and deadlines</p>
+  
+
+  <!-- Toolbar: Filter (left) + Create Project (right) -->
+  <div class="mb-3 flex items-center justify-between gap-4">
+
+    <!-- Filter Dropdown -->
+    <div class="relative filter-dropdown-wrapper" (click)="$event.stopPropagation()">
+      <button
+        type="button"
+        (click)="toggleFilterDropdown($event)"
+        class="flex items-center gap-2 px-5 py-2 border border-gray-300 [.dashboard-dark_&]:border-[var(--line)] rounded-full text-xs font-semibold text-blue-500 bg-white [.dashboard-dark_&]:bg-[var(--panel)] hover:bg-gray-50 [.dashboard-dark_&]:hover:bg-[var(--surface)] transition-colors cursor-pointer"
+      >
+        Filter
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+        </svg>
+      </button>
+
+      @if (showFilterDropdown()) {
+        <div class="absolute top-10 left-0 z-30 bg-white [.dashboard-dark_&]:bg-[var(--panel)] border border-gray-200 [.dashboard-dark_&]:border-[var(--line)] rounded-[14px] shadow-lg p-4 w-[240px] flex flex-col gap-3">
+          <div class="flex flex-col gap-1">
+            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1.5">Status</p>
+            <label class="flex items-center gap-2 px-1 py-1 text-xs cursor-pointer hover:bg-gray-50 rounded">
+              <input type="checkbox" class="cursor-pointer accent-[#5a4bb3]" />
+              <span>On Track</span>
+            </label>
+            <label class="flex items-center gap-2 px-1 py-1 text-xs cursor-pointer hover:bg-gray-50 rounded">
+              <input type="checkbox" class="cursor-pointer accent-[#5a4bb3]" />
+              <span>Delayed</span>
+            </label>
+            <label class="flex items-center gap-2 px-1 py-1 text-xs cursor-pointer hover:bg-gray-50 rounded">
+              <input type="checkbox" class="cursor-pointer accent-[#5a4bb3]" />
+              <span>Completed</span>
+            </label>
+          </div>
+          <div class="flex gap-2 justify-end pt-1">
+            <button type="button" (click)="clearFilter()" class="text-[12px] text-gray-500 hover:text-gray-700 px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+              Clear
+            </button>
+            <button type="button" (click)="applyFilter()" class="text-[12px] font-semibold text-white bg-blue-500 hover:bg-blue-600 px-4 py-1 rounded-lg transition-colors cursor-pointer">
+              Apply
+            </button>
+          </div>
+        </div>
+      }
     </div>
+
+    
+
     <div class="flex items-center gap-3">
-      <span class="text-sm font-semibold text-[#5a4bb3] bg-[#ede9f8] px-3 py-1.5 rounded-full">
-        ● {{ projects.length }} Active Projects
+      <span class="rounded-full bg-[#ede9f8] px-3 py-1.5 text-[11px] font-semibold text-[#5a4bb3]">
+        ● {{ projects().length }} Active Projects
       </span>
       <button
         type="button"
         (click)="openProjectPopup()"
-        class="h-9 px-4 rounded-lg bg-[#5a4bb3] text-white text-sm font-bold shadow-md hover:bg-[#4b3ca0] transition cursor-pointer flex items-center gap-1"
+        class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 [.dashboard-dark_&]:border-[var(--line)] rounded-full text-xs font-semibold text-blue-500 [.dashboard-dark_&]:text-blue-400 bg-white [.dashboard-dark_&]:bg-[var(--panel)] hover:bg-gray-50 [.dashboard-dark_&]:hover:bg-[var(--surface)] transition-colors cursor-pointer"
       >
-        + Create Project
+        <span class="text-xs leading-none">+</span>
+        Create Project
       </button>
     </div>
   </div>
 
-  <!-- Table -->
-  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-visible">
-
-    <!-- Table Header -->
-    <div class="grid grid-cols-[60px_1fr_160px_130px_130px_110px] px-4 py-3 bg-gray-50 border-b border-gray-200">
-      <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">SL.NO</div>
-      <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">Project Name</div>
-      <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">Assigned User</div>
-      <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">Due Date</div>
-      <div class="text-xs font-bold text-gray-500 uppercase tracking-wide">Target</div>
-      <div class="text-xs font-bold text-gray-500 uppercase tracking-wide text-right">Actions</div>
+  <!-- Table Header (separate rounded pill card) -->
+  <div class="mb-3 rounded-full bg-white [.dashboard-dark_&]:bg-[var(--panel)] ]">
+    <div class="grid h-12 grid-cols-[1.3fr_1.3fr_170px_130px_110px_110px] gap-x-6 items-center px-6">
+      <div class="flex items-center gap-2 text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+        <span class="w-5 h-5 flex-shrink-0"></span>
+        <span class="w-6 h-6 flex-shrink-0"></span>
+        <span>Project Name</span>
+      </div>
+      <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Project Description</div>
+      <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Assigned User</div>
+      <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Due Date</div>
+      <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Target</div>
+      <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wide text-right">Actions</div>
     </div>
+  </div>
+
+  <!-- Table Body -->
+  <div class="overflow-visible rounded-[17px] bg-white [.dashboard-dark_&]:bg-[var(--panel)] ]">
 
     <!-- Loading State -->
-    @if (isLoadingProjects) {
-      <div class="flex items-center justify-center py-16 text-gray-400 text-sm gap-2">
+    @if (isLoadingProjects()) {
+      <div class="flex items-center justify-center rounded-[17px] py-16 text-gray-400 text-xs gap-2">
         <svg class="w-4 h-4 animate-spin text-[#5a4bb3]" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
@@ -45,174 +95,235 @@
     }
 
     <!-- Error State -->
-    @if (!isLoadingProjects && loadError) {
-      <div class="flex flex-col items-center justify-center py-12 text-red-400 gap-2">
+    @if (!isLoadingProjects() && loadError()) {
+      <div class="flex flex-col items-center justify-center rounded-[17px] py-12 text-red-400 gap-2">
         <svg class="w-10 h-10 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
             d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
         </svg>
-        <p class="text-sm font-medium text-red-500">{{ loadError }}</p>
+        <p class="text-xs font-medium text-red-500">{{ loadError() }}</p>
         <button type="button" (click)="loadProjects()"
-          class="mt-1 text-xs text-[#5a4bb3] underline cursor-pointer hover:text-[#4b3ca0]">
+          class="mt-1 text-[11px] text-[#5a4bb3] underline cursor-pointer hover:text-[#4b3ca0]">
           Retry
         </button>
       </div>
     }
 
     <!-- Empty State -->
-    @if (!isLoadingProjects && !loadError && projects.length === 0) {
-      <div class="flex flex-col items-center justify-center py-16 text-gray-400">
+    @if (!isLoadingProjects() && !loadError() && projects().length === 0) {
+      <div class="flex flex-col items-center justify-center rounded-[17px] py-16 text-gray-400">
         <svg class="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
         </svg>
-        <p class="text-sm font-medium">No projects yet</p>
-        <p class="text-xs mt-1">Click "Create Project" to add your first project</p>
+        <p class="text-xs font-medium">No projects yet</p>
+        <p class="text-[11px] mt-1">Click "Create Project" to add your first project</p>
       </div>
     }
 
     <!-- Project Rows -->
-    @if (!isLoadingProjects) {
-      @for (project of projects; track project.id; let i = $index) {
+    @if (!isLoadingProjects()) {
+      @for (project of projects(); track project.id; let i = $index) {
 
-        <!-- Main Row -->
+        <!-- ── Main Row ── -->
         <div
-          class="grid grid-cols-[60px_1fr_160px_130px_130px_110px] px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors items-center"
+          class="grid min-h-[73px] grid-cols-[1.3fr_1.3fr_170px_130px_110px_110px] gap-x-6 items-center border-b border-gray-100 px-6 py-3 transition-colors hover:bg-gray-50"
           [class.bg-indigo-50]="isExpanded(project.id)"
+          [ngClass]="{
+            'rounded-t-[17px]': i === 0,
+            'rounded-b-[17px] border-b-0': i === projects().length - 1 && !isExpanded(project.id)
+          }"
         >
-          <div class="text-sm text-gray-500 font-medium">
-            {{ (i + 1).toString().padStart(2, '0') }}
-          </div>
-
+          <!-- Project Name (with expand chevron) -->
           <div class="flex items-center gap-2">
+            <button
+              type="button"
+              (click)="toggleExpand(project.id, $event)"
+              class="w-5 h-5 flex items-center justify-center flex-shrink-0 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer"
+              title="Details"
+            >
+              <svg
+                class="w-3 h-3 transition-transform duration-200"
+                [class.rotate-90]="isExpanded(project.id)"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+              </svg>
+            </button>
             <div class="w-6 h-6 rounded bg-[#ede9f8] flex items-center justify-center flex-shrink-0">
               <svg class="w-3.5 h-3.5 text-[#5a4bb3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
             </div>
-            <span class="text-sm font-semibold text-gray-800">{{ project.projectName }}</span>
+            <span class="text-xs font-semibold text-gray-800 truncate">{{ project.projectName }}</span>
           </div>
 
+          <!-- Project Description -->
+          <div class="text-xs text-gray-600 truncate">
+            {{ project.projectDescription || '—' }}
+          </div>
+
+          <!-- Assigned User (first only, +N badge) -->
           <div class="flex items-center gap-2">
             <div class="w-6 h-6 rounded-full bg-gradient-to-br from-[#5a4bb3] to-[#a78bfa] flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
               {{ getInitials(project.assignedUsers[0]) }}
             </div>
-            <span class="text-sm text-gray-600 truncate">{{ project.assignedUsers[0] }}</span>
+            <span class="text-xs text-gray-600 truncate">{{ project.assignedUsers[0] }}</span>
             @if (project.assignedUsers.length > 1) {
-              <span class="text-xs text-gray-400">+{{ project.assignedUsers.length - 1 }}</span>
+              <span class="text-[11px] text-gray-400">+{{ project.assignedUsers.length - 1 }}</span>
             }
           </div>
 
-          <div class="text-sm text-gray-600">{{ formatDate(project.dueDate) }}</div>
+          <!-- Due Date -->
+          <div class="text-xs text-gray-600">{{ formatDate(project.dueDate) }}</div>
 
+          <!-- Target Badge -->
           <div>
             @if (project.target) {
-              <span class="px-2.5 py-1 rounded-full text-xs font-bold" [class]="getTargetBadgeClass(i)">
+              <span class="px-2.5 py-1 rounded-full text-[11px] font-bold" [class]="getTargetBadgeClass(i)">
                 {{ getTargetLabel(project) }}
               </span>
             } @else {
-              <span class="text-xs text-gray-400">—</span>
+              <span class="text-[11px] text-gray-400">—</span>
             }
           </div>
 
+          <!-- Actions -->
           <div class="flex items-center gap-1.5 justify-end">
-            <button type="button" (click)="openProjectPopup(project, $event)"
-              class="w-7 h-7 rounded border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition cursor-pointer text-gray-500" title="Edit">
+
+            <!-- Edit -->
+            <button
+              type="button"
+              (click)="openProjectPopup(project, $event)"
+              class="w-7 h-7 rounded border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition cursor-pointer text-gray-500"
+              title="Edit"
+            >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
               </svg>
             </button>
-            <button type="button" (click)="deleteProject(project.id, $event)"
-              class="w-7 h-7 rounded border border-red-100 flex items-center justify-center hover:bg-red-50 transition cursor-pointer text-red-400" title="Delete">
+
+            <!-- Delete -->
+            <button
+              type="button"
+              (click)="deleteProject(project.id, $event)"
+              class="w-7 h-7 rounded border border-red-100 flex items-center justify-center hover:bg-red-50 transition cursor-pointer text-red-400"
+              title="Delete"
+            >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
               </svg>
             </button>
-            <button type="button" (click)="toggleExpand(project.id, $event)"
-              class="w-7 h-7 rounded border flex items-center justify-center transition cursor-pointer"
-              [class]="isExpanded(project.id) ? 'bg-[#5a4bb3] border-[#5a4bb3] text-white' : 'border-gray-200 bg-gray-50 text-gray-500 hover:bg-gray-100'"
-              title="Details">
-              <svg class="w-3.5 h-3.5 transition-transform duration-200" [class.rotate-180]="isExpanded(project.id)"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
-              </svg>
-            </button>
           </div>
         </div>
 
-        <!-- Expanded Detail Panel -->
+        <!-- ── Expanded Detail Panel (only for THIS project) ── -->
         @if (isExpanded(project.id)) {
-          <div class="bg-[#f5f3ff] border-b border-indigo-100 px-5 py-4 space-y-4">
+          <div
+            class="bg-[#f5f3ff] border-b border-indigo-100 px-5 py-4 space-y-4 [.dashboard-dark_&]:border-[var(--line)] [.dashboard-dark_&]:bg-[var(--surface)]"
+            [ngClass]="{ 'rounded-b-[17px] border-b-0': i === projects().length - 1 }"
+          >
 
+            <!-- Description + Dates -->
             <div class="flex items-start gap-6">
+
+              <!-- Description -->
               <div class="flex-1 min-w-0">
                 <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Description</p>
-                <p class="text-sm text-gray-700 leading-relaxed">
+                <p class="text-xs text-gray-700 leading-relaxed">
                   {{ project.projectDescription || 'No description provided.' }}
                 </p>
               </div>
 
+              <!-- Date chips -->
               <div class="flex items-start gap-8 flex-shrink-0">
                 <div>
-                  <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1 block">Start Date</label>
-                  <input type="date"
+                  <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
                     [value]="getEditDateValue(project, 'startDate')"
                     (change)="onEditDateChange(project, 'startDate', $event)"
-                    class="w-32 h-8 px-2 rounded border border-transparent bg-transparent text-sm font-semibold text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-[#5a4bb3] focus:bg-white"/>
+                    class="w-32 h-8 px-2 rounded border border-transparent bg-transparent text-xs font-semibold text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-[#5a4bb3] focus:bg-white"
+                  />
                 </div>
+
                 <div>
-                  <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1 block">Received</label>
-                  <input type="date"
+                  <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+                    Received
+                  </label>
+                  <input
+                    type="date"
                     [max]="todayInputValue"
                     [value]="getEditDateValue(project, 'projectReceivedDate')"
                     (change)="onEditDateChange(project, 'projectReceivedDate', $event)"
-                    class="w-32 h-8 px-2 rounded border border-transparent bg-transparent text-sm font-semibold text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-[#5a4bb3] focus:bg-white"/>
+                    class="w-32 h-8 px-2 rounded border border-transparent bg-transparent text-xs font-semibold text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-[#5a4bb3] focus:bg-white"
+                  />
                 </div>
+
                 <div>
-                  <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1 block">Due Date</label>
-                  <input type="date"
+                  <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+                    Due Date
+                  </label>
+                  <input
+                    type="date"
                     [value]="getEditDateValue(project, 'dueDate')"
                     (change)="onEditDateChange(project, 'dueDate', $event)"
-                    class="w-32 h-8 px-2 rounded border border-transparent bg-transparent text-sm font-semibold text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-[#5a4bb3] focus:bg-white"/>
+                    class="w-32 h-8 px-2 rounded border border-transparent bg-transparent text-xs font-semibold text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-[#5a4bb3] focus:bg-white"
+                  />
                 </div>
               </div>
             </div>
 
-            <!-- Assigned Users -->
+            <!-- Assigned Users with add/remove -->
             <div>
               <p class="text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-2">Assigned Users</p>
+
               <div class="flex flex-wrap gap-2 mb-2">
                 @for (user of project.assignedUsers; track user) {
-                  <span class="flex items-center gap-1.5 bg-[#ede9f8] text-[#5a4bb3] text-xs font-semibold px-2.5 py-1 rounded-full">
+                  <span class="flex items-center gap-1.5 bg-[#ede9f8] text-[#5a4bb3] text-[11px] font-semibold px-2.5 py-1 rounded-full">
                     <span class="w-4 h-4 rounded-full bg-[#5a4bb3] text-white text-[9px] flex items-center justify-center font-bold">
                       {{ getInitials(user) }}
                     </span>
                     {{ user }}
-                    <button type="button" (click)="removeUserFromProject(project, user, $event)"
+                    <button
+                      type="button"
+                      (click)="removeUserFromProject(project, user, $event)"
                       class="ml-0.5 w-3.5 h-3.5 rounded-full bg-[#5a4bb3]/20 hover:bg-red-200 text-[#5a4bb3] hover:text-red-600 flex items-center justify-center text-[10px] font-bold cursor-pointer transition"
-                      title="Remove {{ user }}">×</button>
+                      title="Remove {{ user }}"
+                    >×</button>
                   </span>
                 }
 
+                <!-- Add user toggle button -->
                 <div class="relative expand-user-dropdown-wrapper">
-                  <button type="button" (click)="toggleExpandUserDropdown(project.id, $event)"
-                    class="flex items-center gap-1 bg-white border border-dashed border-[#5a4bb3] text-[#5a4bb3] text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-[#ede9f8] transition cursor-pointer">
+                  <button
+                    type="button"
+                    (click)="toggleExpandUserDropdown(project.id, $event)"
+                    class="flex items-center gap-1 bg-white border border-dashed border-[#5a4bb3] text-[#5a4bb3] text-[11px] font-semibold px-2.5 py-1 rounded-full hover:bg-[#ede9f8] transition cursor-pointer"
+                  >
                     + Add User
                   </button>
-                  @if (expandUserDropdownId === project.id) {
+
+                  @if (expandUserDropdownId() === project.id) {
                     <div class="absolute left-0 top-full mt-1 z-50 rounded-lg border border-gray-200 bg-white shadow-lg p-2 min-w-[180px]">
                       @for (user of getUnassignedUsers(project); track user) {
-                        <label class="flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer hover:bg-gray-50 rounded">
-                          <input type="checkbox" [checked]="false" (change)="addUserToProject(project, user)"
-                            class="cursor-pointer accent-[#5a4bb3]"/>
+                        <label class="flex items-center gap-2 px-2 py-1.5 text-xs cursor-pointer hover:bg-gray-50 rounded">
+                          <input
+                            type="checkbox"
+                            [checked]="false"
+                            (change)="addUserToProject(project, user)"
+                            class="cursor-pointer accent-[#5a4bb3]"
+                          />
                           <span>{{ user }}</span>
                         </label>
                       }
                       @if (getUnassignedUsers(project).length === 0) {
-                        <p class="text-xs text-gray-400 px-2 py-1">All users assigned</p>
+                        <p class="text-[11px] text-gray-400 px-2 py-1">All users assigned</p>
                       }
                     </div>
                   }
@@ -222,27 +333,32 @@
 
           </div>
         }
+
       }
     }
   </div>
 </div>
 
 
-<!-- ── Create / Edit Project Modal ── -->
-@if (showProjectPopup) {
+<!-- ══════════════════════════════════════════════════
+     Create / Edit Project Modal (separate component)
+══════════════════════════════════════════════════ -->
+@if (showProjectPopup()) {
   <app-create-project-modal
-    [editingProject]="editingProject"
-    [existingProjects]="projects"
+    [editingProject]="editingProject()"
+    [existingProjects]="projects()"
     (projectSaved)="onProjectSaved($event)"
     (modalClosed)="closeProjectPopup()"
   />
 }
 
 
-<!-- ── Delete Confirm Dialog ── -->
-@if (showDeleteConfirm) {
+<!-- ══════════════════════════════════════════════════
+     Delete Confirm Dialog
+══════════════════════════════════════════════════ -->
+@if (showDeleteConfirm()) {
   <div class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4">
-    <div class="w-[380px] bg-white rounded-xl shadow-2xl p-6">
+    <div class="w-[380px] bg-white rounded-xl shadow-2xl p-6 [.dashboard-dark_&]:bg-[var(--panel)] [.dashboard-dark_&_.text-gray-900]:!text-[var(--text)] [.dashboard-dark_&_.text-gray-700]:!text-[var(--text)] [.dashboard-dark_&_.text-gray-500]:!text-[var(--muted)]">
       <div class="flex items-center gap-3 mb-3">
         <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
           <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -251,21 +367,22 @@
           </svg>
         </div>
         <div>
-          <h4 class="text-sm font-extrabold text-gray-900">Delete Project</h4>
-          <p class="text-xs text-gray-500 mt-0.5">This action cannot be undone.</p>
+          <h4 class="text-xs font-extrabold text-gray-900">Delete Project</h4>
+          <p class="text-[11px] text-gray-500 mt-0.5">This action cannot be undone.</p>
         </div>
       </div>
-      <p class="text-sm text-gray-700 mb-5">
-        Are you sure you want to delete <span class="font-semibold">{{ deletingProjectName }}</span>?
+      <p class="text-xs text-gray-700 mb-5">
+        Are you sure you want to delete <span class="font-semibold">{{ deletingProjectName() }}</span>?
       </p>
       <div class="flex justify-end gap-3">
         <button type="button" (click)="cancelDelete()"
-          class="h-9 px-5 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200 transition cursor-pointer">
+          class="h-9 px-5 rounded-lg bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 transition cursor-pointer">
           Cancel
         </button>
-        <button type="button" (click)="confirmDelete()" [disabled]="isDeletingProject"
-          class="h-9 px-5 rounded-lg bg-red-500 text-white text-sm font-bold hover:bg-red-600 disabled:opacity-40 cursor-pointer transition">
-          {{ isDeletingProject ? 'Deleting...' : 'Delete' }}
+        <button type="button" (click)="confirmDelete()"
+          [disabled]="isDeletingProject()"
+          class="h-9 px-5 rounded-lg bg-red-500 text-white text-xs font-bold hover:bg-red-600 disabled:opacity-40 cursor-pointer transition">
+          {{ isDeletingProject() ? 'Deleting...' : 'Delete' }}
         </button>
       </div>
     </div>

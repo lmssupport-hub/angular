@@ -30,7 +30,7 @@ export class ErrorList implements OnInit {
 
   // ── Field 1: Search / Field 2: Filter ──
   searchKeyword = '';
-  isFilterOpen = false;
+  isFilterOpen = signal(false);
   filterStatus = '';
   filterPriority = '';
   filterAssignedUserId: number | null = null;
@@ -55,10 +55,6 @@ errorMessage = signal('');
   editScreenshotFile: File | null = null;
   editScreenshotError = '';
   editSubmitting = false;
-
-  // ── Pagination ──
-  page = 1;
-  pageSize = 5;
 
   constructor(
     private fb: FormBuilder,
@@ -109,7 +105,6 @@ loadErrors(): void {
       next: (list) => {
         this.errors.set(list);
         this.loading.set(false);
-        this.page = 1;
       },
       error: (err) => {
         this.errorMessage.set(err?.error?.message || 'Unable to load error list');
@@ -124,22 +119,22 @@ loadErrors(): void {
   }
 
   // ── Field 2: Filter ──
-  toggleFilter(): void {
-    this.isFilterOpen = !this.isFilterOpen;
-  }
+ toggleFilter(): void {
+  this.isFilterOpen.update(open => !open);
+}
 
-  applyFilters(): void {
-    this.isFilterOpen = false;
-    this.loadErrors();
-  }
+applyFilters(): void {
+  this.isFilterOpen.set(false);
+  this.loadErrors();
+}
 
-  clearFilters(): void {
-    this.filterStatus = '';
-    this.filterPriority = '';
-    this.filterAssignedUserId = null;
-    this.isFilterOpen = false;
-    this.loadErrors();
-  }
+clearFilters(): void {
+  this.filterStatus = '';
+  this.filterPriority = '';
+  this.filterAssignedUserId = null;
+  this.isFilterOpen.set(false);
+  this.loadErrors();
+}
 
   // ── Create Error modal ───────────────────────────────────────────────
 
@@ -296,34 +291,6 @@ deleteError(row: ErrorReportDTO): void {
     },
   });
 }
-
-
-  // ── Pagination helpers ───────────────────────────────────────────────
-
-  get pagedErrors(): ErrorReportDTO[] {
-  const start = (this.page - 1) * this.pageSize;
-  return this.errors().slice(start, start + this.pageSize);
-}
-
-get totalPages(): number {
-  return Math.max(1, Math.ceil(this.errors().length / this.pageSize));
-}
-
-get rangeStart(): number {
-  return this.errors().length === 0 ? 0 : (this.page - 1) * this.pageSize + 1;
-}
-
-get rangeEnd(): number {
-  return Math.min(this.page * this.pageSize, this.errors().length);
-}
-
-  prevPage(): void {
-    if (this.page > 1) this.page--;
-  }
-
-  nextPage(): void {
-    if (this.page < this.totalPages) this.page++;
-  }
 
   statusBadgeClasses(status: string): string {
     switch (status) {

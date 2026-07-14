@@ -1,23 +1,23 @@
 <ng-container *ngIf="isOpen">
   <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-4"
     (click)="onBackdropClick()"
   >
     <!-- Panel -->
     <div
-      class="relative w-full max-w-[620px] max-h-[90vh] flex flex-col rounded-2xl bg-white dark:bg-[#1a1a24] shadow-2xl border border-transparent dark:border-[#2a2a3a]"
+      class="relative w-[640px] max-w-[96vw] max-h-[92vh] overflow-y-auto overflow-x-hidden flex flex-col rounded-2xl bg-white shadow-2xl [.dashboard-dark_&]:bg-[var(--panel)]"
       (click)="$event.stopPropagation()"
     >
 
       <!-- Header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-[#2a2a3a] flex-shrink-0">
-        <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">{{ modalTitle }}</h2>
+      <div class="px-6 pt-5 pb-3 flex items-center justify-between sticky top-0 bg-white z-10 [.dashboard-dark_&]:bg-[var(--panel)]">
+        <h2 class="text-lg font-extrabold text-[var(--primary)]">{{ modalTitle }}</h2>
         <button
           type="button"
           (click)="close()"
-          class="p-1 rounded-lg text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-[#23233a] transition"
+          class="w-7 h-7 rounded-full flex items-center justify-center text-lg text-gray-400 hover:bg-gray-100 transition cursor-pointer"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
@@ -26,252 +26,225 @@
       <!-- Loading overlay -->
       <div
         *ngIf="isLoading"
-        class="absolute inset-0 z-20 flex items-center justify-center bg-white/70 dark:bg-[#1a1a24]/70 rounded-2xl"
+        class="absolute inset-0 z-20 flex items-center justify-center bg-white/70 [.dashboard-dark_&]:bg-[var(--panel)]/70 rounded-2xl"
       >
-        <div class="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+        <svg class="w-8 h-8 animate-spin text-[var(--primary)]" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+        </svg>
       </div>
 
-      <!-- Scrollable body -->
-      <div class="overflow-y-auto flex-1">
-        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="px-6 py-5 space-y-4">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="px-6 pb-4 space-y-4">
 
-          <!-- Project Name -->
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-              Project Name <span class="text-red-500">*</span>
-            </label>
-            <div class="relative">
-              <select
-                formControlName="projectId"
-                class="w-full appearance-none rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-gray-50 dark:bg-[#23233a] px-4 py-2.5 pr-9 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <option value="" disabled>e.g., Global Expansion Strategy</option>
-                <option *ngFor="let p of projects" [value]="p.id">{{ p.projectName }}</option>
-              </select>
-              <svg class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-              </svg>
-            </div>
-            <p *ngIf="fieldError('projectId')" class="mt-1 text-xs text-red-500 dark:text-red-400">{{ fieldError('projectId') }}</p>
-          </div>
-
-          <!-- Main Task -->
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-              Main Task <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              formControlName="taskName"
-              placeholder="Summarize your main objective"
-              class="w-full rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-gray-50 dark:bg-[#23233a] px-4 py-2.5 text-sm text-gray-800 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition disabled:opacity-60 disabled:cursor-not-allowed"
-            />
-            <p *ngIf="fieldError('taskName')" class="mt-1 text-xs text-red-500 dark:text-red-400">{{ fieldError('taskName') }}</p>
-          </div>
-
-          <!-- Main Task Description -->
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-              Main Task Description <span class="text-red-500">*</span>
-            </label>
-            <textarea
-              formControlName="description"
-              rows="3"
-              placeholder="Detailed objective description..."
-              class="w-full rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-gray-50 dark:bg-[#23233a] px-4 py-2.5 text-sm text-gray-800 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none disabled:opacity-60 disabled:cursor-not-allowed"
-            ></textarea>
-            <p *ngIf="fieldError('description')" class="mt-1 text-xs text-red-500 dark:text-red-400">{{ fieldError('description') }}</p>
-          </div>
-
-          <!-- Sub Tasks -->
-          <div class="rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-gray-50 dark:bg-[#16161f] p-4" formArrayName="subTasks">
-            <div class="flex items-center justify-between mb-3">
-              <h3 class="text-sm font-bold text-gray-800 dark:text-gray-200">Sub Tasks</h3>
-              <button
-                *ngIf="!isReadOnly"
-                type="button"
-                [disabled]="!canAddSubTask()"
-                (click)="addSubTask()"
-                class="flex items-center gap-1.5 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 disabled:opacity-40 disabled:cursor-not-allowed transition"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                </svg>
-                Add Sub Task
-              </button>
-            </div>
-
-            <div class="space-y-3">
-              <div
-                *ngFor="let st of subTasksArray.controls; let i = index"
-                [formGroupName]="i"
-                class="rounded-xl border border-indigo-100 dark:border-[#2a2a3a] bg-white dark:bg-[#1a1a24] p-4"
-              >
-                <div class="flex items-center justify-between mb-3">
-                  <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">Sub Task {{ i + 1 }}</span>
-                  <button
-                    *ngIf="!isReadOnly"
-                    type="button"
-                    (click)="removeSubTask(i)"
-                    class="text-red-400 hover:text-red-600 dark:hover:text-red-400 transition"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                  </button>
-                </div>
-                <div class="space-y-3">
-                  <div>
-                    <label class="block text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-1">Sub Task Title</label>
-                    <input
-                      type="text"
-                      formControlName="title"
-                      placeholder="Secondary action item"
-                      class="w-full rounded-lg border border-gray-200 dark:border-[#2a2a3a] bg-gray-50 dark:bg-[#23233a] px-3 py-2 text-sm text-gray-800 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition disabled:opacity-60"
-                    />
-                    <p *ngIf="subTaskError(i, 'title')" class="mt-1 text-xs text-red-500 dark:text-red-400">{{ subTaskError(i, 'title') }}</p>
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-1">SubTask Description</label>
-                    <input
-                      type="text"
-                      formControlName="description"
-                      placeholder="Specific steps or details"
-                      class="w-full rounded-lg border border-gray-200 dark:border-[#2a2a3a] bg-gray-50 dark:bg-[#23233a] px-3 py-2 text-sm text-gray-800 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-400 transition disabled:opacity-60"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div *ngIf="subTasksArray.length === 0" class="text-xs text-gray-400 dark:text-gray-500 text-center py-2">
-              No sub tasks added yet.
-            </div>
-          </div>
-
-          <!-- Start Date + Due Date + Target + Priority -->
-          <div class="grid grid-cols-4 gap-3">
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                Start Date <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                formControlName="startDate"
-                class="w-full rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-gray-50 dark:bg-[#23233a] px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition disabled:opacity-60"
-              />
-              <p *ngIf="fieldError('startDate')" class="mt-1 text-xs text-red-500 dark:text-red-400">{{ fieldError('startDate') }}</p>
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                Due Date <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                formControlName="dueDate"
-                class="w-full rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-gray-50 dark:bg-[#23233a] px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition disabled:opacity-60"
-              />
-              <p *ngIf="fieldError('dueDate')" class="mt-1 text-xs text-red-500 dark:text-red-400">{{ fieldError('dueDate') }}</p>
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                Target <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                formControlName="targetCount"
-                placeholder="KPI/Goal"
-                min="1"
-                class="w-full rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-gray-50 dark:bg-[#23233a] px-3 py-2.5 text-sm text-gray-800 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition disabled:opacity-60"
-              />
-              <p *ngIf="fieldError('targetCount')" class="mt-1 text-xs text-red-500 dark:text-red-400">{{ fieldError('targetCount') }}</p>
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                Priority <span class="text-red-500">*</span>
-              </label>
-              <div class="relative">
-                <select
-                  formControlName="priority"
-                  class="w-full appearance-none rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-gray-50 dark:bg-[#23233a] px-3 py-2.5 pr-8 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  <option value="" disabled>Medium</option>
-                  <option value="High">High</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Low">Low</option>
-                </select>
-                <svg class="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-              </div>
-              <p *ngIf="fieldError('priority')" class="mt-1 text-xs text-red-500 dark:text-red-400">{{ fieldError('priority') }}</p>
-            </div>
-          </div>
-
-          <!-- Status + Assigned User -->
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Status</label>
-              <div class="relative">
-                <select
-                  formControlName="status"
-                  class="w-full appearance-none rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-gray-50 dark:bg-[#23233a] px-4 py-2.5 pr-9 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  <option value="Not Started">Not Started</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Completed">Completed</option>
-                </select>
-                <svg class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-              </div>
-            </div>
-            <div>
-              <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
-                Assigned User <span class="text-red-500">*</span>
-              </label>
-              <div class="relative">
-                <select
-                  formControlName="assignedUserId"
-                  class="w-full appearance-none rounded-xl border border-gray-200 dark:border-[#2a2a3a] bg-gray-50 dark:bg-[#23233a] px-4 py-2.5 pr-9 text-sm text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  <option [ngValue]="null" disabled>Select Team...</option>
-                  <option *ngFor="let u of allUsers" [ngValue]="u.id">{{ u.firstName }} {{ u.lastName }}</option>
-                </select>
-                <svg class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-              </div>
-              <p *ngIf="fieldError('assignedUserId')" class="mt-1 text-xs text-red-500 dark:text-red-400">{{ fieldError('assignedUserId') }}</p>
-            </div>
-          </div>
-
-          <!-- Submit error -->
-          <div
-            *ngIf="submitError"
-            class="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-4 py-3 text-sm text-red-700 dark:text-red-400"
+        <!-- Project Name -->
+        <div>
+          <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
+            Project Name <span class="text-red-500">*</span>
+          </label>
+          <select
+            formControlName="projectId"
+            class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-sm outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {{ submitError }}
-          </div>
+            <option value="" disabled>e.g., Global Expansion Strategy</option>
+            <option *ngFor="let p of projects" [value]="p.id">{{ p.projectName }}</option>
+          </select>
+          <p *ngIf="fieldError('projectId')" class="text-xs text-red-500 mt-1">{{ fieldError('projectId') }}</p>
+        </div>
 
-          <!-- Footer -->
-          <div class="flex justify-end pt-2 pb-1">
+        <!-- Main Task -->
+        <div>
+          <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
+            Main Task <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            formControlName="taskName"
+            placeholder="Summarize your main objective"
+            class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-sm outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60 disabled:cursor-not-allowed"
+          />
+          <p *ngIf="fieldError('taskName')" class="text-xs text-red-500 mt-1">{{ fieldError('taskName') }}</p>
+        </div>
+
+        <!-- Main Task Description -->
+        <div>
+          <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
+            Main Task Description <span class="text-red-500">*</span>
+          </label>
+          <textarea
+            formControlName="description"
+            rows="3"
+            placeholder="Detailed objective description..."
+            class="w-full mt-1 p-3 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-sm outline-none resize-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60 disabled:cursor-not-allowed"
+          ></textarea>
+          <p *ngIf="fieldError('description')" class="text-xs text-red-500 mt-1">{{ fieldError('description') }}</p>
+        </div>
+
+        <!-- Sub Tasks -->
+        <div class="rounded-lg border border-gray-200 [.dashboard-dark_&]:border-[var(--line)] bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] p-3" formArrayName="subTasks">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">Sub Tasks</h3>
             <button
               *ngIf="!isReadOnly"
-              type="submit"
-              [disabled]="isLoading"
-              class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-semibold shadow transition disabled:opacity-60 disabled:cursor-not-allowed"
+              type="button"
+              [disabled]="!canAddSubTask()"
+              (click)="addSubTask()"
+              class="text-xs font-bold text-[var(--primary)] hover:underline disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
             >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1-4l-3 3m0 0l-3-3m3 3V4"/>
-              </svg>
-              {{ mode === 'edit' ? 'Update Task' : 'Save Task' }}
+              + Add Sub Task
             </button>
           </div>
 
-        </form>
+          <div class="space-y-2">
+            <div
+              *ngFor="let st of subTasksArray.controls; let i = index"
+              [formGroupName]="i"
+              class="rounded-lg border border-gray-200 [.dashboard-dark_&]:border-[var(--line)] bg-white [.dashboard-dark_&]:bg-[var(--panel)] p-3"
+            >
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-bold text-[var(--primary)] uppercase tracking-wide">Sub Task {{ i + 1 }}</span>
+                <button
+                  *ngIf="!isReadOnly"
+                  type="button"
+                  (click)="removeSubTask(i)"
+                  class="w-6 h-6 rounded-lg border border-red-200 bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 cursor-pointer transition"
+                >×</button>
+              </div>
+              <div class="space-y-2">
+                <div>
+                  <label class="block text-[10px] font-bold text-[var(--primary)] mb-1">Sub Task Title</label>
+                  <input
+                    type="text"
+                    formControlName="title"
+                    placeholder="Secondary action item"
+                    class="w-full h-8 px-2 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-xs outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60"
+                  />
+                  <p *ngIf="subTaskError(i, 'title')" class="text-xs text-red-500 mt-1">{{ subTaskError(i, 'title') }}</p>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-bold text-[var(--primary)] mb-1">SubTask Description</label>
+                  <input
+                    type="text"
+                    formControlName="description"
+                    placeholder="Specific steps or details"
+                    class="w-full h-8 px-2 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-xs outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="subTasksArray.length === 0" class="text-[11px] text-gray-400 text-center py-2">
+            No sub tasks added yet.
+          </div>
+        </div>
+
+        <!-- Start Date + Due Date + Target + Priority -->
+        <div class="grid grid-cols-4 gap-2">
+          <div>
+            <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
+              Start Date <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              formControlName="startDate"
+              class="w-full h-9 mt-1 px-2 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-xs outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60"
+            />
+            <p *ngIf="fieldError('startDate')" class="text-xs text-red-500 mt-1">{{ fieldError('startDate') }}</p>
+          </div>
+          <div>
+            <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
+              Due Date <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              formControlName="dueDate"
+              class="w-full h-9 mt-1 px-2 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-xs outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60"
+            />
+            <p *ngIf="fieldError('dueDate')" class="text-xs text-red-500 mt-1">{{ fieldError('dueDate') }}</p>
+          </div>
+          <div>
+            <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
+              Target <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              formControlName="targetCount"
+              placeholder="KPI/Goal"
+              min="1"
+              class="w-full h-9 mt-1 px-2 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-xs outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60"
+            />
+            <p *ngIf="fieldError('targetCount')" class="text-xs text-red-500 mt-1">{{ fieldError('targetCount') }}</p>
+          </div>
+          <div>
+            <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
+              Priority <span class="text-red-500">*</span>
+            </label>
+            <select
+              formControlName="priority"
+              class="w-full h-9 mt-1 px-2 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-xs outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <option value="" disabled>Medium</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+            <p *ngIf="fieldError('priority')" class="text-xs text-red-500 mt-1">{{ fieldError('priority') }}</p>
+          </div>
+        </div>
+
+        <!-- Status + Assigned User -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">Status</label>
+            <select
+              formControlName="status"
+              class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-sm outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <option value="Not Started">Not Started</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
+              Assigned User <span class="text-red-500">*</span>
+            </label>
+            <select
+              formControlName="assignedUserId"
+              class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-sm outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              <option [ngValue]="null" disabled>Select Team...</option>
+              <option *ngFor="let u of allUsers" [ngValue]="u.id">{{ u.firstName }} {{ u.lastName }}</option>
+            </select>
+            <p *ngIf="fieldError('assignedUserId')" class="text-xs text-red-500 mt-1">{{ fieldError('assignedUserId') }}</p>
+          </div>
+        </div>
+
+        <!-- Submit error -->
+        <div
+          *ngIf="submitError"
+          class="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-xs text-red-700"
+        >
+          {{ submitError }}
+        </div>
+
+      </form>
+
+      <!-- Footer -->
+      <div class="border-t border-gray-200 [.dashboard-dark_&]:border-[var(--line)] bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] rounded-b-2xl">
+        <div class="py-4 flex justify-center">
+          <button
+            *ngIf="!isReadOnly"
+            type="submit"
+            [disabled]="isLoading"
+            (click)="onSubmit()"
+            class="text-sm font-extrabold text-[var(--primary)] hover:underline disabled:opacity-40 disabled:no-underline disabled:cursor-not-allowed cursor-pointer transition"
+          >
+            {{ isLoading ? 'Saving...' : (mode === 'edit' ? 'Update Task' : 'Save Task') }}
+          </button>
+        </div>
       </div>
+
     </div>
   </div>
 </ng-container>

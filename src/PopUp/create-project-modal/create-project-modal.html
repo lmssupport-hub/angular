@@ -1,69 +1,51 @@
 <div class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4 py-4">
-  <div class="w-[640px] max-w-[96vw] max-h-[92vh] overflow-y-auto bg-white rounded-lg shadow-2xl">
+  <div class="w-[640px] max-w-[96vw] max-h-[92vh] overflow-y-auto overflow-x-hidden bg-white rounded-2xl shadow-2xl [.dashboard-dark_&]:bg-[var(--panel)] [.dashboard-dark_&_.bg-white]:!bg-[var(--panel)] [.dashboard-dark_&_.bg-gray-50]:!bg-[var(--outer)] [.dashboard-dark_&_.text-gray-900]:!text-[var(--text)] [.dashboard-dark_&_.text-gray-700]:!text-[var(--text)] [.dashboard-dark_&_.text-gray-500]:!text-[var(--muted)] [.dashboard-dark_&_.text-gray-400]:!text-[var(--muted)] [.dashboard-dark_&_.border-gray-200]:!border-[var(--line)]">
 
     <!-- Header -->
-    <div class="h-11 px-5 bg-[#dce1f3] flex items-center justify-between sticky top-0 z-10">
-      <h3 class="text-base font-extrabold text-gray-900">
+    <div class="px-6 pt-5 pb-3 flex items-center justify-between sticky top-0 bg-white z-10 [.dashboard-dark_&]:bg-[var(--panel)]">
+      <h3 class="text-lg font-extrabold text-[#5a4bb3]">
         {{ editingProject ? 'Edit Project' : 'Create Project' }}
       </h3>
       <button
         type="button"
         (click)="close()"
-        class="w-7 h-7 rounded-full flex items-center justify-center text-xl font-bold hover:bg-white/70 transition cursor-pointer"
+        class="w-7 h-7 rounded-full flex items-center justify-center text-lg text-gray-400 hover:bg-gray-100 transition cursor-pointer"
       >&times;</button>
     </div>
 
-    <form [formGroup]="projectForm" class="p-4 space-y-3">
+    <form [formGroup]="projectForm" class="px-6 pb-6 space-y-4">
 
-      <!-- Project Name -->
-      <div>
-        <label class="text-xs font-bold text-gray-900">Project Name</label>
-        <input
-          formControlName="projectName"
-          placeholder="Enter project name"
-          class="w-full h-8 mt-1 px-3 rounded border border-gray-300 text-sm outline-none focus:border-[#5a4bb3]"
-        />
-        @if (projectForm.get('projectName')?.touched && projectForm.get('projectName')?.errors?.['required']) {
-          <p class="text-xs text-red-500 mt-1">Project Name is required</p>
-        }
-        @if (projectForm.get('projectName')?.errors?.['duplicateProject']) {
-          <p class="text-xs text-red-500 mt-1">Project with the same name already exists</p>
-        }
-      </div>
-
-      <!-- Dates + Assign User -->
-      <div class="grid grid-cols-2 gap-3">
+      <!-- Project Name + Assigned User -->
+      <div class="grid grid-cols-2 gap-4">
 
         <div>
-          <label class="text-xs font-bold text-gray-900">Project Received Date</label>
+          <label class="text-xs font-bold text-gray-900">Project name<span class="text-red-500">*</span></label>
           <input
-            type="date"
-            [max]="todayInputValue"
-            [value]="getDatePickerValue('projectReceivedDate')"
-            (change)="onDatePickerChange('projectReceivedDate', $event)"
-            class="w-full h-8 mt-1 px-3 rounded border border-gray-300 text-sm outline-none focus:border-[#5a4bb3]"
+            formControlName="projectName"
+            placeholder="Enter project name"
+            class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 border border-transparent text-sm outline-none focus:border-[#5a4bb3] focus:bg-white transition"
           />
-          @if (projectForm.get('projectReceivedDate')?.touched && projectForm.get('projectReceivedDate')?.errors?.['required']) {
-            <p class="text-xs text-red-500 mt-1">Project Received Date is required</p>
+          @if (projectForm.get('projectName')?.touched && projectForm.get('projectName')?.errors?.['required']) {
+            <p class="text-xs text-red-500 mt-1">Project Name is required</p>
           }
-          @if (projectForm.get('projectReceivedDate')?.errors?.['futureDate']) {
-            <p class="text-xs text-red-500 mt-1">Project Received Date cannot be a future date</p>
+          @if (projectForm.get('projectName')?.errors?.['duplicateProject']) {
+            <p class="text-xs text-red-500 mt-1">Project with the same name already exists</p>
           }
         </div>
 
         <!-- Assign User -->
         <div class="relative user-dropdown-wrapper">
-          <label class="text-xs font-bold text-gray-900">Assign User</label>
+          <label class="text-xs font-bold text-gray-900">Assigned user<span class="text-red-500">*</span></label>
           <button
             type="button"
             (click)="toggleUserDropdown($event)"
-            class="w-full h-8 mt-1 px-3 rounded border border-gray-300 text-sm outline-none bg-white focus:border-[#5a4bb3] cursor-pointer text-left flex items-center justify-between"
+            class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 border border-transparent text-sm outline-none focus:border-[#5a4bb3] cursor-pointer text-left flex items-center justify-between transition"
           >
-            <span class="truncate">{{ getAssignedUsersLabel() }}</span>
-            <span class="text-xs">▼</span>
+            <span class="truncate text-gray-700">{{ getAssignedUsersLabel() }}</span>
+            <span class="text-[10px] text-gray-400">▼</span>
           </button>
           @if (showUserDropdown) {
-            <div class="absolute left-0 right-0 z-20 mt-1 rounded border border-gray-300 bg-white shadow-lg p-2 max-h-36 overflow-y-auto">
+            <div class="absolute left-0 right-0 z-20 mt-1 rounded-lg border border-gray-200 bg-white shadow-lg p-2 max-h-36 overflow-y-auto">
               @for (user of users; track user) {
                 <label class="flex items-center gap-2 px-2 py-1 text-sm cursor-pointer hover:bg-gray-100 rounded">
                   <input
@@ -81,14 +63,38 @@
             <p class="text-xs text-red-500 mt-1">Assign User is required</p>
           }
         </div>
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label class="text-xs font-bold text-gray-900">Project description<span class="text-red-500">*</span></label>
+        <div class="relative mt-1">
+          <textarea
+            formControlName="projectDescription"
+            rows="3"
+            maxlength="1000"
+            placeholder="Enter detailed project scope and objectives..."
+            class="w-full p-3 pb-5 rounded-lg bg-gray-50 border border-transparent text-sm outline-none resize-none focus:border-[#5a4bb3] focus:bg-white transition"
+          ></textarea>
+          <span class="absolute bottom-2 right-3 text-[10px] text-gray-400">
+            {{ projectForm.get('projectDescription')?.value?.length || 0 }}/1000 characters
+          </span>
+        </div>
+        @if (projectForm.get('projectDescription')?.errors?.['maxWords']) {
+          <p class="text-xs text-red-500 mt-1">Project Description must not exceed 500 words</p>
+        }
+      </div>
+
+      <!-- Start / Due / Received Dates -->
+      <div class="grid grid-cols-3 gap-3">
 
         <div>
-          <label class="text-xs font-bold text-gray-900">Start Date</label>
+          <label class="text-xs font-bold text-gray-900">Start date<span class="text-red-500">*</span></label>
           <input
             type="date"
             [value]="getDatePickerValue('startDate')"
             (change)="onDatePickerChange('startDate', $event)"
-            class="w-full h-8 mt-1 px-3 rounded border border-gray-300 text-sm outline-none focus:border-[#5a4bb3]"
+            class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 border border-transparent text-sm outline-none focus:border-[#5a4bb3] focus:bg-white transition"
           />
           @if (projectForm.get('startDate')?.touched && projectForm.get('startDate')?.errors?.['required']) {
             <p class="text-xs text-red-500 mt-1">Start Date is required</p>
@@ -96,15 +102,32 @@
         </div>
 
         <div>
-          <label class="text-xs font-bold text-gray-900">Due Date</label>
+          <label class="text-xs font-bold text-gray-900">Due date<span class="text-red-500">*</span></label>
           <input
             type="date"
             [value]="getDatePickerValue('dueDate')"
             (change)="onDatePickerChange('dueDate', $event)"
-            class="w-full h-8 mt-1 px-3 rounded border border-gray-300 text-sm outline-none focus:border-[#5a4bb3]"
+            class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 border border-transparent text-sm outline-none focus:border-[#5a4bb3] focus:bg-white transition"
           />
           @if (projectForm.get('dueDate')?.touched && projectForm.get('dueDate')?.errors?.['required']) {
             <p class="text-xs text-red-500 mt-1">Due Date is required</p>
+          }
+        </div>
+
+        <div>
+          <label class="text-xs font-bold text-gray-900">Received date<span class="text-red-500">*</span></label>
+          <input
+            type="date"
+            [max]="todayInputValue"
+            [value]="getDatePickerValue('projectReceivedDate')"
+            (change)="onDatePickerChange('projectReceivedDate', $event)"
+            class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 border border-transparent text-sm outline-none focus:border-[#5a4bb3] focus:bg-white transition"
+          />
+          @if (projectForm.get('projectReceivedDate')?.touched && projectForm.get('projectReceivedDate')?.errors?.['required']) {
+            <p class="text-xs text-red-500 mt-1">Project Received Date is required</p>
+          }
+          @if (projectForm.get('projectReceivedDate')?.errors?.['futureDate']) {
+            <p class="text-xs text-red-500 mt-1">Project Received Date cannot be a future date</p>
           }
         </div>
       </div>
@@ -117,38 +140,41 @@
       }
 
       <!-- Formula Rows -->
-      <div class="space-y-2 pb-2">
-        @for (row of formulaRows; track $index; let rowIndex = $index) {
+      <div class="space-y-3">
+        @for (row of formulaRows; track $index; let rowIndex = $index; let isFirst = $first; let isLast = $last) {
           <div class="relative w-full">
-            <div class="grid grid-cols-6 gap-2 items-end w-full">
+            <div class="grid grid-cols-[minmax(0,1fr)_36px_minmax(0,1fr)_36px_110px] gap-2 items-end w-full">
 
               <!-- Param key 1 -->
-              <div class="col-span-2">
-                <label class="block text-[10px] font-bold text-gray-900 mb-1">Param key 1</label>
-                <div class="flex">
+              <div class="min-w-0">
+                <label class="block text-[11px] font-bold text-gray-900 mb-1 truncate">
+                  Param key {{ rowIndex + 1 }}<span class="text-red-500">*</span>
+                </label>
+                <div class="flex items-center min-w-0 h-9 rounded-lg bg-gray-50 border border-transparent focus-within:border-[#5a4bb3] overflow-hidden">
+                  <input type="number" min="1" step="any"
+                    [(ngModel)]="row.value1" (input)="onAnyFormulaChange()"
+                    [ngModelOptions]="{ standalone: true }"
+                    [disabled]="!row.parameter1" placeholder="0.00"
+                    class="w-12 shrink-0 h-full px-2 bg-transparent text-sm text-center outline-none disabled:text-gray-400" />
+                  <div class="w-px h-5 bg-gray-300 shrink-0"></div>
                   <select [(ngModel)]="row.parameter1" (change)="onParameter1Change(rowIndex)"
                     [ngModelOptions]="{ standalone: true }"
-                    class="flex-1 h-7 px-2 border border-gray-500 rounded-l bg-white text-[11px] outline-none">
-                    <option value="">Option A</option>
+                    class="flex-1 min-w-0 h-full px-2 bg-transparent text-sm outline-none">
+                    <option value="">Option 1</option>
                     @for (option of getAllParameterOptions(); track option) {
                       <option [value]="option">{{ option }}</option>
                     }
                   </select>
-                  <input type="number" min="1" step="any"
-                    [(ngModel)]="row.value1" (input)="onAnyFormulaChange()"
-                    [ngModelOptions]="{ standalone: true }"
-                    [disabled]="!row.parameter1" placeholder="00"
-                    class="w-14 h-7 px-1 border-y border-r border-gray-500 rounded-r text-[11px] text-center outline-none disabled:bg-gray-100" />
                 </div>
               </div>
 
               <!-- Operator -->
-              <div class="col-span-1">
-                <label class="block text-[10px] font-bold text-gray-900 mb-1">Operator</label>
+              <div class="min-w-0">
+                <label class="block text-[11px] font-bold text-gray-900 mb-1">&nbsp;</label>
                 <select [(ngModel)]="row.operator" (change)="onAnyFormulaChange()"
                   [ngModelOptions]="{ standalone: true }"
-                  class="w-full h-7 px-2 border border-gray-500 rounded bg-[#eef0f4] text-[11px] font-bold outline-none">
-                  <option value="">Select</option>
+                  class="w-9 h-9 rounded-lg bg-gray-50 text-sm font-bold text-center outline-none cursor-pointer appearance-none">
+                  <option value="">+</option>
                   @for (op of operatorOptions; track op) {
                     <option [value]="op">{{ op }}</option>
                   }
@@ -156,32 +182,45 @@
               </div>
 
               <!-- Param key 2 -->
-              <div class="col-span-2">
-                <label class="block text-[10px] font-bold text-gray-900 mb-1">Param key 2</label>
-                <div class="flex">
+              <div class="min-w-0">
+                <label class="block text-[11px] font-bold text-transparent mb-1">Param key 2</label>
+                <div class="flex items-center min-w-0 h-9 rounded-lg bg-gray-50 border border-transparent focus-within:border-[#5a4bb3] overflow-hidden">
+                  <input type="number" min="1" step="any"
+                    [(ngModel)]="row.value2" (input)="onAnyFormulaChange()"
+                    [ngModelOptions]="{ standalone: true }"
+                    [disabled]="!row.parameter2" placeholder="0.00"
+                    class="w-12 shrink-0 h-full px-2 bg-transparent text-sm text-center outline-none disabled:text-gray-400" />
+                  <div class="w-px h-5 bg-gray-300 shrink-0"></div>
                   <select [(ngModel)]="row.parameter2" (change)="onParameter2Change(rowIndex)"
                     [ngModelOptions]="{ standalone: true }"
-                    class="flex-1 h-7 px-2 border border-gray-500 rounded-l bg-white text-[11px] outline-none">
-                    <option value="">Option X</option>
+                    class="flex-1 min-w-0 h-full px-2 bg-transparent text-sm outline-none">
+                    <option value="">Option Z</option>
                     @for (option of getAllParameterOptions(); track option) {
                       <option [value]="option">{{ option }}</option>
                     }
                   </select>
-                  <input type="number" min="1" step="any"
-                    [(ngModel)]="row.value2" (input)="onAnyFormulaChange()"
-                    [ngModelOptions]="{ standalone: true }"
-                    [disabled]="!row.parameter2" placeholder="00"
-                    class="w-14 h-7 px-1 border-y border-r border-gray-500 rounded-r text-[11px] text-center outline-none disabled:bg-gray-100" />
                 </div>
               </div>
 
-              <!-- ADD button -->
-              <div class="col-span-1">
-                <label class="block text-[10px] font-bold text-transparent mb-1">Add</label>
-                <button type="button" (click)="toggleAddChoice(rowIndex, $event)"
-                  class="w-full h-7 rounded border border-gray-400 bg-[#eef0f4] text-[11px] font-bold text-gray-900 hover:bg-gray-200 cursor-pointer">
-                  + ADD
+              <!-- Add Param (icon button, every row) -->
+              <div class="min-w-0">
+                <label class="block text-[11px] font-bold text-transparent mb-1">Add</label>
+                <button type="button" (click)="toggleAddChoice(rowIndex, $event)" title="Add Param"
+                  class="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-50 text-[#5a4bb3] text-base font-bold hover:bg-[#eef0ff] cursor-pointer transition">
+                  +
                 </button>
+              </div>
+
+              <!-- Target: column always reserved, only rendered on the last row so it never gets skipped -->
+              <div class="min-w-0">
+                @if (isLast) {
+                  <label class="block text-[11px] font-bold text-gray-900 mb-1">Target<span class="text-red-500">*</span></label>
+                  <input
+                    formControlName="target"
+                    placeholder="0.00"
+                    class="w-full h-9 px-3 rounded-lg bg-gray-50 border border-transparent text-sm outline-none focus:border-[#5a4bb3] focus:bg-white transition"
+                  />
+                }
               </div>
             </div>
 
@@ -189,7 +228,7 @@
             @if (showAddChoiceIndex === rowIndex) {
               <div class="mt-2 ml-auto w-[180px] rounded-lg border border-gray-200 bg-white shadow-lg p-2 flex gap-2">
                 <button type="button" (click)="addExtraField(rowIndex, 'operator')"
-                  class="flex-1 h-8 rounded bg-[#eef0f4] text-gray-800 text-xs font-bold cursor-pointer">
+                  class="flex-1 h-8 rounded bg-gray-50 text-gray-800 text-xs font-bold cursor-pointer">
                   Operator
                 </button>
                 <button type="button" (click)="addExtraField(rowIndex, 'parameter')"
@@ -201,38 +240,41 @@
 
             <!-- Extra fields -->
             @for (extra of row.extraFields; track $index; let extraIndex = $index) {
-              <div class="mt-1">
+              <div class="mt-2">
                 @if (extra.type === 'operator') {
-                  <div class="flex items-center gap-1">
+                  <div class="flex items-center gap-2">
                     <select [(ngModel)]="extra.operator" (change)="onAnyFormulaChange()"
                       [ngModelOptions]="{ standalone: true }"
-                      class="w-[72px] h-7 px-2 border border-gray-500 rounded bg-[#eef0f4] text-[11px] font-bold outline-none">
-                      <option value="">Select</option>
+                      class="w-9 h-9 rounded-lg bg-gray-50 text-sm font-bold text-center outline-none appearance-none">
+                      <option value="">+</option>
                       @for (op of operatorOptions; track op) {
                         <option [value]="op">{{ op }}</option>
                       }
                     </select>
                     <button type="button" (click)="removeExtraField(rowIndex, extraIndex)"
-                      class="w-7 h-7 rounded border border-red-200 bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 cursor-pointer">×</button>
+                      class="w-7 h-7 rounded-lg border border-red-200 bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 cursor-pointer">×</button>
                   </div>
                 }
                 @if (extra.type === 'parameter') {
-                  <div class="flex items-center gap-1">
-                    <select [(ngModel)]="extra.parameter" (change)="onExtraParameterChange(extra)"
-                      [ngModelOptions]="{ standalone: true }"
-                      class="flex-1 h-7 px-2 border border-gray-500 rounded-l bg-white text-[11px] outline-none max-w-[200px]">
-                      <option value="">Select Parameter</option>
-                      @for (option of getAllParameterOptions(); track option) {
-                        <option [value]="option">{{ option }}</option>
-                      }
-                    </select>
-                    <input type="number" min="1" step="any"
-                      [(ngModel)]="extra.value" (input)="onAnyFormulaChange()"
-                      [ngModelOptions]="{ standalone: true }"
-                      placeholder="00.0"
-                      class="w-14 h-7 px-1 border-y border-r border-gray-500 rounded-r text-[11px] text-center outline-none" />
+                  <div class="flex items-center gap-2">
+                    <div class="flex items-center h-9 rounded-lg bg-gray-50 border border-transparent focus-within:border-[#5a4bb3] overflow-hidden flex-1 max-w-[240px]">
+                      <input type="number" min="1" step="any"
+                        [(ngModel)]="extra.value" (input)="onAnyFormulaChange()"
+                        [ngModelOptions]="{ standalone: true }"
+                        placeholder="0.00"
+                        class="w-14 h-full px-2 bg-transparent text-sm text-center outline-none" />
+                      <div class="w-px h-5 bg-gray-300 shrink-0"></div>
+                      <select [(ngModel)]="extra.parameter" (change)="onExtraParameterChange(extra)"
+                        [ngModelOptions]="{ standalone: true }"
+                        class="flex-1 h-full px-2 bg-transparent text-sm outline-none">
+                        <option value="">Select Parameter</option>
+                        @for (option of getAllParameterOptions(); track option) {
+                          <option [value]="option">{{ option }}</option>
+                        }
+                      </select>
+                    </div>
                     <button type="button" (click)="removeExtraField(rowIndex, extraIndex)"
-                      class="w-7 h-7 rounded border border-red-200 bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 cursor-pointer">×</button>
+                      class="w-7 h-7 rounded-lg border border-red-200 bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 cursor-pointer">×</button>
                   </div>
                 }
               </div>
@@ -241,46 +283,20 @@
         }
       </div>
 
-      <!-- Target -->
-      <div class="mt-3">
-        <label class="block text-[11px] font-bold text-gray-900 mb-1">Target</label>
-        <input
-          formControlName="target"
-          placeholder="Auto-calculated"
-          class="w-full h-8 px-3 rounded border border-gray-300 text-xs bg-gray-100 text-gray-700 outline-none"
-        />
-      </div>
+    </form>
 
-      <!-- Description -->
-      <div>
-        <label class="text-xs font-bold text-gray-900">Project Description</label>
-        <textarea
-          formControlName="projectDescription"
-          rows="3"
-          placeholder="Enter detailed project scope and objectives..."
-          class="w-full mt-1 p-3 rounded border border-gray-300 text-sm outline-none resize-none focus:border-[#5a4bb3]"
-        ></textarea>
-        @if (projectForm.get('projectDescription')?.errors?.['maxWords']) {
-          <p class="text-xs text-red-500 mt-1">Project Description must not exceed 500 words</p>
-        }
-      </div>
-
-      <!-- Footer -->
-      <div class="pt-3 border-t flex justify-end gap-3">
-        <button type="button" (click)="close()"
-          class="h-9 px-5 rounded-lg bg-gray-100 text-gray-700 text-sm font-bold hover:bg-gray-200 transition cursor-pointer">
-          Close
-        </button>
+    <!-- Footer -->
+    <div class="border-t border-gray-200 bg-gray-50 rounded-b-2xl [.dashboard-dark_&]:bg-[var(--outer)]">
+      <div class="py-4 flex justify-center">
         <button
           type="button"
           [disabled]="isSaving || projectForm.invalid || !canAddFormulaRow()"
           (click)="save()"
-          class="h-9 px-5 rounded-lg bg-[#5a4bb3] text-white text-sm font-bold hover:bg-[#4b3ca0] disabled:opacity-40 disabled:cursor-not-allowed enabled:cursor-pointer transition"
+          class="text-sm font-extrabold text-[#5a4bb3] hover:underline disabled:opacity-40 disabled:no-underline disabled:cursor-not-allowed enabled:cursor-pointer transition"
         >
           {{ isSaving ? 'Saving...' : (editingProject ? 'Update Project' : 'Save Project') }}
         </button>
       </div>
-
-    </form>
+    </div>
   </div>
 </div>

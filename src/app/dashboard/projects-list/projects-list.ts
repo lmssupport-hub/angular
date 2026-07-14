@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, HostListener, Inject, PLATFORM_ID, signal } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ProjectService, Project } from '../../services/project.service';
 import { CreateProjectModalComponent } from '../../../PopUp/create-project-modal/create-project-modal';
@@ -13,22 +13,28 @@ import { CreateProjectModalComponent } from '../../../PopUp/create-project-modal
 })
 export class ProjectsList implements OnInit {
 
-  projects: Project[] = [];
-  isLoadingProjects = false;
-  loadError: string | null = null;
+  // ── State (signals — plain properties don't repaint the view under
+  //    zoneless change detection, which is why Filter / Create Project
+  //    weren't opening; task-list.ts already uses this pattern) ────────
+  projects = signal<Project[]>([]);
+  isLoadingProjects = signal(false);
+  loadError = signal<string | null>(null);
 
-  showProjectPopup = false;
-  editingProject: Project | null = null;
+  showProjectPopup = signal(false);
+  editingProject = signal<Project | null>(null);
 
-  showDeleteConfirm = false;
-  deletingProjectId: number | null = null;
-  deletingProjectName = '';
-  isDeletingProject = false;
+  showFilterDropdown = signal(false);
 
-  expandedProjectIds = new Set<number>();
-  expandUserDropdownId: number | null = null;
+  showDeleteConfirm = signal(false);
+  deletingProjectId = signal<number | null>(null);
+  deletingProjectName = signal('');
+  isDeletingProject = signal(false);
+
+  expandedProjectIds = signal<Set<number>>(new Set());
+  expandUserDropdownId = signal<number | null>(null);
   showAddChoiceIndex: number | null = null;
 
+  // Static / never reassigned after init — fine as plain fields
   users = ['test name 1', 'test name 2', 'test name 3'];
   todayInputValue = new Date().toISOString().split('T')[0];
 
@@ -46,59 +52,79 @@ export class ProjectsList implements OnInit {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    if (!target.closest('.expand-user-dropdown-wrapper')) this.expandUserDropdownId = null;
+    if (!target.closest('.expand-user-dropdown-wrapper')) this.expandUserDropdownId.set(null);
+    if (!target.closest('.filter-dropdown-wrapper')) this.showFilterDropdown.set(false);
   }
 
   // ── Load ──────────────────────────────────────────────────────────
 
   loadProjects(): void {
-    this.isLoadingProjects = true;
-    this.loadError = null;
+    this.isLoadingProjects.set(true);
+    this.loadError.set(null);
     this.apiService.getProjects().subscribe({
       next: (data) => {
-        this.projects = Array.isArray(data) ? data : [];
-        this.isLoadingProjects = false;
+        this.projects.set(Array.isArray(data) ? data : []);
+        this.isLoadingProjects.set(false);
       },
       error: (err) => {
         console.error('Load projects failed', err);
-        this.projects = [];
-        this.loadError = 'Cannot reach the server. Check your connection.';
-        this.isLoadingProjects = false;
+        this.projects.set([]);
+        this.loadError.set('Cannot reach the server. Check your connection.');
+        this.isLoadingProjects.set(false);
       },
     });
+  }
+
+  // ── Filter dropdown ──────────────────────────────────────────────
+
+  toggleFilterDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showFilterDropdown.update(v => !v);
+  }
+
+  clearFilter(): void {
+    // filter state reset logic varum idha inga
+    this.showFilterDropdown.set(false);
+  }
+
+  applyFilter(): void {
+    // filter apply logic varum idha inga
+    this.showFilterDropdown.set(false);
   }
 
   // ── Modal ─────────────────────────────────────────────────────────
 
   openProjectPopup(project?: Project, event?: Event): void {
     event?.stopPropagation();
-    this.editingProject = project ?? null;
-    this.showProjectPopup = true;
+    this.editingProject.set(project ?? null);
+    this.showProjectPopup.set(true);
   }
 
   closeProjectPopup(): void {
-    this.showProjectPopup = false;
-    this.editingProject = null;
+    this.showProjectPopup.set(false);
+    this.editingProject.set(null);
   }
 
   onProjectSaved(saved: Project): void {
-    if (this.editingProject) {
-      this.projects = this.projects.map(p => p.id === saved.id ? saved : p);
+    if (this.editingProject()) {
+      this.projects.update(list => list.map(p => p.id === saved.id ? saved : p));
     } else {
-      this.projects = [...this.projects, saved];
+      this.projects.update(list => [...list, saved]);
     }
     this.closeProjectPopup();
   }
 
   // ── Expand ────────────────────────────────────────────────────────
 
-  isExpanded(id: number): boolean { return this.expandedProjectIds.has(id); }
+  isExpanded(id: number): boolean {
+    return this.expandedProjectIds().has(id);
+  }
 
   toggleExpand(id: number, event: Event): void {
     event.stopPropagation();
-    this.expandedProjectIds.has(id)
-      ? this.expandedProjectIds.delete(id)
-      : this.expandedProjectIds.add(id);
+    const next = new Set(this.expandedProjectIds());
+    next.has(id) ? next.delete(id) : next.add(id);
+    this.expandedProjectIds.set(next);
   }
 
   // ── Inline date edit ──────────────────────────────────────────────
@@ -121,9 +147,16 @@ export class ProjectsList implements OnInit {
       formulaRows:         project.formulaRows || [],
     };
     project[field] = val;
+    this.projects.update(list => [...list]); // new array reference → view refreshes
     this.apiService.updateProject(project.id, payload).subscribe({
-      next: (updated) => { this.projects = this.projects.map(p => p.id === project.id ? { ...p, ...updated } : p); },
-      error: (err) => { console.error('Inline date update failed', err); project[field] = oldValue; },
+      next: (updated) => {
+        this.projects.update(list => list.map(p => p.id === project.id ? { ...p, ...updated } : p));
+      },
+      error: (err) => {
+        console.error('Inline date update failed', err);
+        project[field] = oldValue;
+        this.projects.update(list => [...list]);
+      },
     });
   }
 
@@ -131,7 +164,7 @@ export class ProjectsList implements OnInit {
 
   toggleExpandUserDropdown(id: number, event: Event): void {
     event.stopPropagation();
-    this.expandUserDropdownId = this.expandUserDropdownId === id ? null : id;
+    this.expandUserDropdownId.update(current => current === id ? null : id);
   }
 
   getUnassignedUsers(project: Project): string[] {
@@ -160,10 +193,17 @@ export class ProjectsList implements OnInit {
       formulaRows:         project.formulaRows || [],
     };
     project.assignedUsers = assignedUsers;
-    this.expandUserDropdownId = null;
+    this.expandUserDropdownId.set(null);
+    this.projects.update(list => [...list]);
     this.apiService.updateProject(project.id, payload).subscribe({
-      next: (updated) => { this.projects = this.projects.map(p => p.id === project.id ? { ...p, ...updated } : p); },
-      error: (err) => { console.error('User update failed', err); project.assignedUsers = oldUsers; },
+      next: (updated) => {
+        this.projects.update(list => list.map(p => p.id === project.id ? { ...p, ...updated } : p));
+      },
+      error: (err) => {
+        console.error('User update failed', err);
+        project.assignedUsers = oldUsers;
+        this.projects.update(list => [...list]);
+      },
     });
   }
 
@@ -171,31 +211,33 @@ export class ProjectsList implements OnInit {
 
   deleteProject(id: number, event: Event): void {
     event.stopPropagation();
-    const project = this.projects.find(p => p.id === id);
-    this.deletingProjectId = id;
-    this.deletingProjectName = project?.projectName || '';
-    this.showDeleteConfirm = true;
+    const project = this.projects().find(p => p.id === id);
+    this.deletingProjectId.set(id);
+    this.deletingProjectName.set(project?.projectName || '');
+    this.showDeleteConfirm.set(true);
   }
 
   cancelDelete(): void {
-    this.showDeleteConfirm = false;
-    this.deletingProjectId = null;
-    this.deletingProjectName = '';
-    this.isDeletingProject = false;
+    this.showDeleteConfirm.set(false);
+    this.deletingProjectId.set(null);
+    this.deletingProjectName.set('');
+    this.isDeletingProject.set(false);
   }
 
   confirmDelete(): void {
-    if (!this.deletingProjectId) return;
-    const deleteId = this.deletingProjectId;
-    this.isDeletingProject = true;
+    const deleteId = this.deletingProjectId();
+    if (!deleteId) return;
+    this.isDeletingProject.set(true);
     this.apiService.deleteProject(deleteId).subscribe({
       next: () => {
-        this.projects = this.projects.filter(p => p.id !== deleteId);
-        this.expandedProjectIds.delete(deleteId);
-        this.isDeletingProject = false;
+        this.projects.update(list => list.filter(p => p.id !== deleteId));
+        const next = new Set(this.expandedProjectIds());
+        next.delete(deleteId);
+        this.expandedProjectIds.set(next);
+        this.isDeletingProject.set(false);
         this.cancelDelete();
       },
-      error: (err) => { console.error('Delete failed', err); this.isDeletingProject = false; },
+      error: (err) => { console.error('Delete failed', err); this.isDeletingProject.set(false); },
     });
   }
 
