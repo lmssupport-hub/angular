@@ -1,365 +1,382 @@
-<div class="h-screen overflow-hidden bg-[#f4f3f8]">
-  <div class="relative flex h-full overflow-hidden">
+<div class="h-[100dvh] overflow-hidden bg-[#e4e4e7] text-[#11131a] max-lg:h-auto max-lg:min-h-[100dvh] max-lg:overflow-y-auto">
+  
 
-    <!-- LOGIN SIDE -->
-    <div class="w-1/2 h-full bg-[#fafafa] flex items-center justify-center relative">
-      <div class="w-full max-w-[430px] px-8">
+  <!-- FULL SCREEN LOADER OVERLAY -->
+<div *ngIf="isLoading" class="fixed inset-0 z-[999] flex items-center justify-center bg-white/80 backdrop-blur-sm">
+  <div class="relative flex h-24 w-24 items-center justify-center">
+    <!-- Spinning ring -->
+    <div class="absolute inset-0 animate-spin rounded-full border-4 border-[#e4e4e7] border-t-[#596cea]"></div>
 
-        <img
-          src="/Group-9.png"
-          class="w-14 absolute top-6 left-6 transition-all duration-700 hover:scale-110"
-        />
+    <!-- Pulsing logo in center -->
+    <img
+      src="/Vativa-logo.png"
+      alt="Loading"
+      class="h-12 w-12 animate-pulse object-contain"
+    />
+  </div>
+</div>
+  
+  
+  <div class="grid h-full w-full overflow-hidden transition-all duration-300 ease-in-out max-lg:min-h-[100dvh] lg:grid-cols-[minmax(360px,0.95fr)_minmax(420px,1fr)]">
 
-        <h1 class="text-4xl font-bold text-[#5a4bb3] mb-2">
-          Welcome Back
-        </h1>
+    <!-- IMAGE PANEL -->
+    <section class="relative m-3 min-h-[300px] overflow-hidden rounded-[22px] bg-[#11131a]  transition-all duration-300 ease-in-out sm:m-4 sm:min-h-[390px] lg:mr-0 lg:h-[calc(100dvh-32px)] lg:min-h-0">
+      <img
+        [src]="isLogin ? '/auth-login-office.jpg' : '/auth-signup-office.jpg'"
+        alt="Team workspace"
+        class="h-full w-full object-cover transition-[transform,filter] duration-[250ms] ease-in-out hover:scale-[1.015]"
+      />
+      <div class="absolute inset-0 bg-gradient-to-tr from-[#11131a]/38 via-[#11131a]/8 to-transparent"></div>
 
-        <p class="text-gray-500 text-base mb-8">
-          Login to your account continue
-        </p>
+      <!-- CURVED LOGIN / SIGNUP SWITCH -->
+      <div class="absolute mt-8 top-5 right-0 z-20 w-28 select-none sm:top-7">
+  <div
+    class="absolute right-0 top-0 h-12 w-28 rounded-l-[40px] bg-[#e4e4e7] transition-transform duration-[250ms] ease-in-out"
+    [ngClass]="isLogin ? 'translate-y-0' : 'translate-y-[52px]'"
+  >
+    <svg class="absolute -top-[26px] right-0 h-[26px] w-[26px] text-[#e4e4e7]" viewBox="0 0 18 18" aria-hidden="true">
+      <path fill="currentColor" d="M9 18A9 9 0 0 0 18 9V18Z"></path>
+    </svg>
+    <svg class="absolute -bottom-[26px] right-0 h-[26px] w-[26px] text-[#e4e4e7]" viewBox="0 0 18 18" aria-hidden="true">
+      <path fill="currentColor" d="M9 0A9 9 0 0 1 18 9V0Z"></path>
+    </svg>
+  </div>
+
+        <div class="relative grid gap-1">
+          <button
+            type="button"
+            class="relative flex h-12 w-28 items-center justify-center rounded-l-[24px] border-0 bg-transparent p-0 text-center text-[13px] font-semibold leading-none transition-colors duration-[250ms] ease-in-out hover:text-[#596cea] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            [ngClass]="isLogin ? 'text-[#11131a]' : 'text-white drop-shadow'"
+            (click)="isLogin = true"
+          >
+            Log In
+          </button>
+          <button
+            type="button"
+            class="relative flex h-12 w-28 items-center justify-center rounded-l-[24px] border-0 bg-transparent p-0 text-center text-[13px] font-semibold leading-none transition-colors duration-[250ms] ease-in-out hover:text-[#596cea] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            [ngClass]="!isLogin ? 'text-[#11131a]' : 'text-white drop-shadow'"
+            (click)="isLogin = false"
+          >
+            Sign up
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- FORM PANEL -->
+    <section class="relative flex min-h-[560px] items-center justify-center bg-[#e4e4e7] px-5 py-6 sm:px-9 lg:h-[100dvh] lg:min-h-0 lg:overflow-hidden lg:px-10 lg:py-4 xl:px-16">
+      <img
+  src="/Group-9.png"
+  alt="VativaHub Design & Development"
+  class="absolute top-5 right-6 h-auto w-18 object-contain transition-transform duration-[250ms] ease-in-out hover:scale-105 sm:w-20 lg:top-6 lg:right-8 lg:w-20"
+/>
+
+      <!-- LOGIN FORM -->
+<div *ngIf="isLogin; else signupForm" class="w-full max-w-[600px] pt-14 transition-all duration-[250ms] ease-in-out sm:pt-10 lg:pt-8">        <div class="mb-7">
+          <h1 class="text-[31px] font-extrabold leading-tight text-[#596cea] sm:text-[36px]">
+            Welcome Back
+          </h1>
+          <p class="mt-3 text-[13px] font-medium text-[#5f6470]">
+            Login to your account continue
+          </p>
+        </div>
 
         <!-- EMAIL -->
-        <div class="mb-4">
-          <div class="relative">
-            <span class="absolute left-3 top-3 text-gray-400">
-              <i class="fa-regular fa-envelope"></i>
-            </span>
+<div class="mb-4">
+  <label class="mb-1.5 block text-[13px] font-semibold text-[#11131a]">
+    Email ID<span class="text-red-500">*</span>
+  </label>
+  <div class="relative">
+    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[13px] text-[#9aa0ad]">
+      <i class="fa-regular fa-envelope"></i>
+    </span>
 
-            <input
-              type="email"
-              placeholder="Enter your email"
-              [(ngModel)]="loginData.email"
-              (input)="clearLoginError('email')"
-              class="w-full h-12 pl-9 rounded-lg border border-gray-300 text-sm outline-none bg-[#eef2ff]"
-            />
-          </div>
+    <input
+      type="email"
+      placeholder="Enter your email"
+      [(ngModel)]="loginData.email"
+      (input)="clearLoginError('email')"
+      class="h-12 w-full rounded-[12px] border border-[#e2e4ea] bg-white pl-11 pr-4 text-[13px] font-medium text-[#11131a] outline-none transition-all duration-[250ms] ease-in-out placeholder:text-[#a2a6b0] focus:border-[#596cea] focus:shadow-[0_0_0_4px_rgb(89_108_234/10%)]"
+    />
+  </div>
 
-          <p *ngIf="loginSubmitted && loginErrors.email" class="text-red-500 text-xs mt-1">
-            {{ loginErrors.email }}
-          </p>
-        </div>
+  <p *ngIf="loginSubmitted && loginErrors.email" class="mt-1.5 text-xs font-medium text-red-500">
+    {{ loginErrors.email }}
+  </p>
+</div>
 
         <!-- LOGIN PASSWORD -->
-        <div class="mb-5">
-          <div class="relative">
-            <span class="absolute left-3 top-3 text-gray-400">
-              <i class="fa-solid fa-lock"></i>
-            </span>
+        <!-- LOGIN PASSWORD -->
+<div class="mb-5">
+  <label class="mb-1.5 block text-[13px] font-semibold text-[#11131a]">
+    Password<span class="text-red-500">*</span>
+  </label>
+  <div class="relative">
+    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[13px] text-[#9aa0ad]">
+      <i class="fa-solid fa-lock"></i>
+    </span>
 
-            <input
-              [type]="showLoginPassword ? 'text' : 'password'"
-              placeholder="Enter your password"
-              [(ngModel)]="loginData.password"
-              (input)="clearLoginError('password')"
-              class="w-full h-12 pl-9 pr-9 rounded-lg border border-gray-300 text-sm outline-none bg-[#eef2ff]"
-            />
+    <input
+      [type]="showLoginPassword ? 'text' : 'password'"
+      placeholder="Enter your password"
+      [(ngModel)]="loginData.password"
+      (input)="clearLoginError('password')"
+      class="h-12 w-full rounded-[12px] border border-[#e2e4ea] bg-white pl-11 pr-11 text-[13px] font-medium text-[#11131a] outline-none transition-all duration-[250ms] ease-in-out placeholder:text-[#a2a6b0] focus:border-[#596cea] focus:shadow-[0_0_0_4px_rgb(89_108_234/10%)]"
+    />
 
-            <span
-              class="absolute right-3 top-3 text-gray-400 cursor-pointer"
-              (click)="toggleLoginPassword()"
-            >
-              <i [class]="showLoginPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
-            </span>
-          </div>
+    <span
+      class="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-[13px] text-[#9aa0ad] transition-colors duration-[250ms] ease-in-out hover:text-[#596cea]"
+      (click)="toggleLoginPassword()"
+    >
+      <i [class]="showLoginPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+    </span>
+  </div>
 
-          <p *ngIf="loginSubmitted && loginErrors.password" class="text-red-500 text-xs mt-1">
-            {{ loginErrors.password }}
-          </p>
-        </div>
+  <p *ngIf="loginSubmitted && loginErrors.password" class="mt-1.5 text-xs font-medium text-red-500">
+    {{ loginErrors.password }}
+  </p>
+</div>
 
-        <div class="flex justify-between items-center mb-6">
-          <label class="flex items-center gap-2 text-sm text-gray-500">
-            <input type="checkbox" [(ngModel)]="loginData.remember">
+        <div class="mb-7 flex items-center justify-between gap-4">
+          <label class="flex cursor-pointer items-center gap-2 text-[12px] font-medium text-[#777b86]">
+            <input type="checkbox" [(ngModel)]="loginData.remember" class="h-3.5 w-3.5 rounded border-transparent accent-[#596cea]">
             Remember
           </label>
 
-        <span
-          class="text-[#5a4bb3] text-sm cursor-pointer"
-          (click)="goToForgotPassword()">
-          Forgot Password?
-        </span>
+          <span class="cursor-pointer text-[12px] font-semibold text-[#596cea] transition-colors duration-[250ms] ease-in-out hover:text-[#4458d7]"
+  (click)="goToForgotPassword()">Forgot Password?</span>
         </div>
 
         <!-- LOGIN BUTTON -->
         <button
-          type="button"
-          (click)="loginUser()"
-          class="w-full h-12 rounded-lg text-white text-sm font-semibold transition hover:scale-105 bg-[#5a4bb3]"
-        >
-          Login
-        </button>
+  type="button"
+  (click)="loginUser()"
+  class="mx-auto flex h-12 w-full max-w-[300px] items-center justify-center rounded-2xl border-0 bg-white px-8 text-[15px] font-semibold text-[#596cea] shadow-[0_8px_20px_rgb(0_0_0/10%),0_2px_6px_rgb(0_0_0/6%)] transition-all duration-[250ms] ease-in-out hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgb(0_0_0/14%),0_4px_10px_rgb(0_0_0/8%)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#596cea] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+>
+  Login
+</button>
 
-      </div>
-    </div>
-
-    <!-- SIGNUP SIDE -->
-    <div class="w-1/2 h-full bg-[#fafafa] flex items-center justify-center relative">
-      <div class="w-full max-w-[430px] px-8">
-
-        <img
-          src="/Group-9.png"
-          class="w-14 absolute top-6 right-6 transition-all duration-700 hover:scale-110"
-        />
-
-        <h1 class="text-3xl font-bold text-[#5a4bb3] mb-2">
-          Create Your Account
-        </h1>
-
-        <p class="text-gray-500 text-sm mb-4">
-          Fill in the details below to get started
-        </p>
-
-        <!-- Invite banner: only shown when arriving via an admin's invite link -->
-        <div *ngIf="inviteToken && checkingInvite" class="bg-[#eef2ff] text-[#5a4bb3] text-xs rounded-lg px-4 py-3 mb-4">
-          Checking your invite link...
-        </div>
-
-        <div *ngIf="inviteToken && !checkingInvite && !inviteCheckError" class="bg-[#eef2ff] text-[#5a4bb3] text-xs rounded-lg px-4 py-3 mb-4">
-          You've been invited to join.
-          <span *ngIf="invitedRoleName"> Role: <span class="font-semibold">{{ invitedRoleName }}</span></span>
-        </div>
-
-        <div *ngIf="inviteToken && inviteCheckError" class="bg-red-50 text-red-600 text-xs rounded-lg px-4 py-3 mb-4">
-          {{ inviteCheckError }}
-        </div>
-
-        <!-- NAME -->
-        <div class="grid grid-cols-2 gap-3 mb-3">
-
-          <!-- FIRST NAME -->
-          <div>
-            <div class="relative">
-              <span class="absolute left-3 top-3 text-gray-400">
-                <i class="fa-regular fa-user"></i>
-              </span>
-
-              <input
-                type="text"
-                placeholder="Enter your first Name"
-                [(ngModel)]="registerData.firstName"
-                (input)="clearError('firstName')"
-                class="w-full h-11 pl-9 rounded-lg border border-gray-300 text-sm outline-none bg-[#eef2ff]"
-              />
-            </div>
-
-            <p *ngIf="registerSubmitted && errorMessages.firstName" class="text-red-500 text-xs mt-1">
-              {{ errorMessages.firstName }}
-            </p>
-          </div>
-
-          <!-- LAST NAME -->
-          <div>
-            <div class="relative">
-              <span class="absolute left-3 top-3 text-gray-400">
-                <i class="fa-regular fa-user"></i>
-              </span>
-
-              <input
-                type="text"
-                placeholder="Enter your last Name"
-                [(ngModel)]="registerData.lastName"
-                (input)="clearError('lastName')"
-                class="w-full h-11 pl-9 rounded-lg border border-gray-300 text-sm outline-none bg-[#eef2ff]"
-              />
-            </div>
-
-            <p *ngIf="registerSubmitted && errorMessages.lastName" class="text-red-500 text-xs mt-1">
-              {{ errorMessages.lastName }}
-            </p>
-          </div>
-
-        </div>
-
-        <!-- EMAIL -->
-        <div class="mb-3">
-          <div class="relative">
-            <span class="absolute left-3 top-3 text-gray-400">
-              <i class="fa-regular fa-envelope"></i>
-            </span>
-
-            <input
-              type="email"
-              placeholder="Email Address"
-              [(ngModel)]="registerData.email"
-              (input)="clearError('email')"
-              [readOnly]="!!inviteToken"
-              [ngClass]="inviteToken ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-[#eef2ff]'"
-              class="w-full h-11 pl-9 rounded-lg border border-gray-300 text-sm outline-none"
-            />
-          </div>
-
-          <p *ngIf="inviteToken" class="text-gray-400 text-xs mt-1">
-            This email came from your invite link and can't be changed.
-          </p>
-
-          <p *ngIf="registerSubmitted && errorMessages.email" class="text-red-500 text-xs mt-1">
-            {{ errorMessages.email }}
-          </p>
-        </div>
-
-        <!-- PHONE -->
-        <div class="mb-3">
-          <div class="relative">
-            <span class="absolute left-3 top-3 text-gray-400">
-              <i class="fa-solid fa-phone"></i>
-            </span>
-
-            <input
-              type="text"
-              placeholder="Phone Number"
-              [(ngModel)]="registerData.phone"
-              (input)="clearError('phone')"
-              class="w-full h-11 pl-9 rounded-lg border border-gray-300 text-sm outline-none bg-[#eef2ff]"
-            />
-          </div>
-
-          <p *ngIf="registerSubmitted && errorMessages.phone" class="text-red-500 text-xs mt-1">
-            {{ errorMessages.phone }}
-          </p>
-        </div>
-
-        <!-- PASSWORD -->
-        <div class="mb-3">
-          <div class="relative">
-            <span class="absolute left-3 top-3 text-gray-400">
-              <i class="fa-solid fa-lock"></i>
-            </span>
-
-            <input
-              [type]="showSignupPassword ? 'text' : 'password'"
-              placeholder="Password"
-              [(ngModel)]="registerData.password"
-              (input)="clearError('password')"
-              class="w-full h-11 pl-9 pr-9 rounded-lg border border-gray-300 text-sm outline-none bg-[#eef2ff]"
-            />
-
-            <span
-              class="absolute right-3 top-3 text-gray-400 cursor-pointer"
-              (click)="toggleSignupPassword()"
-            >
-              <i [class]="showSignupPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
-            </span>
-          </div>
-
-          <p *ngIf="registerSubmitted && errorMessages.password" class="text-red-500 text-xs mt-1">
-            {{ errorMessages.password }}
-          </p>
-        </div>
-
-        <!-- CONFIRM PASSWORD -->
-        <div class="mb-3">
-          <div class="relative">
-            <span class="absolute left-3 top-3 text-gray-400">
-              <i class="fa-solid fa-lock"></i>
-            </span>
-
-            <input
-              [type]="showConfirmPassword ? 'text' : 'password'"
-              placeholder="Confirm Password"
-              [(ngModel)]="registerData.confirmPassword"
-              (input)="clearError('confirmPassword')"
-              class="w-full h-11 pl-9 pr-9 rounded-lg border border-gray-300 text-sm outline-none bg-[#eef2ff]"
-            />
-
-            <span
-              class="absolute right-3 top-3 text-gray-400 cursor-pointer"
-              (click)="toggleConfirmPassword()"
-            >
-              <i [class]="showConfirmPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
-            </span>
-          </div>
-
-          <p *ngIf="registerSubmitted && errorMessages.confirmPassword" class="text-red-500 text-xs mt-1">
-            {{ errorMessages.confirmPassword }}
-          </p>
-        </div>
-
-        <!-- TERMS -->
-        <label class="flex items-start gap-2 text-sm text-gray-500 mb-1 cursor-pointer">
-          <input
-            type="checkbox"
-            class="mt-1 accent-[#5a4bb3]"
-            [(ngModel)]="registerData.termsAccepted"
-            (change)="clearError('termsAccepted')"
-          />
-
-          <span>
-            I accept the
-            <span class="text-[#5a4bb3] font-medium cursor-pointer hover:underline">
-              Terms & Conditions
-            </span>
-          </span>
-        </label>
-
-        <p *ngIf="registerSubmitted && errorMessages.termsAccepted" class="text-red-500 text-xs mb-4">
-          {{ errorMessages.termsAccepted }}
-        </p>
-
-        <!-- SIGNUP BUTTON -->
-        <button
-          type="button"
-          (click)="registerUser()"
-          class="w-full h-12 rounded-lg text-white text-sm font-semibold transition hover:scale-105 bg-[#5a4bb3]"
-        >
-          Sign Up
-        </button>
-
-        <p class="text-center text-sm text-gray-500 mt-4">
-          Already have an account?
+        <p class="mt-5 text-center text-[13px] font-medium text-[#5f6470]">
+          Don't have an account?
 
           <a
             href="#"
-            class="text-[#5a4bb3] font-medium hover:underline"
-            (click)="isLogin = true; $event.preventDefault()"
+            class="font-bold text-[#596cea] transition-colors duration-[250ms] ease-in-out hover:text-[#4458d7]"
+            (click)="isLogin = false; $event.preventDefault()"
           >
-            Login
+            Sign up
           </a>
         </p>
-
       </div>
+
+      <ng-template #signupForm>
+  <div class="w-full max-w-[600px] pt-12 transition-all duration-[250ms] ease-in-out sm:pt-9 lg:pt-7">
+    <div class="mb-4">
+      <h1 class="text-[29px] font-extrabold leading-tight text-[#596cea] sm:text-[34px]">
+        Create Your Account
+      </h1>
+      <p class="mt-2 text-[13px] font-medium text-[#5f6470]">
+        Fill in the details below to get started
+      </p>
     </div>
 
-    <!-- SLIDING PANEL -->
-    <div
-      class="absolute top-0 h-full w-1/2 z-50 transition-all duration-700 ease-in-out"
-      [ngClass]="isLogin ? 'left-1/2' : 'left-0'"
-    >
+    <!-- NAME ROW -->
+    <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
 
-      <div
-        class="relative h-full overflow-hidden flex items-center justify-center bg-cover bg-center"
-        style="background-image: url('/signup-final.png');"
-      >
-
-        <div class="absolute inset-0 bg-[#dedcf6]/70"></div>
-
-        <div
-          class="relative z-10 text-center max-w-[340px] px-8 flex flex-col items-center justify-end h-full pb-20"
-        >
-
-          <h1 class="text-3xl font-semibold text-[#5a4bb3] leading-tight mb-4 opacity-100 whitespace-nowrap">
-            {{ isLogin ? 'Think. Plan.Execute.' : 'Back Again?' }}
-          </h1>
-
-          <p class="text-sm text-[#5a4bb3] leading-relaxed mb-6 opacity-90">
-            {{
-              isLogin
-                ? 'Unite professionals to build a stronger organization.'
-                : 'Reconnect with your team in a click.'
-            }}
-          </p>
-
-          <button
-            class="bg-[#5a4bb3] text-white px-10 h-12 rounded-lg text-sm font-semibold transition-all duration-500 hover:scale-105"
-            (mouseenter)="isLogin = !isLogin"
-          >
-            {{ isLogin ? 'Sign Up' : 'Login' }}
-          </button>
-
+      <!-- FIRST NAME -->
+      <div>
+        <label class="mb-1.5 block text-[13px] font-semibold text-[#11131a]">
+          First Name<span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[13px] text-[#9aa0ad]">
+            <i class="fa-regular fa-user"></i>
+          </span>
+          <input
+            type="text"
+            placeholder="Enter your first name"
+            [(ngModel)]="registerData.firstName"
+            (input)="clearError('firstName')"
+            class="h-11 w-full rounded-[12px] border border-[#e2e4ea] bg-white pl-11 pr-3 text-[13px] font-medium text-[#11131a] outline-none transition-all duration-[250ms] ease-in-out placeholder:text-[#a2a6b0] focus:border-[#596cea] focus:shadow-[0_0_0_4px_rgb(89_108_234/10%)]"
+          />
         </div>
-
+        <p *ngIf="registerSubmitted && errorMessages.firstName" class="mt-1.5 text-xs font-medium text-red-500">
+          {{ errorMessages.firstName }}
+        </p>
       </div>
 
+      <!-- LAST NAME -->
+      <div>
+        <label class="mb-1.5 block text-[13px] font-semibold text-[#11131a]">
+          Last Name<span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[13px] text-[#9aa0ad]">
+            <i class="fa-regular fa-user"></i>
+          </span>
+          <input
+            type="text"
+            placeholder="Enter your last name"
+            [(ngModel)]="registerData.lastName"
+            (input)="clearError('lastName')"
+            class="h-11 w-full rounded-[12px] border border-[#e2e4ea] bg-white pl-11 pr-3 text-[13px] font-medium text-[#11131a] outline-none transition-all duration-[250ms] ease-in-out placeholder:text-[#a2a6b0] focus:border-[#596cea] focus:shadow-[0_0_0_4px_rgb(89_108_234/10%)]"
+          />
+        </div>
+        <p *ngIf="registerSubmitted && errorMessages.lastName" class="mt-1.5 text-xs font-medium text-red-500">
+          {{ errorMessages.lastName }}
+        </p>
+      </div>
     </div>
 
+    <!-- EMAIL / PHONE ROW -->
+    <div class="mb-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+
+      <!-- EMAIL -->
+      <div>
+        <label class="mb-1.5 block text-[13px] font-semibold text-[#11131a]">
+          Email<span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[13px] text-[#9aa0ad]">
+            <i class="fa-regular fa-envelope"></i>
+          </span>
+          <input
+            type="email"
+            placeholder="Email address"
+            [(ngModel)]="registerData.email"
+            (input)="clearError('email')"
+            class="h-11 w-full rounded-[12px] border border-[#e2e4ea] bg-white pl-11 pr-3 text-[13px] font-medium text-[#11131a] outline-none transition-all duration-[250ms] ease-in-out placeholder:text-[#a2a6b0] focus:border-[#596cea] focus:shadow-[0_0_0_4px_rgb(89_108_234/10%)]"
+          />
+        </div>
+        <p *ngIf="registerSubmitted && errorMessages.email" class="mt-1.5 text-xs font-medium text-red-500">
+          {{ errorMessages.email }}
+        </p>
+      </div>
+
+      <!-- PHONE -->
+      <div>
+        <label class="mb-1.5 block text-[13px] font-semibold text-[#11131a]">
+          Ph.no<span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[13px] text-[#9aa0ad]">
+            <i class="fa-solid fa-phone"></i>
+          </span>
+          <input
+            type="text"
+            placeholder="Phone number"
+            [(ngModel)]="registerData.phone"
+            (input)="clearError('phone')"
+            class="h-11 w-full rounded-[12px] border border-[#e2e4ea] bg-white pl-11 pr-3 text-[13px] font-medium text-[#11131a] outline-none transition-all duration-[250ms] ease-in-out placeholder:text-[#a2a6b0] focus:border-[#596cea] focus:shadow-[0_0_0_4px_rgb(89_108_234/10%)]"
+          />
+        </div>
+        <p *ngIf="registerSubmitted && errorMessages.phone" class="mt-1.5 text-xs font-medium text-red-500">
+          {{ errorMessages.phone }}
+        </p>
+      </div>
+    </div>
+
+    <!-- PASSWORD / CONFIRM PASSWORD ROW -->
+    <div class="mb-2.5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+
+      <!-- PASSWORD -->
+      <div>
+        <label class="mb-1.5 block text-[13px] font-semibold text-[#11131a]">
+          Create Password<span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[13px] text-[#9aa0ad]">
+            <i class="fa-solid fa-lock"></i>
+          </span>
+          <input
+            [type]="showSignupPassword ? 'text' : 'password'"
+            placeholder="Password"
+            [(ngModel)]="registerData.password"
+            (input)="clearError('password')"
+            class="h-11 w-full rounded-[12px] border border-[#e2e4ea] bg-white pl-11 pr-11 text-[13px] font-medium text-[#11131a] outline-none transition-all duration-[250ms] ease-in-out placeholder:text-[#a2a6b0] focus:border-[#596cea] focus:shadow-[0_0_0_4px_rgb(89_108_234/10%)]"
+          />
+          <span
+            class="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-[13px] text-[#9aa0ad] transition-colors duration-[250ms] ease-in-out hover:text-[#596cea]"
+            (click)="toggleSignupPassword()"
+          >
+            <i [class]="showSignupPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+          </span>
+        </div>
+        <p *ngIf="registerSubmitted && errorMessages.password" class="mt-1.5 text-xs font-medium text-red-500">
+          {{ errorMessages.password }}
+        </p>
+      </div>
+
+      <!-- CONFIRM PASSWORD -->
+      <div>
+        <label class="mb-1.5 block text-[13px] font-semibold text-[#11131a]">
+          Confirm Password<span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[13px] text-[#9aa0ad]">
+            <i class="fa-solid fa-lock"></i>
+          </span>
+          <input
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            placeholder="Confirm password"
+            [(ngModel)]="registerData.confirmPassword"
+            (input)="clearError('confirmPassword')"
+            class="h-11 w-full rounded-[12px] border border-[#e2e4ea] bg-white pl-11 pr-11 text-[13px] font-medium text-[#11131a] outline-none transition-all duration-[250ms] ease-in-out placeholder:text-[#a2a6b0] focus:border-[#596cea] focus:shadow-[0_0_0_4px_rgb(89_108_234/10%)]"
+          />
+          <span
+            class="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-[13px] text-[#9aa0ad] transition-colors duration-[250ms] ease-in-out hover:text-[#596cea]"
+            (click)="toggleConfirmPassword()"
+          >
+            <i [class]="showConfirmPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+          </span>
+        </div>
+        <p *ngIf="registerSubmitted && errorMessages.confirmPassword" class="mt-1.5 text-xs font-medium text-red-500">
+          {{ errorMessages.confirmPassword }}
+        </p>
+      </div>
+    </div>
+
+    <!-- TERMS -->
+    <label class="mb-1 flex cursor-pointer items-start gap-2 text-[12px] font-medium text-[#777b86]">
+      <input
+        type="checkbox"
+        class="mt-0.5 h-3.5 w-3.5 rounded border-[#e2e4ea] accent-[#596cea]"
+        [(ngModel)]="registerData.termsAccepted"
+        (change)="clearError('termsAccepted')"
+      />
+      <span>
+        I accept the
+        <span class="cursor-pointer font-bold text-[#596cea] transition-colors duration-[250ms] ease-in-out hover:text-[#4458d7]">
+          Terms & Conditions
+        </span>
+      </span>
+    </label>
+
+    <p *ngIf="registerSubmitted && errorMessages.termsAccepted" class="mb-4 text-xs font-medium text-red-500">
+      {{ errorMessages.termsAccepted }}
+    </p>
+
+    <!-- SIGNUP BUTTON -->
+    <button
+      type="button"
+      (click)="registerUser()"
+      class="mx-auto mt-4 flex h-12 w-full max-w-[300px] items-center justify-center rounded-2xl border-0 bg-white px-8 text-[15px] font-semibold text-[#596cea] shadow-[0_8px_20px_rgb(0_0_0/10%),0_2px_6px_rgb(0_0_0/6%)] transition-all duration-[250ms] ease-in-out hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgb(0_0_0/14%),0_4px_10px_rgb(0_0_0/8%)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#596cea] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+    >
+      Sign Up
+    </button>
+
+    <p class="mt-4 text-center text-[13px] font-medium text-[#5f6470]">
+      Already have an account?
+      <a
+        href="#"
+        class="font-bold text-[#596cea] transition-colors duration-[250ms] ease-in-out hover:text-[#4458d7]"
+        (click)="isLogin = true; $event.preventDefault()"
+      >
+        Login
+      </a>
+    </p>
+  </div>
+</ng-template>
+    </section>
   </div>
 </div>

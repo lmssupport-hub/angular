@@ -5,13 +5,13 @@
   >
     <!-- Panel -->
     <div
-      class="relative w-[640px] max-w-[96vw] max-h-[92vh] overflow-y-auto overflow-x-hidden flex flex-col rounded-2xl bg-white shadow-2xl [.dashboard-dark_&]:bg-[var(--panel)]"
+      class="relative w-[640px] max-w-[96vw] max-h-[92vh] overflow-y-auto overflow-x-hidden flex flex-col rounded-2xl border-2 border-[var(--primary)] bg-white shadow-2xl [.dashboard-dark_&]:bg-[var(--panel)]"
       (click)="$event.stopPropagation()"
     >
 
       <!-- Header -->
       <div class="px-6 pt-5 pb-3 flex items-center justify-between sticky top-0 bg-white z-10 [.dashboard-dark_&]:bg-[var(--panel)]">
-        <h2 class="text-lg font-extrabold text-[var(--primary)]">{{ modalTitle }}</h2>
+        <h2 class="text-xl font-extrabold text-[#5a4bb3] [.dashboard-dark_&]:text-[var(--text)]">{{ modalTitle }}</h2>
         <button
           type="button"
           (click)="close()"
@@ -25,7 +25,7 @@
 
       <!-- Loading overlay -->
       <div
-        *ngIf="isLoading"
+        *ngIf="isLoading()"
         class="absolute inset-0 z-20 flex items-center justify-center bg-white/70 [.dashboard-dark_&]:bg-[var(--panel)]/70 rounded-2xl"
       >
         <svg class="w-8 h-8 animate-spin text-[var(--primary)]" fill="none" viewBox="0 0 24 24">
@@ -36,70 +36,121 @@
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="px-6 pb-4 space-y-4">
 
-        <!-- Project Name -->
-        <div>
-          <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
-            Project Name <span class="text-red-500">*</span>
-          </label>
-          <select
-            formControlName="projectId"
-            class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-sm outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <option value="" disabled>e.g., Global Expansion Strategy</option>
-            <option *ngFor="let p of projects" [value]="p.id">{{ p.projectName }}</option>
-          </select>
-          <p *ngIf="fieldError('projectId')" class="text-xs text-red-500 mt-1">{{ fieldError('projectId') }}</p>
-        </div>
-
-        <!-- Main Task -->
-        <div>
-          <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
-            Main Task <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            formControlName="taskName"
-            placeholder="Summarize your main objective"
-            class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-sm outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60 disabled:cursor-not-allowed"
-          />
-          <p *ngIf="fieldError('taskName')" class="text-xs text-red-500 mt-1">{{ fieldError('taskName') }}</p>
-        </div>
-
-        <!-- Main Task Description -->
-        <div>
-          <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
-            Main Task Description <span class="text-red-500">*</span>
-          </label>
-          <textarea
-            formControlName="description"
-            rows="3"
-            placeholder="Detailed objective description..."
-            class="w-full mt-1 p-3 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-sm outline-none resize-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60 disabled:cursor-not-allowed"
-          ></textarea>
-          <p *ngIf="fieldError('description')" class="text-xs text-red-500 mt-1">{{ fieldError('description') }}</p>
-        </div>
-
-        <!-- Sub Tasks -->
-        <div class="rounded-lg border border-gray-200 [.dashboard-dark_&]:border-[var(--line)] bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] p-3" formArrayName="subTasks">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">Sub Tasks</h3>
-            <button
-              *ngIf="!isReadOnly"
-              type="button"
-              [disabled]="!canAddSubTask()"
-              (click)="addSubTask()"
-              class="text-xs font-bold text-[var(--primary)] hover:underline disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
+        <!-- ROW 1: Project Name / Assigned User -->
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
+              Project name <span class="text-red-500">*</span>
+            </label>
+            <select
+              formControlName="projectId"
+              class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-sm outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              + Add Sub Task
-            </button>
+              <option value="" disabled>e.g., Global Expansion Strategy</option>
+              <option *ngFor="let p of projects" [value]="p.id">{{ p.projectName }}</option>
+            </select>
+            <p *ngIf="fieldError('projectId')" class="text-xs text-red-500 mt-1">{{ fieldError('projectId') }}</p>
           </div>
 
-          <div class="space-y-2">
-            <div
-              *ngFor="let st of subTasksArray.controls; let i = index"
-              [formGroupName]="i"
-              class="rounded-lg border border-gray-200 [.dashboard-dark_&]:border-[var(--line)] bg-white [.dashboard-dark_&]:bg-[var(--panel)] p-3"
+          <div>
+            <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
+              Assigned user <span class="text-red-500">*</span>
+            </label>
+            <select
+              formControlName="assignedUserId"
+              class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-sm outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
+              <option [ngValue]="null" disabled>Select Team...</option>
+              <option *ngFor="let u of allUsers" [ngValue]="u.id">{{ u.firstName }} {{ u.lastName }}</option>
+            </select>
+            <p *ngIf="fieldError('assignedUserId')" class="text-xs text-red-500 mt-1">{{ fieldError('assignedUserId') }}</p>
+          </div>
+        </div>
+
+        <!-- ROW 2: Main Task Card / Sub Task Card -->
+<div class="grid grid-cols-2 gap-4">
+
+  <!-- MAIN TASK CARD — ❌ formArrayName vekkadha (root form fields) -->
+  <div class="rounded-xl bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] p-3 max-h-64 overflow-y-auto">
+    <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
+      Main task <span class="text-red-500">*</span>
+    </label>
+    <input
+      type="text"
+      formControlName="taskName"
+      placeholder="Summarize your main objective"
+      class="w-full h-9 mt-1 mb-3 px-3 rounded-lg bg-white [.dashboard-dark_&]:bg-[var(--panel)] border border-transparent text-sm outline-none focus:border-[var(--primary)] transition disabled:opacity-60 disabled:cursor-not-allowed"
+    />
+    <p *ngIf="fieldError('taskName')" class="text-xs text-red-500 -mt-2 mb-2">{{ fieldError('taskName') }}</p>
+
+    <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
+      Main task description <span class="text-red-500">*</span>
+    </label>
+    <textarea
+      formControlName="description"
+      rows="3"
+      maxlength="1000"
+      placeholder="Detailed objective description..."
+      class="w-full mt-1 p-3 rounded-lg bg-white [.dashboard-dark_&]:bg-[var(--panel)] border border-transparent text-sm outline-none resize-none focus:border-[var(--primary)] transition disabled:opacity-60 disabled:cursor-not-allowed"
+    ></textarea>
+    <div class="flex items-center justify-between mt-1">
+      <p *ngIf="fieldError('description')" class="text-xs text-red-500">{{ fieldError('description') }}</p>
+      <p class="text-[10px] text-gray-400 ml-auto">{{ descLength() }}/1000 characters</p>
+    </div>
+  </div>
+
+  <!-- SUB TASK CARD — ✅ formArrayName ippo idhula mattum -->
+  <div class="rounded-xl bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] p-3 flex flex-col max-h-64" formArrayName="subTasks">
+    <div class="flex items-center justify-between mb-1 shrink-0">
+      <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">Sub task</label>
+      <button
+        *ngIf="!isReadOnly"
+        type="button"
+        [disabled]="!mainTaskReady()"
+        [title]="!mainTaskReady() ? 'Fill Main Task name (3+ chars) and description first' : ''"
+        (click)="addSubTask()"
+        class="text-xs font-bold text-[var(--primary)] hover:underline disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition"
+      >
+        + Add
+      </button>
+    </div>
+
+    <div class="overflow-y-auto pr-1">
+      <span class="hidden">{{ subTasksVersion() }}</span>
+      <ng-container *ngIf="subTasksArray.length > 0; else noSubTaskInput" [formGroupName]="0">
+        <input
+          type="text"
+          formControlName="title"
+          placeholder="Secondary action item"
+          class="w-full h-9 mt-1 mb-3 px-3 rounded-lg bg-white [.dashboard-dark_&]:bg-[var(--panel)] border border-transparent text-sm outline-none focus:border-[var(--primary)] transition disabled:opacity-60"
+        />
+        <p *ngIf="subTaskError(0, 'title')" class="text-xs text-red-500 -mt-2 mb-2">{{ subTaskError(0, 'title') }}</p>
+
+        <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">Sub task description</label>
+        <textarea
+          formControlName="description"
+          rows="3"
+          maxlength="1000"
+          placeholder="Specific steps or details"
+          class="w-full mt-1 p-3 rounded-lg bg-white [.dashboard-dark_&]:bg-[var(--panel)] border border-transparent text-sm outline-none resize-none focus:border-[var(--primary)] transition disabled:opacity-60"
+        ></textarea>
+        <p class="text-[10px] text-gray-400 mt-1 text-right">{{ (subTasksArray.at(0).get('description')?.value?.length) || 0 }}/1000 characters</p>
+      </ng-container>
+
+      <ng-template #noSubTaskInput>
+        <div class="w-full h-9 mt-1 px-3 rounded-lg bg-white [.dashboard-dark_&]:bg-[var(--panel)] flex items-center text-xs text-gray-400">
+          No sub tasks yet
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>
+
+        <!-- Extra sub tasks (index 1+) — full-width cards -->
+        <div *ngIf="subTasksArray.length > 1" class="space-y-2" formArrayName="subTasks">
+          <span class="hidden">{{ subTasksVersion() }}</span>
+          <ng-container *ngFor="let st of subTasksArray.controls; let i = index" [formGroupName]="i">
+            <div *ngIf="i > 0" class="rounded-lg border border-gray-200 [.dashboard-dark_&]:border-[var(--line)] bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] p-3">
               <div class="flex items-center justify-between mb-2">
                 <span class="text-[10px] font-bold text-[var(--primary)] uppercase tracking-wide">Sub Task {{ i + 1 }}</span>
                 <button
@@ -109,40 +160,32 @@
                   class="w-6 h-6 rounded-lg border border-red-200 bg-red-50 text-red-500 text-xs font-bold hover:bg-red-100 cursor-pointer transition"
                 >×</button>
               </div>
-              <div class="space-y-2">
+              <div class="grid grid-cols-2 gap-2">
                 <div>
-                  <label class="block text-[10px] font-bold text-[var(--primary)] mb-1">Sub Task Title</label>
                   <input
                     type="text"
                     formControlName="title"
                     placeholder="Secondary action item"
-                    class="w-full h-8 px-2 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-xs outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60"
+                    class="w-full h-8 px-2 rounded-lg bg-white [.dashboard-dark_&]:bg-[var(--panel)] border border-gray-200 [.dashboard-dark_&]:border-[var(--line)] text-xs outline-none focus:border-[var(--primary)] transition disabled:opacity-60"
                   />
                   <p *ngIf="subTaskError(i, 'title')" class="text-xs text-red-500 mt-1">{{ subTaskError(i, 'title') }}</p>
                 </div>
-                <div>
-                  <label class="block text-[10px] font-bold text-[var(--primary)] mb-1">SubTask Description</label>
-                  <input
-                    type="text"
-                    formControlName="description"
-                    placeholder="Specific steps or details"
-                    class="w-full h-8 px-2 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-xs outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60"
-                  />
-                </div>
+                <input
+                  type="text"
+                  formControlName="description"
+                  placeholder="Specific steps or details"
+                  class="w-full h-8 px-2 rounded-lg bg-white [.dashboard-dark_&]:bg-[var(--panel)] border border-gray-200 [.dashboard-dark_&]:border-[var(--line)] text-xs outline-none focus:border-[var(--primary)] transition disabled:opacity-60"
+                />
               </div>
             </div>
-          </div>
-
-          <div *ngIf="subTasksArray.length === 0" class="text-[11px] text-gray-400 text-center py-2">
-            No sub tasks added yet.
-          </div>
+          </ng-container>
         </div>
 
-        <!-- Start Date + Due Date + Target + Priority -->
-        <div class="grid grid-cols-4 gap-2">
+        <!-- ROW 4: Start Date / Due Date -->
+        <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
-              Start Date <span class="text-red-500">*</span>
+              Start date <span class="text-red-500">*</span>
             </label>
             <input
               type="date"
@@ -153,7 +196,7 @@
           </div>
           <div>
             <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
-              Due Date <span class="text-red-500">*</span>
+              Due date <span class="text-red-500">*</span>
             </label>
             <input
               type="date"
@@ -162,6 +205,10 @@
             />
             <p *ngIf="fieldError('dueDate')" class="text-xs text-red-500 mt-1">{{ fieldError('dueDate') }}</p>
           </div>
+        </div>
+
+        <!-- ROW 5: Target / Priority / Status -->
+        <div class="grid grid-cols-3 gap-3">
           <div>
             <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
               Target <span class="text-red-500">*</span>
@@ -190,42 +237,25 @@
             </select>
             <p *ngIf="fieldError('priority')" class="text-xs text-red-500 mt-1">{{ fieldError('priority') }}</p>
           </div>
-        </div>
-
-        <!-- Status + Assigned User -->
-        <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">Status</label>
             <select
               formControlName="status"
-              class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-sm outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60 disabled:cursor-not-allowed"
+              class="w-full h-9 mt-1 px-2 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-xs outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <option value="Not Started">Not Started</option>
               <option value="In Progress">In Progress</option>
               <option value="Completed">Completed</option>
             </select>
           </div>
-          <div>
-            <label class="text-xs font-bold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">
-              Assigned User <span class="text-red-500">*</span>
-            </label>
-            <select
-              formControlName="assignedUserId"
-              class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 [.dashboard-dark_&]:bg-[var(--outer)] border border-transparent text-sm outline-none focus:border-[var(--primary)] focus:bg-white transition disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              <option [ngValue]="null" disabled>Select Team...</option>
-              <option *ngFor="let u of allUsers" [ngValue]="u.id">{{ u.firstName }} {{ u.lastName }}</option>
-            </select>
-            <p *ngIf="fieldError('assignedUserId')" class="text-xs text-red-500 mt-1">{{ fieldError('assignedUserId') }}</p>
-          </div>
         </div>
 
         <!-- Submit error -->
         <div
-          *ngIf="submitError"
+          *ngIf="submitError()"
           class="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-xs text-red-700"
         >
-          {{ submitError }}
+          {{ submitError() }}
         </div>
 
       </form>
@@ -236,11 +266,11 @@
           <button
             *ngIf="!isReadOnly"
             type="submit"
-            [disabled]="isLoading"
+            [disabled]="isLoading()"
             (click)="onSubmit()"
-            class="text-sm font-extrabold text-[var(--primary)] hover:underline disabled:opacity-40 disabled:no-underline disabled:cursor-not-allowed cursor-pointer transition"
+            class="text-base font-extrabold text-[#5a4bb3] [.dashboard-dark_&]:text-[var(--text)] hover:underline disabled:opacity-40 disabled:no-underline disabled:cursor-not-allowed cursor-pointer transition"
           >
-            {{ isLoading ? 'Saving...' : (mode === 'edit' ? 'Update Task' : 'Save Task') }}
+            {{ isLoading() ? 'Saving...' : (mode === 'edit' ? 'Update Task' : 'Save Task') }}
           </button>
         </div>
       </div>

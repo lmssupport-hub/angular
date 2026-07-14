@@ -1,10 +1,3 @@
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     TASK LIST PAGE
-     Grid columns now use fr (flexible) widths instead of fixed px, and the
-     horizontal scroll wrapper was removed — columns shrink to fit the
-     screen width instead of overflowing and needing a horizontal scrollbar.
-     All bindings, signals, and method names are unchanged.
-═══════════════════════════════════════════════════════════════════════════ -->
 <div class="min-h-[calc(100vh-150px)] text-gray-800 [.dashboard-dark_&_.bg-white]:!bg-[var(--panel)] [.dashboard-dark_&_.bg-gray-50]:!bg-[var(--surface)] [.dashboard-dark_&_.bg-gray-100]:!bg-[var(--active)] [.dashboard-dark_&_.bg-indigo-50]:!bg-[var(--active)] [.dashboard-dark_&_.text-gray-900]:!text-[var(--text)] [.dashboard-dark_&_.text-gray-800]:!text-[var(--text)] [.dashboard-dark_&_.text-gray-700]:!text-[var(--text)] [.dashboard-dark_&_.text-gray-600]:!text-[var(--muted)] [.dashboard-dark_&_.text-gray-500]:!text-[var(--muted)] [.dashboard-dark_&_.text-gray-400]:!text-[var(--muted)] [.dashboard-dark_&_.text-gray-300]:!text-[var(--muted)] [.dashboard-dark_&_.border-gray-100]:!border-[var(--line)] [.dashboard-dark_&_.border-gray-200]:!border-[var(--line)] [.dashboard-dark_&_.hover\\:bg-gray-50:hover]:!bg-[var(--surface)]">
 
   <!-- Page title -->
@@ -15,186 +8,274 @@
   <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
 
-      <button
-        type="button"
-        class="inline-flex h-8 min-w-[116px] items-center justify-center gap-2 rounded-full border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#1a1a24] px-5 text-[11px] font-semibold text-indigo-700 dark:text-indigo-400"
-      >
-        Filter
-        <i class="fa-solid fa-filter text-[10px]"></i>
-      </button>
+      <!-- Filter button + dropdown panel -->
+      <div class="relative" (click)="$event.stopPropagation()">
+        <button
+          type="button"
+          (click)="toggleFilterPanel($event)"
+          class="inline-flex h-10 min-w-[116px] items-center justify-center gap-2 rounded-full border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#1a1a24] px-5 text-[11px] font-semibold text-indigo-700 dark:text-indigo-400 cursor-pointer"
+        >
+          Filter
+          <span *ngIf="activeFilterCount() > 0" class="w-4 h-4 rounded-full bg-indigo-600 text-white text-[9px] flex items-center justify-center">{{ activeFilterCount() }}</span>
+          <i class="fa-solid fa-filter text-[10px] cursor-pointer"></i>
+        </button>
 
-      <label class="w-full sm:w-[300px]">
+        <div
+          *ngIf="filterPanelOpen()"
+          class="absolute left-0 top-10 z-40 w-64 rounded-2xl border border-gray-100 dark:border-[#2a2a3a] bg-white dark:bg-[#1a1a24] shadow-xl p-4"
+        >
+          <!-- Priority -->
+          <div class="mb-4">
+            <p class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Priority</p>
+            <div class="flex flex-wrap gap-2">
+              <button
+                *ngFor="let p of priorityOptions"
+                type="button"
+                (click)="togglePriorityFilter(p, $event)"
+                class="rounded-full px-3 py-1 text-[11px] font-bold border transition"
+                [class.bg-indigo-600]="isPrioritySelected(p)"
+                [class.text-white]="isPrioritySelected(p)"
+                [class.border-indigo-600]="isPrioritySelected(p)"
+                [class.bg-gray-50]="!isPrioritySelected(p)"
+                [class.text-gray-600]="!isPrioritySelected(p)"
+                [class.border-gray-200]="!isPrioritySelected(p)"
+                [class.dark:bg-[#23233a]]="!isPrioritySelected(p)"
+                [class.dark:text-gray-300]="!isPrioritySelected(p)"
+                [class.dark:border-[#2a2a3a]]="!isPrioritySelected(p)"
+              >
+                {{ p }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Status -->
+          <div class="mb-4">
+            <p class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Status</p>
+            <div class="flex flex-wrap gap-2">
+              <button
+                *ngFor="let s of statusOptions"
+                type="button"
+                (click)="toggleStatusFilter(s, $event)"
+                class="rounded-full px-3 py-1 text-[11px] font-bold border transition"
+                [class.bg-indigo-600]="isStatusSelected(s)"
+                [class.text-white]="isStatusSelected(s)"
+                [class.border-indigo-600]="isStatusSelected(s)"
+                [class.bg-gray-50]="!isStatusSelected(s)"
+                [class.text-gray-600]="!isStatusSelected(s)"
+                [class.border-gray-200]="!isStatusSelected(s)"
+                [class.dark:bg-[#23233a]]="!isStatusSelected(s)"
+                [class.dark:text-gray-300]="!isStatusSelected(s)"
+                [class.dark:border-[#2a2a3a]]="!isStatusSelected(s)"
+              >
+                {{ s }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Clear -->
+          <button
+            type="button"
+            (click)="clearFilters($event)"
+            [disabled]="activeFilterCount() === 0"
+            class="w-full text-center text-[11px] font-bold text-red-500 dark:text-red-400 hover:underline disabled:opacity-40 disabled:no-underline disabled:cursor-not-allowed"
+          >
+            Clear filters
+          </button>
+        </div>
+      </div>
+
+      <label class="w-full sm:w-[300px] relative">
         <span class="sr-only">Project Name</span>
         <select
-          class="h-8 w-full rounded-full border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#1a1a24] px-5 text-[11px] text-gray-600 dark:text-gray-300 outline-none focus:ring-2 focus:ring-indigo-500"
+          class="h-10 w-full appearance-none rounded-full border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#1a1a24] pl-5 pr-9 text-[11px] text-gray-600 dark:text-gray-300 outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer"
           (change)="onProjectSelect($event)"
         >
-          <option value="" disabled [selected]="!selectedProjectId()">Project Name</option>
-          <option *ngFor="let p of projects()" [value]="p.id">{{ p.projectName }}</option>
+          <option value="" [selected]="selectedProjectId() === null">All Projects</option>
+          <option *ngFor="let p of projects()" [value]="p.id" [selected]="p.id === selectedProjectId()">{{ p.projectName }}</option>
         </select>
+        <svg
+          class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 dark:text-gray-400"
+          fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
       </label>
     </div>
 
     <button
       type="button"
       (click)="openCreate()"
-      class="inline-flex h-8 items-center justify-center gap-2 rounded-full border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#1a1a24] px-5 text-[11px] font-semibold text-indigo-700 dark:text-indigo-400"
+      class="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#1a1a24] px-5 text-[11px] font-semibold text-indigo-700 dark:text-indigo-400 cursor-pointer"
     >
       <span class="text-base leading-none">+</span>
       Create Task
     </button>
   </div>
 
-  <!-- Info banner -->
-  <div
-    *ngIf="!selectedProjectId()"
-    class="mb-4 flex items-center gap-2 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 px-4 py-3 text-sm text-blue-700 dark:text-blue-400"
-  >
-    <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
-    </svg>
-    Select a project to view its tasks.
-  </div>
-
   <div>
 
-      <!-- Table header: separate rounded pill card, own background -->
-      <div class="mb-3 rounded-full border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#1a1a24] ">
-        <div class="grid grid-cols-[1.4fr_0.9fr_1fr_0.9fr_0.9fr_0.8fr_0.8fr_0.9fr_0.8fr] gap-x-6 px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-gray-400">
-          <span>Task name</span>
-          <span>Task type</span>
-          <span>Assigned user</span>
-          <span>Start date</span>
-          <span>Due date</span>
-          <span class="text-center">Target count</span>
-          <span>Priority</span>
-          <span>Status</span>
-          <span>Action</span>
+    <!-- Table header: separate rounded pill card, own background -->
+    <div class="mb-3 rounded-full border border-gray-200 dark:border-[#2a2a3a] bg-white dark:bg-[#1a1a24] ">
+      <div class="grid grid-cols-[1.4fr_0.9fr_1fr_0.9fr_0.9fr_0.8fr_0.8fr_0.9fr_0.8fr] gap-x-6 px-4 py-3 text-[10px] font-semibold text-gray-500 dark:text-gray-400">
+        <span>Task name</span>
+        <span>Task type</span>
+        <span>Assigned user</span>
+        <span>Start date</span>
+        <span>Due date</span>
+        <span class="text-center">Target count</span>
+        <span>Priority</span>
+        <span>Status</span>
+        <span class="text-right">Action</span>
+      </div>
+    </div>
+
+    <!-- Table body card -->
+    <div class="overflow-hidden rounded-2xl border border-gray-100 dark:border-[#2a2a3a] bg-white dark:bg-[#1a1a24]">
+
+      <!-- Spinner -->
+      <div *ngIf="loading()" class="py-16 text-center">
+        <div class="flex flex-col items-center gap-3 text-gray-400 dark:text-gray-500">
+          <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+          <span class="text-sm">Loading tasks...</span>
         </div>
       </div>
 
-      <!-- Table body card -->
-      <div class="overflow-hidden rounded-2xl border border-gray-100 dark:border-[#2a2a3a] bg-white dark:bg-[#1a1a24]">
+      <!-- Error -->
+      <div *ngIf="!loading() && tableError()" class="py-10 text-center text-red-500 dark:text-red-400 text-sm">
+        {{ tableError() }}
+      </div>
 
-        <!-- Spinner -->
-        <div *ngIf="loading()" class="py-16 text-center">
-          <div class="flex flex-col items-center gap-3 text-gray-400 dark:text-gray-500">
-            <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-            <span class="text-sm">Loading tasks...</span>
+      <!-- Empty (uses filteredRows, not flatRows) -->
+      <div *ngIf="!loading() && !tableError() && filteredRows().length === 0" class="py-16 text-center text-gray-400 dark:text-gray-500 text-sm">
+        {{ activeFilterCount() > 0 ? 'No tasks match the selected filters.' : 'No tasks found.' }}
+      </div>
+
+      <!-- Data rows (uses filteredRows, not flatRows) -->
+      <ng-container *ngFor="let row of filteredRows()">
+        <div
+          class="grid grid-cols-[1.4fr_0.9fr_1fr_0.9fr_0.9fr_0.8fr_0.8fr_0.9fr_0.8fr]
+                 gap-x-6 items-center border-b border-gray-100
+                 dark:border-[#2a2a3a] px-4 py-4 text-xs
+                 text-gray-700 dark:text-gray-300
+                 transition hover:bg-gray-100
+                 dark:hover:bg-[#23233a] last:border-b-0"
+        >
+          <!-- Task name cell (chevron placeholder keeps alignment consistent) -->
+          <div class="flex items-center gap-1.5 pr-3">
+            <button
+              *ngIf="!row.isSubTask && hasSubTasks(row.task); else noChevron"
+              type="button"
+              (click)="toggleExpand(row.task.id!)"
+              class="w-4 flex items-center justify-center text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition flex-shrink-0"
+            >
+              <i class="fa-solid fa-chevron-right text-[9px] transition-transform" [class.rotate-90]="isExpanded(row.task.id!)"></i>
+            </button>
+            <ng-template #noChevron>
+              <span class="w-4 flex-shrink-0"></span>
+            </ng-template>
+
+            <span
+              class="truncate"
+              [class.font-semibold]="!row.isSubTask"
+              [class.text-gray-900]="!row.isSubTask"
+              [class.dark:text-gray-100]="!row.isSubTask"
+              [class.text-gray-600]="row.isSubTask"
+              [class.dark:text-gray-400]="row.isSubTask"
+            >
+              {{ row.task.taskName }}
+            </span>
           </div>
-        </div>
 
-        <!-- Error -->
-        <div *ngIf="!loading() && tableError()" class="py-10 text-center text-red-500 dark:text-red-400 text-sm">
-          {{ tableError() }}
-        </div>
+          <!-- Task type -->
+          <div>
+            <span
+              class="rounded-full px-3 py-1 text-[11px] font-bold"
+              [class.bg-blue-100]="!row.isSubTask" [class.text-blue-700]="!row.isSubTask"
+              [class.dark:bg-blue-900/30]="!row.isSubTask" [class.dark:text-blue-300]="!row.isSubTask"
+              [class.bg-green-100]="row.isSubTask" [class.text-green-700]="row.isSubTask"
+              [class.dark:bg-green-900/30]="row.isSubTask" [class.dark:text-green-300]="row.isSubTask"
+            >
+              {{ row.isSubTask ? 'Sub Task' : 'Main Task' }}
+            </span>
+          </div>
 
-        <!-- Empty -->
-        <div *ngIf="!loading() && !tableError() && flatRows().length === 0 && selectedProjectId()" class="py-16 text-center text-gray-400 dark:text-gray-500 text-sm">
-          No tasks found for this project.
-        </div>
-
-        <!-- No project selected -->
-        <div *ngIf="!loading() && !selectedProjectId()" class="py-16 text-center text-gray-400 dark:text-gray-500 text-sm">
-          Select a project above to view tasks.
-        </div>
-
-        <!-- Data rows -->
-        <ng-container *ngFor="let row of flatRows()">
-          <div
-  class="grid grid-cols-[1.4fr_0.9fr_1fr_0.9fr_0.9fr_0.8fr_0.8fr_0.9fr_0.8fr]
-         gap-x-6 items-center border-b border-gray-100
-         dark:border-[#2a2a3a] px-4 py-4 text-xs
-         text-gray-700 dark:text-gray-300
-         transition hover:bg-gray-100
-         dark:hover:bg-[#23233a] last:border-b-0">
-            <div class="flex items-center gap-1.5 pr-3">
-              <button
-                *ngIf="!row.isSubTask && hasSubTasks(row.task)"
-                type="button"
-                (click)="toggleExpand(row.task.id!)"
-                class="text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition flex-shrink-0"
-              >
-                <i class="fa-solid fa-chevron-right text-[9px] transition-transform" [class.rotate-90]="isExpanded(row.task.id!)"></i>
-              </button>
-             
-              <span
-                class="truncate"
-                [class.font-semibold]="!row.isSubTask"
-                [class.text-gray-900]="!row.isSubTask"
-                [class.dark:text-gray-100]="!row.isSubTask"
-                [class.text-gray-600]="row.isSubTask"
-                [class.dark:text-gray-400]="row.isSubTask"
-              >
-                {{ row.task.taskName }}
-              </span>
+          <!-- Assigned user -->
+          <div class="flex items-center gap-2 pr-3">
+            <div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-xs font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+              {{ (row.task.assignedUserName ?? 'U').charAt(0) }}
             </div>
+            <span class="text-gray-700 dark:text-gray-300 text-xs leading-tight truncate">{{ row.task.assignedUserName ?? '—' }}</span>
+          </div>
 
-            <div>
-              <span
-                class="rounded-full px-3 py-1 text-[11px] font-bold"
-                [class.bg-blue-100]="!row.isSubTask" [class.text-blue-700]="!row.isSubTask"
-                [class.dark:bg-blue-900/30]="!row.isSubTask" [class.dark:text-blue-300]="!row.isSubTask"
-                [class.bg-green-100]="row.isSubTask" [class.text-green-700]="row.isSubTask"
-                [class.dark:bg-green-900/30]="row.isSubTask" [class.dark:text-green-300]="row.isSubTask"
-              >
-                {{ row.isSubTask ? 'Sub Task' : 'Main Task' }}
-              </span>
-            </div>
+          <div class="text-gray-600 dark:text-gray-400 text-xs">{{ row.task.startDate }}</div>
+          <div class="text-gray-600 dark:text-gray-400 text-xs">{{ row.task.dueDate }}</div>
+          <div class="text-center text-gray-700 dark:text-gray-300 font-medium">{{ row.task.targetCount }}</div>
 
-            <div class="flex items-center gap-2 pr-3">
-              <div class="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-xs font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0">
-                {{ (row.task.assignedUserName ?? 'U').charAt(0) }}
-              </div>
-              <span class="text-gray-700 dark:text-gray-300 text-xs leading-tight truncate">{{ row.task.assignedUserName ?? '—' }}</span>
-            </div>
+          <div>
+            <span class="rounded-full px-3 py-1 text-[11px] font-bold" [ngClass]="priorityClass(row.task.priority)">
+              {{ row.task.priority }}
+            </span>
+          </div>
 
-            <div class="text-gray-600 dark:text-gray-400 text-xs">{{ row.task.startDate }}</div>
-            <div class="text-gray-600 dark:text-gray-400 text-xs">{{ row.task.dueDate }}</div>
-            <div class="text-center text-gray-700 dark:text-gray-300 font-medium">{{ row.task.targetCount }}</div>
+          <div>
+            <span class="rounded-full px-3 py-1 text-[11px] font-bold" [ngClass]="statusClass(row.task.status)">
+              {{ row.task.status }}
+            </span>
+          </div>
 
-            <div>
-              <span class="rounded-full px-3 py-1 text-[11px] font-bold" [ngClass]="priorityClass(row.task.priority)">
-                {{ row.task.priority }}
-              </span>
-            </div>
+          <!-- Action cell: 3-dot menu -->
+          <div class="flex items-center justify-end relative" (click)="$event.stopPropagation()">
+            <button
+              type="button"
+              (click)="toggleMenu(row.task.id!, $event)"
+              class="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-[#23233a] transition"
+            >
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+              </svg>
+            </button>
 
-            <div>
-              <span class="rounded-full px-3 py-1 text-[11px] font-bold" [ngClass]="statusClass(row.task.status)">
-                {{ row.task.status }}
-              </span>
-            </div>
-
-            <div class="flex items-center gap-1">
+            <div
+              *ngIf="openMenuId() === row.task.id"
+              class="absolute right-0 top-9 z-30 w-32 rounded-xl border border-gray-100 dark:border-[#2a2a3a] bg-white dark:bg-[#1a1a24] shadow-lg py-1"
+            >
               <button
                 type="button"
-                (click)="openView(row.task.id!)"
-                class="rounded-full px-3 py-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30"
+                (click)="openView(row.task.id!, $event)"
+                class="w-full text-left px-4 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
               >
                 View
               </button>
               <button
                 type="button"
-                (click)="openEdit(row.task.id!)"
-                class="rounded-full px-3 py-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+                (click)="openEdit(row.task.id!, $event)"
+                class="w-full text-left px-4 py-2 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
               >
                 Edit
               </button>
+              <button
+                type="button"
+                (click)="confirmDelete(row.task.id!, $event)"
+                class="w-full text-left px-4 py-2 text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+              >
+                Delete
+              </button>
             </div>
           </div>
-        </ng-container>
+        </div>
+      </ng-container>
 
-        <!-- Table footer -->
-        <footer
-          *ngIf="selectedProjectId()"
-          class="flex h-[45px] items-center justify-between border-t border-gray-100 dark:border-[#2a2a3a] bg-white dark:bg-[#1a1a24] px-5 text-[10px] text-gray-500 dark:text-gray-400"
-        >
-          <span class="select-none whitespace-nowrap">
-            Showing tasks for project: <span class="font-semibold text-gray-700 dark:text-gray-300 ml-1">{{ projectName() }}</span>
-          </span>
-          <span class="font-semibold text-gray-700 dark:text-gray-300">Total Tasks: {{ totalTasks() }}</span>
-        </footer>
-      </div>
+      <!-- Table footer -->
+      <footer
+        *ngIf="!loading()"
+        class="flex h-[45px] items-center justify-between border-t border-gray-100 dark:border-[#2a2a3a] bg-white dark:bg-[#1a1a24] px-5 text-[10px] text-gray-500 dark:text-gray-400"
+      >
+        <span class="select-none whitespace-nowrap">
+          Showing tasks for project: <span class="font-semibold text-gray-700 dark:text-gray-300 ml-1">{{ projectName() }}</span>
+        </span>
+        <span class="font-semibold text-gray-700 dark:text-gray-300">Total Tasks: {{ filteredRows().length }} / {{ totalTasks() }}</span>
+      </footer>
+    </div>
 
   </div>
 </div>

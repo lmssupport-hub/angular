@@ -20,6 +20,9 @@ export class Auth implements OnInit {
 
   isLogin = true;
 
+  isLoading = false;
+
+
   loginSubmitted = false;
   registerSubmitted = false;
 
@@ -218,6 +221,8 @@ export class Auth implements OnInit {
       return;
     }
 
+    this.isLoading = true;
+
     const payload = {
       email: this.loginData.email.trim(),
       password: this.loginData.password
@@ -239,12 +244,15 @@ export class Auth implements OnInit {
         this.resetLoginErrors();
         this.loginSubmitted = false;
 
-        alert('Login Successfully');
+          setTimeout(() => {
+        this.isLoading = false;
         this.router.navigate(['/dashboard']);
-      },
+      }, 3000);
+    },
+
 
       error: (err) => {
-        console.log('Login Error', err);
+        this.isLoading = false;
 
         this.resetLoginErrors();
 
@@ -394,7 +402,6 @@ export class Auth implements OnInit {
     // from the invite, and mark the invite used.
     this.apiService.registerUser(payload, this.inviteToken).subscribe({
       next: (res) => {
-        console.log('Register Success', res);
 
         alert(this.inviteToken ? 'Account created — you can now log in' : 'User Registered Successfully');
 

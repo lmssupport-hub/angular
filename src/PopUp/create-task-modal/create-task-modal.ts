@@ -6,6 +6,7 @@ import {
   OnChanges,
   SimpleChanges,
   inject,
+  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -14,12 +15,11 @@ import {
   FormGroup,
   FormArray,
   Validators,
-  AbstractControl,
 } from '@angular/forms';
 import { tap } from 'rxjs';
 import { TaskService, TaskResponse, CreateTaskRequest } from '../../app/services/task.service';
 import { AppUser } from '../../app/services/auth.service';
-import { Project} from '../../app/services/project.service';
+import { Project } from '../../app/services/project.service';
 
 export type TaskModalMode = 'create' | 'edit' | 'view';
 
@@ -31,42 +31,31 @@ export type TaskModalMode = 'create' | 'edit' | 'view';
 })
 export class CreateTaskModalComponent implements OnChanges {
 
-
   private fb          = inject(FormBuilder);
   private taskService = inject(TaskService);
 
   // ── Inputs ────────────────────────────────────────────────────────
-  /** Whether the modal is open */
   @Input() isOpen = false;
-
-  /** 'create' | 'edit' | 'view' */
   @Input() mode: TaskModalMode = 'create';
-
-  /** Task id — required for edit/view, undefined for create */
   @Input() taskId: number | undefined = undefined;
-
-  /** Project list for the dropdown */
   @Input() projects: Project[] = [];
-
-  /** User list for the assigned-user dropdown */
   @Input() allUsers: AppUser[] = [];
-
-  /** Pre-select a project when opening in create mode */
   @Input() defaultProjectId: number | null = null;
 
   // ── Outputs ───────────────────────────────────────────────────────
-  /** Emitted when the modal should close (no data) */
   @Output() closed = new EventEmitter<void>();
-
-  /** Emitted after a successful create */
   @Output() created = new EventEmitter<TaskResponse>();
-
-  /** Emitted after a successful update */
   @Output() updated = new EventEmitter<TaskResponse>();
 
-  // ── Internal state ────────────────────────────────────────────────
-  isLoading  = false;
-  submitError: string | null = null;
+  // ── Internal state — SIGNALS (zoneless-safe) ────────────────────
+  isLoading   = signal(false);
+  submitError = signal<string | null>(null);
+
+  // subTasks length as a signal so the template repaints on push/removeAt
+  subTasksVersion = signal(0);
+  mainTaskReady = signal(false);
+descLength    = signal(0);
+
   form!: FormGroup;
 
   // ── Derived getters ───────────────────────────────────────────────
@@ -82,18 +71,15 @@ export class CreateTaskModalComponent implements OnChanges {
 
   // ── Lifecycle ─────────────────────────────────────────────────────
   ngOnChanges(changes: SimpleChanges): void {
-    // React whenever the modal opens or the task/mode changes
     if (changes['isOpen'] && this.isOpen) {
       this.buildForm();
-      this.submitError = null;
+      this.submitError.set(null);
 
       if (this.mode === 'create') {
-        // Pre-select project if provided
         if (this.defaultProjectId) {
           this.form.patchValue({ projectId: this.defaultProjectId });
         }
       } else if (this.taskId !== undefined) {
-        // Load task data for edit / view
         this.loadTask(this.taskId);
       }
     }
@@ -101,26 +87,41 @@ export class CreateTaskModalComponent implements OnChanges {
 
   // ── Form builder ──────────────────────────────────────────────────
   private buildForm(): void {
-    this.form = this.fb.group({
-      projectId:      [null, Validators.required],
-      taskName:       ['',   [Validators.required, Validators.minLength(3)]],
-      description:    ['',   Validators.required],
-      subTasks:       this.fb.array([]),
-      startDate:      ['',   Validators.required],
-      dueDate:        ['',   Validators.required],
-      targetCount:    [null, [Validators.required, Validators.min(1)]],
-      priority:       ['',   Validators.required],
-      status:         [{ value: 'Not Started', disabled: this.mode === 'create' }],
-      assignedUserId: [null, Validators.required],
-    });
-  }
+  this.form = this.fb.group({
+    projectId:      [null, Validators.required],
+    taskName:       ['',   [Validators.required, Validators.minLength(3)]],
+    description:    ['',   Validators.required],
+    subTasks:       this.fb.array([]),
+    startDate:      ['',   Validators.required],
+    dueDate:        ['',   Validators.required],
+    targetCount:    [null, [Validators.required, Validators.min(1)]],
+    priority:       ['',   Validators.required],
+    status:         [{ value: 'Not Started', disabled: this.mode === 'create' }],
+    assignedUserId: [null, Validators.required],
+  });
+  this.subTasksVersion.set(0);
+
+  const taskNameCtrl = this.form.get('taskName')!;
+  const descCtrl     = this.form.get('description')!;
+
+  const refreshMainTaskState = () => {
+    this.descLength.set(descCtrl.value?.length ?? 0);
+    this.mainTaskReady.set(
+      (taskNameCtrl.value?.length ?? 0) >= 3 &&
+      (descCtrl.value?.length ?? 0) > 0
+    );
+  };
+
+  taskNameCtrl.valueChanges.subscribe(refreshMainTaskState);
+  descCtrl.valueChanges.subscribe(refreshMainTaskState);
+  refreshMainTaskState(); // initial state (also covers patchValue in loadTask)
+}
 
   // ── Load existing task ────────────────────────────────────────────
   private loadTask(id: number): void {
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.taskService.getTaskById(id).subscribe({
       next: (task) => {
-        // Enable status for edit mode
         if (this.mode === 'edit') this.form.get('status')?.enable();
 
         this.form.patchValue({
@@ -135,7 +136,6 @@ export class CreateTaskModalComponent implements OnChanges {
           assignedUserId: task.assignedUserId,
         });
 
-        // Populate sub-tasks
         const arr = this.subTasksArray;
         arr.clear();
         (task.subTasks ?? []).forEach(st =>
@@ -144,15 +144,15 @@ export class CreateTaskModalComponent implements OnChanges {
             description: [st.description],
           }))
         );
+        this.subTasksVersion.update(v => v + 1);   // ✅ trigger repaint
 
-        // Disable everything for view mode
         if (this.mode === 'view') this.form.disable();
 
-        this.isLoading = false;
+        this.isLoading.set(false);
       },
       error: () => {
-        this.submitError = 'Failed to load task data.';
-        this.isLoading = false;
+        this.submitError.set('Failed to load task data.');
+        this.isLoading.set(false);
       },
     });
   }
@@ -168,9 +168,13 @@ export class CreateTaskModalComponent implements OnChanges {
     this.subTasksArray.push(
       this.fb.group({ title: ['', Validators.minLength(3)], description: [''] })
     );
+    this.subTasksVersion.update(v => v + 1);   // ✅ force template repaint
   }
 
-  removeSubTask(i: number): void { this.subTasksArray.removeAt(i); }
+  removeSubTask(i: number): void {
+    this.subTasksArray.removeAt(i);
+    this.subTasksVersion.update(v => v + 1);   // ✅ force template repaint
+  }
 
   // ── Submit ────────────────────────────────────────────────────────
   onSubmit(): void {
@@ -190,29 +194,29 @@ export class CreateTaskModalComponent implements OnChanges {
       subTasks:       (raw.subTasks ?? []).filter((s: any) => s.title?.trim()),
     };
 
-    this.isLoading   = true;
-    this.submitError = null;
+    this.isLoading.set(true);
+    this.submitError.set(null);
 
     const obs = this.taskId
       ? this.taskService.updateTask(this.taskId, payload).pipe(tap(t => this.updated.emit(t)))
       : this.taskService.createTask(payload).pipe(tap(t => this.created.emit(t)));
 
     obs.subscribe({
-      next:  () => { this.isLoading = false; this.close(); },
+      next:  () => { this.isLoading.set(false); this.close(); },
       error: (err) => {
         const message =
           err?.error?.message ||
           Object.values(err?.error?.errors ?? {}).join(', ') ||
           'Failed to save task. Please try again.';
-        this.submitError = message;
-        this.isLoading   = false;
+        this.submitError.set(message);
+        this.isLoading.set(false);
       },
     });
   }
 
   // ── Close ─────────────────────────────────────────────────────────
   close(): void {
-    this.submitError = null;
+    this.submitError.set(null);
     this.closed.emit();
   }
 

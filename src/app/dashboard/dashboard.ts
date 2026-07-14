@@ -180,7 +180,7 @@
     }
 
     logout(): void {
-      this.apiService.logout();
-      this.router.navigate(['/login']);
-    }
+  this.apiService.logout();
+  window.location.href = '/auth';
+}
   }

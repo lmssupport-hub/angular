@@ -21,22 +21,22 @@
       @if (showFilterDropdown()) {
         <div class="absolute top-10 left-0 z-30 bg-white [.dashboard-dark_&]:bg-[var(--panel)] border border-gray-200 [.dashboard-dark_&]:border-[var(--line)] rounded-[14px] shadow-lg p-4 w-[240px] flex flex-col gap-3">
           <div class="flex flex-col gap-1">
-            <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1.5">Status</p>
-            <label class="flex items-center gap-2 px-1 py-1 text-xs cursor-pointer hover:bg-gray-50 rounded">
+            <p class="text-[10px] font-bold text-gray-500 [.dashboard-dark_&]:text-[var(--muted)] uppercase tracking-wide mb-1.5">Status</p>
+            <label class="flex items-center gap-2 px-1 py-1 text-xs text-gray-700 [.dashboard-dark_&]:text-[var(--text)] cursor-pointer hover:bg-gray-50 [.dashboard-dark_&]:hover:bg-[var(--surface)] rounded">
               <input type="checkbox" class="cursor-pointer accent-[#5a4bb3]" />
               <span>On Track</span>
             </label>
-            <label class="flex items-center gap-2 px-1 py-1 text-xs cursor-pointer hover:bg-gray-50 rounded">
+            <label class="flex items-center gap-2 px-1 py-1 text-xs text-gray-700 [.dashboard-dark_&]:text-[var(--text)] cursor-pointer hover:bg-gray-50 [.dashboard-dark_&]:hover:bg-[var(--surface)] rounded">
               <input type="checkbox" class="cursor-pointer accent-[#5a4bb3]" />
               <span>Delayed</span>
             </label>
-            <label class="flex items-center gap-2 px-1 py-1 text-xs cursor-pointer hover:bg-gray-50 rounded">
+            <label class="flex items-center gap-2 px-1 py-1 text-xs text-gray-700 [.dashboard-dark_&]:text-[var(--text)] cursor-pointer hover:bg-gray-50 [.dashboard-dark_&]:hover:bg-[var(--surface)] rounded">
               <input type="checkbox" class="cursor-pointer accent-[#5a4bb3]" />
               <span>Completed</span>
             </label>
           </div>
           <div class="flex gap-2 justify-end pt-1">
-            <button type="button" (click)="clearFilter()" class="text-[12px] text-gray-500 hover:text-gray-700 px-3 py-1 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+            <button type="button" (click)="clearFilter()" class="text-[12px] text-gray-500 [.dashboard-dark_&]:text-[var(--muted)] hover:text-gray-700 [.dashboard-dark_&]:hover:text-[var(--text)] px-3 py-1 border border-gray-200 [.dashboard-dark_&]:border-[var(--line)] rounded-lg hover:bg-gray-50 [.dashboard-dark_&]:hover:bg-[var(--surface)] transition-colors cursor-pointer">
               Clear
             </button>
             <button type="button" (click)="applyFilter()" class="text-[12px] font-semibold text-white bg-blue-500 hover:bg-blue-600 px-4 py-1 rounded-lg transition-colors cursor-pointer">
@@ -50,7 +50,7 @@
     
 
     <div class="flex items-center gap-3">
-      <span class="rounded-full bg-[#ede9f8] px-3 py-1.5 text-[11px] font-semibold text-[#5a4bb3]">
+      <span class="rounded-full bg-[#ede9f8] [.dashboard-dark_&]:bg-[#5a4bb3]/20 px-3 py-1.5 text-[11px] font-semibold text-[#5a4bb3] [.dashboard-dark_&]:text-[#c4b5fd]">
         ● {{ projects().length }} Active Projects
       </span>
       <button
@@ -65,27 +65,27 @@
   </div>
 
   <!-- Table Header (separate rounded pill card) -->
-  <div class="mb-3 rounded-full bg-white [.dashboard-dark_&]:bg-[var(--panel)] ]">
+  <div class="mb-3 rounded-full bg-white [.dashboard-dark_&]:bg-[var(--panel)]">
     <div class="grid h-12 grid-cols-[1.3fr_1.3fr_170px_130px_110px_110px] gap-x-6 items-center px-6">
-      <div class="flex items-center gap-2 text-[11px] font-bold text-gray-500 uppercase tracking-wide">
+      <div class="flex items-center gap-2 text-[11px] font-bold text-gray-500 [.dashboard-dark_&]:text-[var(--muted)] uppercase tracking-wide">
         <span class="w-5 h-5 flex-shrink-0"></span>
         <span class="w-6 h-6 flex-shrink-0"></span>
         <span>Project Name</span>
       </div>
-      <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Project Description</div>
-      <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Assigned User</div>
-      <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Due Date</div>
-      <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wide">Target</div>
-      <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wide text-right">Actions</div>
+      <div class="text-[11px] font-bold text-gray-500 [.dashboard-dark_&]:text-[var(--muted)] uppercase tracking-wide">Project Description</div>
+      <div class="text-[11px] font-bold text-gray-500 [.dashboard-dark_&]:text-[var(--muted)] uppercase tracking-wide">Assigned User</div>
+      <div class="text-[11px] font-bold text-gray-500 [.dashboard-dark_&]:text-[var(--muted)] uppercase tracking-wide">Due Date</div>
+      <div class="text-[11px] font-bold text-gray-500 [.dashboard-dark_&]:text-[var(--muted)] uppercase tracking-wide">Target</div>
+      <div class="text-[11px] font-bold text-gray-500 [.dashboard-dark_&]:text-[var(--muted)] uppercase tracking-wide text-right">Actions</div>
     </div>
   </div>
 
   <!-- Table Body -->
-  <div class="overflow-visible rounded-[17px] bg-white [.dashboard-dark_&]:bg-[var(--panel)] ]">
+  <div class="overflow-visible rounded-[17px] bg-white [.dashboard-dark_&]:bg-[var(--panel)]">
 
     <!-- Loading State -->
     @if (isLoadingProjects()) {
-      <div class="flex items-center justify-center rounded-[17px] py-16 text-gray-400 text-xs gap-2">
+      <div class="flex items-center justify-center rounded-[17px] py-16 text-gray-400 [.dashboard-dark_&]:text-[var(--muted)] text-xs gap-2">
         <svg class="w-4 h-4 animate-spin text-[#5a4bb3]" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
@@ -111,8 +111,8 @@
 
     <!-- Empty State -->
     @if (!isLoadingProjects() && !loadError() && projects().length === 0) {
-      <div class="flex flex-col items-center justify-center rounded-[17px] py-16 text-gray-400">
-        <svg class="w-12 h-12 mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="flex flex-col items-center justify-center rounded-[17px] py-16 text-gray-400 [.dashboard-dark_&]:text-[var(--muted)]">
+        <svg class="w-12 h-12 mb-3 text-gray-300 [.dashboard-dark_&]:text-[var(--line)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
         </svg>
@@ -127,7 +127,7 @@
 
         <!-- ── Main Row ── -->
         <div
-          class="grid min-h-[73px] grid-cols-[1.3fr_1.3fr_170px_130px_110px_110px] gap-x-6 items-center border-b border-gray-100 px-6 py-3 transition-colors hover:bg-gray-50"
+          class="grid min-h-[73px] grid-cols-[1.3fr_1.3fr_170px_130px_110px_110px] gap-x-6 items-center border-b border-gray-100 [.dashboard-dark_&]:border-[var(--line)] px-6 py-3 transition-colors hover:bg-gray-50 [.dashboard-dark_&]:hover:bg-[var(--surface)]"
           [class.bg-indigo-50]="isExpanded(project.id)"
           [ngClass]="{
             'rounded-t-[17px]': i === 0,
@@ -139,7 +139,7 @@
             <button
               type="button"
               (click)="toggleExpand(project.id, $event)"
-              class="w-5 h-5 flex items-center justify-center flex-shrink-0 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition cursor-pointer"
+              class="w-5 h-5 flex items-center justify-center flex-shrink-0 rounded-full text-gray-400 [.dashboard-dark_&]:text-[var(--muted)] hover:bg-gray-100 [.dashboard-dark_&]:hover:bg-[var(--active)] hover:text-gray-600 [.dashboard-dark_&]:hover:text-[var(--text)] transition cursor-pointer"
               title="Details"
             >
               <svg
@@ -150,17 +150,17 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
               </svg>
             </button>
-            <div class="w-6 h-6 rounded bg-[#ede9f8] flex items-center justify-center flex-shrink-0">
-              <svg class="w-3.5 h-3.5 text-[#5a4bb3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-6 h-6 rounded bg-[#ede9f8] [.dashboard-dark_&]:bg-[#5a4bb3]/20 flex items-center justify-center flex-shrink-0">
+              <svg class="w-3.5 h-3.5 text-[#5a4bb3] [.dashboard-dark_&]:text-[#c4b5fd]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
               </svg>
             </div>
-            <span class="text-xs font-semibold text-gray-800 truncate">{{ project.projectName }}</span>
+            <span class="text-xs font-semibold text-gray-800 [.dashboard-dark_&]:text-[var(--text)] truncate">{{ project.projectName }}</span>
           </div>
 
           <!-- Project Description -->
-          <div class="text-xs text-gray-600 truncate">
+          <div class="text-xs text-gray-600 [.dashboard-dark_&]:text-[var(--muted)] truncate">
             {{ project.projectDescription || '—' }}
           </div>
 
@@ -169,14 +169,14 @@
             <div class="w-6 h-6 rounded-full bg-gradient-to-br from-[#5a4bb3] to-[#a78bfa] flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
               {{ getInitials(project.assignedUsers[0]) }}
             </div>
-            <span class="text-xs text-gray-600 truncate">{{ project.assignedUsers[0] }}</span>
+            <span class="text-xs text-gray-600 [.dashboard-dark_&]:text-[var(--muted)] truncate">{{ project.assignedUsers[0] }}</span>
             @if (project.assignedUsers.length > 1) {
-              <span class="text-[11px] text-gray-400">+{{ project.assignedUsers.length - 1 }}</span>
+              <span class="text-[11px] text-gray-400 [.dashboard-dark_&]:text-[var(--muted)]">+{{ project.assignedUsers.length - 1 }}</span>
             }
           </div>
 
           <!-- Due Date -->
-          <div class="text-xs text-gray-600">{{ formatDate(project.dueDate) }}</div>
+          <div class="text-xs text-gray-600 [.dashboard-dark_&]:text-[var(--muted)]">{{ formatDate(project.dueDate) }}</div>
 
           <!-- Target Badge -->
           <div>
@@ -185,7 +185,7 @@
                 {{ getTargetLabel(project) }}
               </span>
             } @else {
-              <span class="text-[11px] text-gray-400">—</span>
+              <span class="text-[11px] text-gray-400 [.dashboard-dark_&]:text-[var(--muted)]">—</span>
             }
           </div>
 
@@ -196,7 +196,7 @@
             <button
               type="button"
               (click)="openProjectPopup(project, $event)"
-              class="w-7 h-7 rounded border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition cursor-pointer text-gray-500"
+              class="w-7 h-7 rounded border border-gray-200 [.dashboard-dark_&]:border-[var(--line)] flex items-center justify-center hover:bg-gray-100 [.dashboard-dark_&]:hover:bg-[var(--active)] transition cursor-pointer text-gray-500 [.dashboard-dark_&]:text-[var(--muted)]"
               title="Edit"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -209,7 +209,7 @@
             <button
               type="button"
               (click)="deleteProject(project.id, $event)"
-              class="w-7 h-7 rounded border border-red-100 flex items-center justify-center hover:bg-red-50 transition cursor-pointer text-red-400"
+              class="w-7 h-7 rounded border border-red-100 [.dashboard-dark_&]:border-red-900/40 flex items-center justify-center hover:bg-red-50 [.dashboard-dark_&]:hover:bg-red-900/20 transition cursor-pointer text-red-400 [.dashboard-dark_&]:text-red-400"
               title="Delete"
             >
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,8 +232,8 @@
 
               <!-- Description -->
               <div class="flex-1 min-w-0">
-                <p class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Description</p>
-                <p class="text-xs text-gray-700 leading-relaxed">
+                <p class="text-[10px] font-bold text-gray-500 [.dashboard-dark_&]:text-[var(--muted)] uppercase tracking-wide mb-1">Description</p>
+                <p class="text-xs text-gray-700 [.dashboard-dark_&]:text-[var(--text)] leading-relaxed">
                   {{ project.projectDescription || 'No description provided.' }}
                 </p>
               </div>
@@ -241,19 +241,19 @@
               <!-- Date chips -->
               <div class="flex items-start gap-8 flex-shrink-0">
                 <div>
-                  <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+                  <label class="text-[10px] font-bold text-gray-500 [.dashboard-dark_&]:text-[var(--muted)] uppercase tracking-wide mb-1 block">
                     Start Date
                   </label>
                   <input
                     type="date"
                     [value]="getEditDateValue(project, 'startDate')"
                     (change)="onEditDateChange(project, 'startDate', $event)"
-                    class="w-32 h-8 px-2 rounded border border-transparent bg-transparent text-xs font-semibold text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-[#5a4bb3] focus:bg-white"
+                    class="w-32 h-8 px-2 rounded border border-transparent bg-transparent text-xs font-semibold text-gray-800 [.dashboard-dark_&]:text-[var(--text)] outline-none hover:border-gray-300 [.dashboard-dark_&]:hover:border-[var(--line)] hover:bg-white [.dashboard-dark_&]:hover:bg-[var(--surface)] focus:border-[#5a4bb3] focus:bg-white [.dashboard-dark_&]:focus:bg-[var(--surface)]"
                   />
                 </div>
 
                 <div>
-                  <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+                  <label class="text-[10px] font-bold text-gray-500 [.dashboard-dark_&]:text-[var(--muted)] uppercase tracking-wide mb-1 block">
                     Received
                   </label>
                   <input
@@ -261,19 +261,19 @@
                     [max]="todayInputValue"
                     [value]="getEditDateValue(project, 'projectReceivedDate')"
                     (change)="onEditDateChange(project, 'projectReceivedDate', $event)"
-                    class="w-32 h-8 px-2 rounded border border-transparent bg-transparent text-xs font-semibold text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-[#5a4bb3] focus:bg-white"
+                    class="w-32 h-8 px-2 rounded border border-transparent bg-transparent text-xs font-semibold text-gray-800 [.dashboard-dark_&]:text-[var(--text)] outline-none hover:border-gray-300 [.dashboard-dark_&]:hover:border-[var(--line)] hover:bg-white [.dashboard-dark_&]:hover:bg-[var(--surface)] focus:border-[#5a4bb3] focus:bg-white [.dashboard-dark_&]:focus:bg-[var(--surface)]"
                   />
                 </div>
 
                 <div>
-                  <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1 block">
+                  <label class="text-[10px] font-bold text-gray-500 [.dashboard-dark_&]:text-[var(--muted)] uppercase tracking-wide mb-1 block">
                     Due Date
                   </label>
                   <input
                     type="date"
                     [value]="getEditDateValue(project, 'dueDate')"
                     (change)="onEditDateChange(project, 'dueDate', $event)"
-                    class="w-32 h-8 px-2 rounded border border-transparent bg-transparent text-xs font-semibold text-gray-800 outline-none hover:border-gray-300 hover:bg-white focus:border-[#5a4bb3] focus:bg-white"
+                    class="w-32 h-8 px-2 rounded border border-transparent bg-transparent text-xs font-semibold text-gray-800 [.dashboard-dark_&]:text-[var(--text)] outline-none hover:border-gray-300 [.dashboard-dark_&]:hover:border-[var(--line)] hover:bg-white [.dashboard-dark_&]:hover:bg-[var(--surface)] focus:border-[#5a4bb3] focus:bg-white [.dashboard-dark_&]:focus:bg-[var(--surface)]"
                   />
                 </div>
               </div>
@@ -281,11 +281,11 @@
 
             <!-- Assigned Users with add/remove -->
             <div>
-              <p class="text-[10px] font-bold text-gray-600 uppercase tracking-wide mb-2">Assigned Users</p>
+              <p class="text-[10px] font-bold text-gray-600 [.dashboard-dark_&]:text-[var(--muted)] uppercase tracking-wide mb-2">Assigned Users</p>
 
               <div class="flex flex-wrap gap-2 mb-2">
                 @for (user of project.assignedUsers; track user) {
-                  <span class="flex items-center gap-1.5 bg-[#ede9f8] text-[#5a4bb3] text-[11px] font-semibold px-2.5 py-1 rounded-full">
+                  <span class="flex items-center gap-1.5 bg-[#ede9f8] [.dashboard-dark_&]:bg-[#5a4bb3]/20 text-[#5a4bb3] [.dashboard-dark_&]:text-[#c4b5fd] text-[11px] font-semibold px-2.5 py-1 rounded-full">
                     <span class="w-4 h-4 rounded-full bg-[#5a4bb3] text-white text-[9px] flex items-center justify-center font-bold">
                       {{ getInitials(user) }}
                     </span>
@@ -293,7 +293,7 @@
                     <button
                       type="button"
                       (click)="removeUserFromProject(project, user, $event)"
-                      class="ml-0.5 w-3.5 h-3.5 rounded-full bg-[#5a4bb3]/20 hover:bg-red-200 text-[#5a4bb3] hover:text-red-600 flex items-center justify-center text-[10px] font-bold cursor-pointer transition"
+                      class="ml-0.5 w-3.5 h-3.5 rounded-full bg-[#5a4bb3]/20 hover:bg-red-200 [.dashboard-dark_&]:hover:bg-red-900/40 text-[#5a4bb3] [.dashboard-dark_&]:text-[#c4b5fd] hover:text-red-600 [.dashboard-dark_&]:hover:text-red-300 flex items-center justify-center text-[10px] font-bold cursor-pointer transition"
                       title="Remove {{ user }}"
                     >×</button>
                   </span>
@@ -304,15 +304,15 @@
                   <button
                     type="button"
                     (click)="toggleExpandUserDropdown(project.id, $event)"
-                    class="flex items-center gap-1 bg-white border border-dashed border-[#5a4bb3] text-[#5a4bb3] text-[11px] font-semibold px-2.5 py-1 rounded-full hover:bg-[#ede9f8] transition cursor-pointer"
+                    class="flex items-center gap-1 bg-white [.dashboard-dark_&]:bg-[var(--panel)] border border-dashed border-[#5a4bb3] text-[#5a4bb3] [.dashboard-dark_&]:text-[#c4b5fd] text-[11px] font-semibold px-2.5 py-1 rounded-full hover:bg-[#ede9f8] [.dashboard-dark_&]:hover:bg-[#5a4bb3]/20 transition cursor-pointer"
                   >
                     + Add User
                   </button>
 
                   @if (expandUserDropdownId() === project.id) {
-                    <div class="absolute left-0 top-full mt-1 z-50 rounded-lg border border-gray-200 bg-white shadow-lg p-2 min-w-[180px]">
+                    <div class="absolute left-0 top-full mt-1 z-50 rounded-lg border border-gray-200 [.dashboard-dark_&]:border-[var(--line)] bg-white [.dashboard-dark_&]:bg-[var(--panel)] shadow-lg p-2 min-w-[180px]">
                       @for (user of getUnassignedUsers(project); track user) {
-                        <label class="flex items-center gap-2 px-2 py-1.5 text-xs cursor-pointer hover:bg-gray-50 rounded">
+                        <label class="flex items-center gap-2 px-2 py-1.5 text-xs text-gray-700 [.dashboard-dark_&]:text-[var(--text)] cursor-pointer hover:bg-gray-50 [.dashboard-dark_&]:hover:bg-[var(--surface)] rounded">
                           <input
                             type="checkbox"
                             [checked]="false"
@@ -323,7 +323,7 @@
                         </label>
                       }
                       @if (getUnassignedUsers(project).length === 0) {
-                        <p class="text-[11px] text-gray-400 px-2 py-1">All users assigned</p>
+                        <p class="text-[11px] text-gray-400 [.dashboard-dark_&]:text-[var(--muted)] px-2 py-1">All users assigned</p>
                       }
                     </div>
                   }
@@ -358,25 +358,25 @@
 ══════════════════════════════════════════════════ -->
 @if (showDeleteConfirm()) {
   <div class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center px-4">
-    <div class="w-[380px] bg-white rounded-xl shadow-2xl p-6 [.dashboard-dark_&]:bg-[var(--panel)] [.dashboard-dark_&_.text-gray-900]:!text-[var(--text)] [.dashboard-dark_&_.text-gray-700]:!text-[var(--text)] [.dashboard-dark_&_.text-gray-500]:!text-[var(--muted)]">
+    <div class="w-[380px] bg-white [.dashboard-dark_&]:bg-[var(--panel)] rounded-xl shadow-2xl p-6">
       <div class="flex items-center gap-3 mb-3">
-        <div class="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-          <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="w-9 h-9 rounded-full bg-red-100 [.dashboard-dark_&]:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+          <svg class="w-5 h-5 text-red-500 [.dashboard-dark_&]:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
           </svg>
         </div>
         <div>
-          <h4 class="text-xs font-extrabold text-gray-900">Delete Project</h4>
-          <p class="text-[11px] text-gray-500 mt-0.5">This action cannot be undone.</p>
+          <h4 class="text-xs font-extrabold text-gray-900 [.dashboard-dark_&]:text-[var(--text)]">Delete Project</h4>
+          <p class="text-[11px] text-gray-500 [.dashboard-dark_&]:text-[var(--muted)] mt-0.5">This action cannot be undone.</p>
         </div>
       </div>
-      <p class="text-xs text-gray-700 mb-5">
+      <p class="text-xs text-gray-700 [.dashboard-dark_&]:text-[var(--text)] mb-5">
         Are you sure you want to delete <span class="font-semibold">{{ deletingProjectName() }}</span>?
       </p>
       <div class="flex justify-end gap-3">
         <button type="button" (click)="cancelDelete()"
-          class="h-9 px-5 rounded-lg bg-gray-100 text-gray-700 text-xs font-bold hover:bg-gray-200 transition cursor-pointer">
+          class="h-9 px-5 rounded-lg bg-gray-100 [.dashboard-dark_&]:bg-[var(--active)] text-gray-700 [.dashboard-dark_&]:text-[var(--text)] text-xs font-bold hover:bg-gray-200 [.dashboard-dark_&]:hover:bg-[var(--surface)] transition cursor-pointer">
           Cancel
         </button>
         <button type="button" (click)="confirmDelete()"

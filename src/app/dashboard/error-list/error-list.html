@@ -11,15 +11,15 @@
   }
 
   <!-- Toolbar: Filter + Create -->
-  <div class="mb-3 flex items-center justify-between gap-4 relative">
+  <div class="mb-3 flex items-center justify-between gap-4 relative cursor-pointer">
     <div class="relative">
       <button
         type="button"
         (click)="toggleFilter()"
-        class="inline-flex h-8 min-w-[116px] items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-[11px] font-semibold text-blue-600 dark:border-[#2a2a3a] dark:bg-[#1a1a24] dark:text-blue-400"
+        class="inline-flex h-8 min-w-[116px] items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-[11px] font-semibold text-blue-600 dark:border-[#2a2a3a] dark:bg-[#1a1a24] dark:text-blue-400 cursor-pointer"
       >
         Filter
-        <svg class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <svg class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true cursor-pointer">
           <path d="M3 5.25A.75.75 0 0 1 3.75 4.5h12.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 5.25ZM5.5 10a.75.75 0 0 1 .75-.75h7.5a.75.75 0 0 1 0 1.5h-7.5A.75.75 0 0 1 5.5 10Zm3 4.75a.75.75 0 0 1 .75-.75h1.5a.75.75 0 0 1 0 1.5h-1.5a.75.75 0 0 1-.75-.75Z" />
         </svg>
       </button>
@@ -53,12 +53,12 @@
           </div>
 
           <div class="flex items-center justify-between pt-1">
-            <button type="button" class="border-0 bg-transparent text-xs font-semibold text-slate-400 hover:text-slate-600" (click)="clearFilters()">
+            <button type="button" class="border-0 bg-transparent text-xs font-semibold text-slate-400 hover:text-slate-600 cursor-pointer" (click)="clearFilters()">
               Clear
             </button>
             <button
               type="button"
-              class="h-9 rounded-full bg-blue-600 px-4 text-xs font-semibold text-white transition hover:bg-blue-700"
+              class="h-9 rounded-full bg-blue-600 px-4 text-xs font-semibold text-white transition hover:bg-blue-700 cursor-pointer"
               (click)="applyFilters()"
             >
               Apply
@@ -71,7 +71,7 @@
     <button
       type="button"
       (click)="openCreateModal()"
-      class="inline-flex h-8 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-[11px] font-semibold text-blue-600 dark:border-[#2a2a3a] dark:bg-[#1a1a24] dark:text-blue-400"
+      class="inline-flex h-8 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-[11px] font-semibold text-blue-600 dark:border-[#2a2a3a] dark:bg-[#1a1a24] dark:text-blue-400 cursor-pointer"
     >
       <span class="text-sm leading-none">+</span>
       Create Error
@@ -149,10 +149,10 @@
               </div>
 
               <div class="flex items-center justify-end gap-3 text-slate-400">
-                <button type="button" title="Edit" (click)="toggleExpand(row)" class="hover:text-blue-600 transition">
+                <button type="button" title="Edit" (click)="toggleExpand(row)" class="hover:text-blue-600 transition cursor-pointer">
                   <i class="fa-regular fa-pen-to-square"></i>
                 </button>
-                <button type="button" title="Delete" (click)="deleteError(row)" class="hover:text-red-500 transition">
+                <button type="button" title="Delete" (click)="deleteError(row)" class="hover:text-red-500 transition cursor-pointer">
                   <i class="fa-regular fa-trash-can"></i>
                 </button>
               </div>
