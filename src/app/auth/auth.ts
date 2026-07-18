@@ -244,11 +244,36 @@ export class Auth implements OnInit {
         this.resetLoginErrors();
         this.loginSubmitted = false;
 
-          setTimeout(() => {
-        this.isLoading = false;
-        this.router.navigate(['/dashboard']);
-      }, 3000);
-    },
+        // NEW — resolve screens/permissions before landing on dashboard
+        this.apiService.getMyPermissions().subscribe({
+          next: (perms) => {
+            this.apiService.setStoredPermissions(perms);
+
+            // NEW — Authentication access control: block sign-in if the
+            // resolved package/role doesn't grant the 'auth' category.
+            const hasAuthAccess = this.apiService.isSuperAdmin() || this.apiService.hasCategoryAccess('auth');
+            if (!hasAuthAccess) {
+              this.isLoading = false;
+              this.apiService.logout();
+              this.loginErrors.password = 'You do not have Authentication access. Contact your Super Admin.';
+              this.cdr.detectChanges();
+              return;
+            }
+
+            setTimeout(() => {
+              this.isLoading = false;
+              this.router.navigate(['/dashboard']);
+            }, 3000);
+          },
+          error: () => {
+            // permissions fetch failed — still let them in, sidebar will just show nothing extra
+            setTimeout(() => {
+              this.isLoading = false;
+              this.router.navigate(['/dashboard']);
+            }, 3000);
+          }
+        });
+      },
 
 
       error: (err) => {
@@ -260,6 +285,9 @@ export class Auth implements OnInit {
           this.loginErrors.email = 'Email does not exist';
         } else if (err.status === 400 || err.status === 401) {
           this.loginErrors.password = 'Invalid Email or Password';
+        } else if (err.status === 403) {
+          // NEW — no package/role assigned yet
+          this.loginErrors.password = err.error?.message ?? 'Access not configured for your account yet.';
         } else if (err.status === 0) {
           this.loginErrors.password = 'Server not connected';
         } else {

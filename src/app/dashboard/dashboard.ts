@@ -1,4 +1,4 @@
-  import {
+import {
     ChangeDetectorRef,
     Component,
     Inject,
@@ -51,6 +51,28 @@
       } else {
         document.documentElement.classList.remove('dark');
       }
+    }
+
+    // ── NEW: Sidebar menu visibility based on assigned package (ADMIN) / role (MEMBER) ──
+    // SUPER_ADMIN always sees everything.
+    get canSeeDashboard(): boolean {
+      return this.apiService.isSuperAdmin() || this.apiService.hasCategoryAccess('report-mgmt');
+    }
+
+    get canSeeProjects(): boolean {
+      return this.apiService.isSuperAdmin() || this.apiService.hasCategoryAccess('project-mgmt');
+    }
+
+    get canSeeTasks(): boolean {
+      return this.apiService.isSuperAdmin() || this.apiService.hasCategoryAccess('task-mgmt');
+    }
+
+    get canSeeErrorTracking(): boolean {
+      return this.apiService.isSuperAdmin() || this.apiService.hasCategoryAccess('error-mgmt');
+    }
+
+    get canSeeMeetings(): boolean {
+      return this.apiService.isSuperAdmin() || this.apiService.hasCategoryAccess('meeting-mgmt');
     }
 
     toggleSidebar(event?: Event): void {

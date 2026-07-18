@@ -2,6 +2,7 @@ import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
+import { Category } from '../dashboard/create-package/create-package';
 
 export interface AppUser {
   id: number;
@@ -17,6 +18,12 @@ export interface AppUser {
   createdByAdminId: number | null; // NEW — which admin invited this user (null for self-registered)
 }
 
+// NEW — resolved permission set for the logged-in user
+export interface EffectivePermissions {
+  roleType: string;
+  fullAccess: boolean;
+  permissions: Category[];
+}
 
 @Injectable({
   providedIn: 'root',
@@ -24,6 +31,7 @@ export interface AppUser {
 export class AuthService {
 private apiUrl   = 'https://nexus-backend-uoox.onrender.com/api';
   private usersUrl = `${this.apiUrl}/users`;
+  private permissionsUrl = `${this.apiUrl}/permissions`; // NEW
 
   constructor(
     private http: HttpClient,
@@ -48,6 +56,7 @@ private apiUrl   = 'https://nexus-backend-uoox.onrender.com/api';
     if (!isPlatformBrowser(this.platformId)) return;
     localStorage.removeItem('token');
     localStorage.removeItem('loggedInUser');
+    localStorage.removeItem('userPermissions'); // NEW
   }
 
   // ── Current user / role ─────────────────────────────────────────
@@ -64,6 +73,50 @@ private apiUrl   = 'https://nexus-backend-uoox.onrender.com/api';
 
   getCurrentUserRole(): string | null {
     return this.getCurrentUser()?.role ?? null;
+  }
+
+  // ── NEW: Effective permissions (fetch after login / on app init) ──────
+  getMyPermissions(): Observable<EffectivePermissions> {
+    return this.http.get<EffectivePermissions>(`${this.permissionsUrl}/me`);
+  }
+
+  setStoredPermissions(perms: EffectivePermissions): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    localStorage.setItem('userPermissions', JSON.stringify(perms));
+  }
+
+  getStoredPermissions(): EffectivePermissions | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    const raw = localStorage.getItem('userPermissions');
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as EffectivePermissions;
+    } catch {
+      return null;
+    }
+  }
+
+  isSuperAdmin(): boolean {
+    return this.getStoredPermissions()?.fullAccess === true || this.getCurrentUserRole() === 'SUPER_ADMIN';
+  }
+
+  // Use this to gate a create/edit/delete button or a route
+  hasFeatureAccess(featureId: string, action: 'create' | 'read' | 'update' | 'delete' = 'read'): boolean {
+    if (this.isSuperAdmin()) return true;
+    const perms = this.getStoredPermissions();
+    if (!perms) return false;
+    for (const cat of perms.permissions) {
+      const feature = cat.features.find(f => f.id === featureId);
+      if (feature) return !!feature.permissions[action];
+    }
+    return false;
+  }
+
+  // Use this to show/hide a whole sidebar section/category
+  hasCategoryAccess(categoryId: string): boolean {
+    if (this.isSuperAdmin()) return true;
+    const perms = this.getStoredPermissions();
+    return !!perms?.permissions.find(c => c.id === categoryId && c.enabled);
   }
 
   // ── Auth ──────────────────────────────────────────────────────────

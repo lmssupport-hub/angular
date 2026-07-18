@@ -5,6 +5,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { ErrorReportApiService, ErrorReportDTO, Priority } from '../../services/error.service';
 import { ProjectService, Project } from '../../services/project.service';
 import { TaskService, TaskResponse } from '../../services/task.service';
+import { AuthService } from '../../services/auth.service'; // NEW
 import {
   CreateErrorModal,
   CreateErrorPayload,
@@ -61,6 +62,7 @@ errorMessage = signal('');
     private errorApi: ErrorReportApiService,
     private projectService: ProjectService,
     private taskService: TaskService,
+    private authService: AuthService, 
   ) {
     this.editForm = this.fb.group({
       projectId: [null, Validators.required],
@@ -78,6 +80,23 @@ errorMessage = signal('');
   ngOnInit(): void {
     this.loadProjects();
     this.loadErrors();
+  }
+
+  // feature-level permission getters (error-mgmt → error-tracker) ──
+  get canCreateError(): boolean {
+    return this.authService.hasFeatureAccess('error-tracker', 'create');
+  }
+
+  get canViewError(): boolean {
+    return this.authService.hasFeatureAccess('error-tracker', 'read');
+  }
+
+  get canEditError(): boolean {
+    return this.authService.hasFeatureAccess('error-tracker', 'update');
+  }
+
+  get canDeleteError(): boolean {
+    return this.authService.hasFeatureAccess('error-tracker', 'delete');
   }
 
   // ── Loading data ──────────────────────────────────────────────────────

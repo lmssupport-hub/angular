@@ -44,6 +44,7 @@
     <nav class="px-5 mt-2 space-y-1.5">
 
       <!-- Dashboard -->
+      @if (canSeeDashboard) {
       <a
         routerLink="/dashboard/home"
         routerLinkActive="nav-tab-active !text-[#5a4bb3] !w-[calc(100%+20px)] !rounded-l-[20px] !rounded-r-none !bg-[#F4F4F5] dark:!bg-[#0f0f13] before:!opacity-100 after:!opacity-100"
@@ -59,8 +60,10 @@
         </svg>
         @if (isSidebarOpen) { <span class="text-xs">Dashboard</span> }
       </a>
+      }
 
       <!-- Projects Dropdown -->
+      @if (canSeeProjects) {
       <div>
         <a
           routerLink="/dashboard/projects-list"
@@ -93,8 +96,10 @@
           </div>
         }
       </div>
+      }
 
       <!-- Tasks Dropdown -->
+      @if (canSeeTasks) {
       <div>
         <a
           routerLink="/dashboard/task-list"
@@ -127,8 +132,10 @@
           </div>
         }
       </div>
+      }
 
       <!-- Connect / Meeting workspace -->
+      @if (canSeeMeetings) {
       <a
         routerLink="/dashboard/meeting-workspace"
         routerLinkActive="nav-tab-active !text-[#5a4bb3] !w-[calc(100%+20px)] !rounded-l-[20px] !rounded-r-none !bg-[#F4F4F5] dark:!bg-[#0f0f13] before:!opacity-100 after:!opacity-100"
@@ -151,8 +158,10 @@
           <i class="fa-solid fa-chevron-right text-[10px] opacity-50 group-[.active]:opacity-100"></i>
         }
       </a>
+      }
 
       <!-- Error List -->
+      @if (canSeeErrorTracking) {
       <a
         routerLink="/dashboard/error-list"
         routerLinkActive="nav-tab-active !text-[#5a4bb3] !w-[calc(100%+20px)] !rounded-l-[20px] !rounded-r-none !bg-[#F4F4F5] dark:!bg-[#0f0f13] before:!opacity-100 after:!opacity-100"
@@ -167,6 +176,7 @@
           <i class="fa-solid fa-chevron-right text-[10px] opacity-50 group-[.active]:opacity-100"></i>
         }
       </a>
+      }
 
     </nav>
 

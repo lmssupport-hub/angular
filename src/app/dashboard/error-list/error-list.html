@@ -68,6 +68,7 @@
       }
     </div>
 
+    @if (canCreateError) {
     <button
       type="button"
       (click)="openCreateModal()"
@@ -76,14 +77,17 @@
       <span class="text-sm leading-none">+</span>
       Create Error
     </button>
+    }
   </div>
 
   <!-- Field 14: Create Error — standalone modal -->
+  @if (canCreateError) {
   <app-create-error-modal
     [isOpen]="isCreateModalOpen()"
     (closed)="closeCreateModal()"
     (created)="handleErrorCreated($event)"
   ></app-create-error-modal>
+  }
 
   <!-- Table header (separate rounded pill card) -->
   <div class="mb-3 rounded-full border border-slate-200 bg-white shadow-[0_8px_28px_rgb(20_20_20/0.04)] dark:border-[#2a2a3a] dark:bg-[#1a1a24]">
@@ -116,6 +120,7 @@
             <!-- Collapsed row -->
             <div class="grid grid-cols-[1.6fr_1.4fr_1.6fr_1.6fr_0.7fr_0.8fr_0.7fr] items-center px-6 py-3.5 text-[11px] text-slate-700 transition hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-[#23233a]">
               <div class="flex items-center gap-2.5 font-semibold text-slate-900 dark:text-slate-100">
+                @if (canViewError) {
                 <button
                   type="button"
                   (click)="toggleExpand(row)"
@@ -124,6 +129,9 @@
                 >
                   <i class="fa-solid fa-chevron-right text-[9px] transition-transform" [class.rotate-90]="expandedId === row.id"></i>
                 </button>
+                } @else {
+                  <span class="h-5 w-5 shrink-0"></span>
+                }
                 <div class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[11px] font-bold uppercase text-white">
                   {{ (row.assignedUserName || '?').charAt(0) }}
                 </div>
@@ -149,12 +157,16 @@
               </div>
 
               <div class="flex items-center justify-end gap-3 text-slate-400">
+                @if (canEditError) {
                 <button type="button" title="Edit" (click)="toggleExpand(row)" class="hover:text-blue-600 transition cursor-pointer">
                   <i class="fa-regular fa-pen-to-square"></i>
                 </button>
+                }
+                @if (canDeleteError) {
                 <button type="button" title="Delete" (click)="deleteError(row)" class="hover:text-red-500 transition cursor-pointer">
                   <i class="fa-regular fa-trash-can"></i>
                 </button>
+                }
               </div>
             </div>
 
@@ -175,6 +187,7 @@
                         <label class="mb-1 block text-[11px] font-semibold text-slate-500">Priority<span class="text-red-500">*</span></label>
                         <select
                           formControlName="priority"
+                          [attr.disabled]="!canEditError ? true : null"
                           class="w-full h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-[#2a2a3a] dark:bg-[#1a1a24]"
                         >
                           @for (p of priorityOptions; track p) {
@@ -187,6 +200,7 @@
                         <label class="mb-1 block text-[11px] font-semibold text-slate-500">Status<span class="text-red-500">*</span></label>
                         <select
                           formControlName="status"
+                          [attr.disabled]="!canEditError ? true : null"
                           class="w-full h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-[#2a2a3a] dark:bg-[#1a1a24]"
                         >
                           @for (s of statusOptions; track s) {
@@ -200,6 +214,7 @@
                         <input
                           type="file"
                           accept=".jpg,.jpeg,.png"
+                          [attr.disabled]="!canEditError ? true : null"
                           (change)="onEditScreenshotSelected($event)"
                           class="w-full h-8 rounded-lg border border-slate-200 bg-white px-1.5 text-[10px] outline-none file:mr-1.5 file:rounded-full file:border-0 file:bg-blue-50 file:px-1.5 file:py-0.5 file:text-[10px] file:font-semibold file:text-blue-600 dark:border-[#2a2a3a] dark:bg-[#1a1a24]"
                         />
@@ -218,6 +233,7 @@
                         <select
                           formControlName="projectId"
                           (change)="onEditProjectChange()"
+                          [attr.disabled]="!canEditError ? true : null"
                           class="w-full h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-[#2a2a3a] dark:bg-[#1a1a24]"
                         >
                           @for (p of projects; track p.id) {
@@ -230,6 +246,7 @@
                         <label class="mb-1 block text-[11px] font-semibold text-slate-500">Task Name</label>
                         <select
                           formControlName="taskId"
+                          [attr.disabled]="true"
                           class="w-full h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-[#2a2a3a] dark:bg-[#1a1a24]"
                         >
                           <option [ngValue]="row.taskId">{{ row.taskName }}</option>
@@ -249,6 +266,7 @@
                           formControlName="errorDescription"
                           rows="2"
                           maxlength="1000"
+                          [attr.disabled]="!canEditError ? true : null"
                           class="w-full resize-none rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-[#2a2a3a] dark:bg-[#1a1a24]"
                         ></textarea>
                       </div>
@@ -259,6 +277,7 @@
                           formControlName="expectedResult"
                           rows="2"
                           maxlength="1000"
+                          [attr.disabled]="!canEditError ? true : null"
                           class="w-full resize-none rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-[#2a2a3a] dark:bg-[#1a1a24]"
                         ></textarea>
                       </div>
@@ -269,6 +288,7 @@
                       <input
                         type="text"
                         formControlName="pageTitle"
+                        [attr.disabled]="!canEditError ? true : null"
                         class="w-full h-8 rounded-lg border border-slate-200 bg-white px-2.5 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-[#2a2a3a] dark:bg-[#1a1a24]"
                       />
                     </div>
@@ -279,11 +299,13 @@
                         formControlName="comments"
                         rows="1"
                         maxlength="500"
+                        [attr.disabled]="!canEditError ? true : null"
                         class="w-full resize-none rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:border-[#2a2a3a] dark:bg-[#1a1a24]"
                       ></textarea>
                     </div>
 
                     <div class="flex flex-col-reverse gap-2 border-t border-slate-100 pt-2.5 sm:flex-row sm:justify-end dark:border-[#2a2a3a]">
+                      @if (canDeleteError) {
                       <button
                         type="button"
                         (click)="deleteError(row)"
@@ -291,6 +313,7 @@
                       >
                         Delete error
                       </button>
+                      }
                       <button
                         type="button"
                         (click)="closeExpand()"
@@ -298,6 +321,7 @@
                       >
                         Cancel
                       </button>
+                      @if (canEditError) {
                       <button
                         type="submit"
                         [disabled]="editSubmitting"
@@ -305,6 +329,7 @@
                       >
                         {{ editSubmitting ? 'Saving…' : 'Update error' }}
                       </button>
+                      }
                     </div>
                   </form>
               </div>

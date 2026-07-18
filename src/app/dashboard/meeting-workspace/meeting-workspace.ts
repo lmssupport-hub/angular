@@ -4,7 +4,7 @@ import { FormsModule }       from '@angular/forms';
 
 import { MeetingApiService, MeetingDTO, MemberInfo } from '../../services/meeting-api.service';
 import { ProjectService, Project } from '../../services/project.service';
-import { AppUser } from '../../services/auth.service';
+import { AppUser, AuthService } from '../../services/auth.service';
 import { CreateMeetingModalComponent,UserOption,ProjectOption,} from '../../../PopUp/create-meeting-modal/create-meeting-modal';
 
 // ── Inline-row edit form ───────────────────────────────────────────────────────
@@ -104,8 +104,26 @@ constructor(
   private meetingApi: MeetingApiService,
   private projectService: ProjectService,
   private elRef: ElementRef,
+  private authService: AuthService,
   @Inject(PLATFORM_ID) private platformId: object,
 ) {}
+
+  // feature-level permission getters (meeting-mgmt → meeting-workspace) ──
+  get canCreateMeeting(): boolean {
+    return this.authService.hasFeatureAccess('meeting-workspace', 'create');
+  }
+
+  get canViewMeeting(): boolean {
+    return this.authService.hasFeatureAccess('meeting-workspace', 'read');
+  }
+
+  get canEditMeeting(): boolean {
+    return this.authService.hasFeatureAccess('meeting-workspace', 'update');
+  }
+
+  get canDeleteMeeting(): boolean {
+    return this.authService.hasFeatureAccess('meeting-workspace', 'delete');
+  }
 
   private openMemberDropdowns = new Set<number>();
 
@@ -216,6 +234,7 @@ getProjectName(id: number | null | undefined): string {
   // ── Expanded row ───────────────────────────────────────────────
 
   toggleRow(meeting: MeetingDTO): void {
+    if (!this.canViewMeeting && !this.canEditMeeting) return;
     const id = meeting.id!;
     if (this.expandedRowId === id) {
       this.expandedRowId = null;
@@ -314,6 +333,7 @@ getProjectName(id: number | null | undefined): string {
   // ── Row update ─────────────────────────────────────────────────
 
   updateMeeting(meeting: MeetingDTO): void {
+  if (!this.canEditMeeting) return;
   const id   = meeting.id!;
   if (!this.validateRow(id)) return;
 
@@ -363,6 +383,7 @@ getProjectName(id: number | null | undefined): string {
   // ── Delete ─────────────────────────────────────────────────────
 
   requestDelete(event: Event, id: number): void {
+    if (!this.canDeleteMeeting) return;
     event.stopPropagation();
     this.deleteConfirmId = id;
   }
@@ -386,7 +407,10 @@ getProjectName(id: number | null | undefined): string {
 
   // ── Create modal ───────────────────────────────────────────────
 
-  openCreateMeeting():  void { this.isCreateMeetingOpen.set(true); }
+  openCreateMeeting():  void {
+    if (!this.canCreateMeeting) return;
+    this.isCreateMeetingOpen.set(true);
+  }
   closeCreateMeeting(): void { this.isCreateMeetingOpen.set(false); }
 
   handleMeetingCreated(payload: { dto: MeetingDTO; files: File[] }): void {

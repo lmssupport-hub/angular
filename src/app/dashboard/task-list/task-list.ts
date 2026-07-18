@@ -40,6 +40,25 @@ export class TaskListComponent implements OnInit {
   private api         = inject(ProjectService);
   private authService  = inject(AuthService);
 
+
+// feature-level permission getters (task-mgmt category) ──
+  get canCreateTask(): boolean {
+    return this.authService.hasFeatureAccess('task-hub', 'create');
+  }
+
+  get canViewTask(): boolean {
+    return this.authService.hasFeatureAccess('task-hub', 'read');
+  }
+
+  get canEditTask(): boolean {
+    return this.authService.hasFeatureAccess('task-hub', 'update');
+  }
+
+  get canDeleteTask(): boolean {
+    return this.authService.hasFeatureAccess('task-hub', 'delete');
+  }
+
+
   // ── State signals ─────────────────────────────────────────────────
   tasks      = signal<TaskResponse[]>([]);
   projects   = signal<Project[]>([]);

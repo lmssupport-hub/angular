@@ -53,14 +53,16 @@
       <span class="rounded-full bg-[#ede9f8] [.dashboard-dark_&]:bg-[#5a4bb3]/20 px-3 py-1.5 text-[11px] font-semibold text-[#5a4bb3] [.dashboard-dark_&]:text-[#c4b5fd]">
         ● {{ projects().length }} Active Projects
       </span>
-      <button
-        type="button"
-        (click)="openProjectPopup()"
-        class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 [.dashboard-dark_&]:border-[var(--line)] rounded-full text-xs font-semibold text-blue-500 [.dashboard-dark_&]:text-blue-400 bg-white [.dashboard-dark_&]:bg-[var(--panel)] hover:bg-gray-50 [.dashboard-dark_&]:hover:bg-[var(--surface)] transition-colors cursor-pointer"
-      >
-        <span class="text-xs leading-none">+</span>
-        Create Project
-      </button>
+      @if (canCreateProject) {
+  <button
+    type="button"
+    (click)="openProjectPopup()"
+    class="inline-flex items-center gap-2 px-5 py-2 border border-gray-300 [.dashboard-dark_&]:border-[var(--line)] rounded-full text-xs font-semibold text-blue-500 [.dashboard-dark_&]:text-blue-400 bg-white [.dashboard-dark_&]:bg-[var(--panel)] hover:bg-gray-50 [.dashboard-dark_&]:hover:bg-[var(--surface)] transition-colors cursor-pointer"
+  >
+    <span class="text-xs leading-none">+</span>
+    Create Project
+  </button>
+}
     </div>
   </div>
 
@@ -136,20 +138,20 @@
         >
           <!-- Project Name (with expand chevron) -->
           <div class="flex items-center gap-2">
-            <button
-              type="button"
-              (click)="toggleExpand(project.id, $event)"
-              class="w-5 h-5 flex items-center justify-center flex-shrink-0 rounded-full text-gray-400 [.dashboard-dark_&]:text-[var(--muted)] hover:bg-gray-100 [.dashboard-dark_&]:hover:bg-[var(--active)] hover:text-gray-600 [.dashboard-dark_&]:hover:text-[var(--text)] transition cursor-pointer"
-              title="Details"
-            >
-              <svg
-                class="w-3 h-3 transition-transform duration-200"
-                [class.rotate-90]="isExpanded(project.id)"
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              >
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
-              </svg>
-            </button>
+           @if (canViewProject) {
+    <button
+      type="button"
+      (click)="toggleExpand(project.id, $event)"
+      class="w-5 h-5 flex items-center justify-center flex-shrink-0 rounded-full text-gray-400 [.dashboard-dark_&]:text-[var(--muted)] hover:bg-gray-100 [.dashboard-dark_&]:hover:bg-[var(--active)] hover:text-gray-600 [.dashboard-dark_&]:hover:text-[var(--text)] transition cursor-pointer"
+      title="Details"
+    >
+      <svg class="w-3 h-3 transition-transform duration-200" [class.rotate-90]="isExpanded(project.id)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+      </svg>
+    </button>
+  } @else {
+    <span class="w-5 h-5 flex-shrink-0"></span>
+  }
             <div class="w-6 h-6 rounded bg-[#ede9f8] [.dashboard-dark_&]:bg-[#5a4bb3]/20 flex items-center justify-center flex-shrink-0">
               <svg class="w-3.5 h-3.5 text-[#5a4bb3] [.dashboard-dark_&]:text-[#c4b5fd]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -192,32 +194,27 @@
           <!-- Actions -->
           <div class="flex items-center gap-1.5 justify-end">
 
-            <!-- Edit -->
-            <button
-              type="button"
-              (click)="openProjectPopup(project, $event)"
-              class="w-7 h-7 rounded border border-gray-200 [.dashboard-dark_&]:border-[var(--line)] flex items-center justify-center hover:bg-gray-100 [.dashboard-dark_&]:hover:bg-[var(--active)] transition cursor-pointer text-gray-500 [.dashboard-dark_&]:text-[var(--muted)]"
-              title="Edit"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
-              </svg>
-            </button>
+  @if (canEditProject) {
+    <button type="button" (click)="openProjectPopup(project, $event)"
+      class="w-7 h-7 rounded border border-gray-200 [.dashboard-dark_&]:border-[var(--line)] flex items-center justify-center hover:bg-gray-100 [.dashboard-dark_&]:hover:bg-[var(--active)] transition cursor-pointer text-gray-500 [.dashboard-dark_&]:text-[var(--muted)]"
+      title="Edit">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+      </svg>
+    </button>
+  }
 
-            <!-- Delete -->
-            <button
-              type="button"
-              (click)="deleteProject(project.id, $event)"
-              class="w-7 h-7 rounded border border-red-100 [.dashboard-dark_&]:border-red-900/40 flex items-center justify-center hover:bg-red-50 [.dashboard-dark_&]:hover:bg-red-900/20 transition cursor-pointer text-red-400 [.dashboard-dark_&]:text-red-400"
-              title="Delete"
-            >
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-              </svg>
-            </button>
-          </div>
+  @if (canDeleteProject) {
+    <button type="button" (click)="deleteProject(project.id, $event)"
+      class="w-7 h-7 rounded border border-red-100 [.dashboard-dark_&]:border-red-900/40 flex items-center justify-center hover:bg-red-50 [.dashboard-dark_&]:hover:bg-red-900/20 transition cursor-pointer text-red-400 [.dashboard-dark_&]:text-red-400"
+      title="Delete">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+      </svg>
+    </button>
+  }
+
+</div>
         </div>
 
         <!-- ── Expanded Detail Panel (only for THIS project) ── -->

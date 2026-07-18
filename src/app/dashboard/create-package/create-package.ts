@@ -107,15 +107,11 @@ readonly permissionKeys: (keyof Permission)[] = ['create', 'read', 'update', 'de
   private defaultCategories(): Category[] {
     const blankPerm = (): Permission => ({ create: false, read: false, update: false, delete: false });
     return [
-      { id: 'auth', name: 'Authentication', enabled: false, features: [
-        { id: 'auth-access', name: 'User Authentication & Access', permissions: blankPerm() },
-      ]},
+      { id: 'auth', name: 'Authentication', enabled: false, features: []},
       { id: 'project-mgmt', name: 'Project Management', enabled: false, features: [
-        { id: 'create-project', name: 'Create project', permissions: blankPerm() },
         { id: 'project-hub', name: 'Project hub', permissions: blankPerm() },
       ]},
       { id: 'task-mgmt', name: 'Task management', enabled: false, features: [
-        { id: 'create-task', name: 'Create task', permissions: blankPerm() },
         { id: 'task-hub', name: 'Task hub', permissions: blankPerm() },
       ]},
       { id: 'report-mgmt', name: 'Report management', enabled: false, features: [
@@ -123,6 +119,9 @@ readonly permissionKeys: (keyof Permission)[] = ['create', 'read', 'update', 'de
       ]},
       { id: 'error-mgmt', name: 'Error management', enabled: false, features: [
         { id: 'error-tracker', name: 'Error tracker', permissions: blankPerm() },
+      ]},
+      { id: 'meeting-mgmt', name: 'Meeting Management', enabled: false, features: [
+        { id: 'meeting-workspace', name: 'Meeting workspace', permissions: blankPerm() },
       ]},
     ];
   }
@@ -225,7 +224,13 @@ private loadAvailableRoles(): void {
     }
   }
 
-  // Guards against a saved role holding permissions the package no longer grants
+  // Guards against a saved role holding permissions the package no longer grants.
+  // FIX: previously `cat.enabled` was derived only from `cat.features.some(...)`,
+  // which meant any category with an EMPTY features array (e.g. "auth") could
+  // never be evaluated as enabled=true after edit-load, no matter what was
+  // actually saved in the DB — so re-saving would silently flip it back to false.
+  // Now we also honor the saved category-level toggle for such categories,
+  // same as the backend's clampToAllowed() already does.
   private mergeWithAllowed(saved: Category[]): Category[] {
     if (!this.allowedFeatures) return saved;
     const base = this.blankCopyOf(this.allowedFeatures);
@@ -239,7 +244,10 @@ private loadAvailableRoles(): void {
           f.permissions[key] = savedFeature.permissions[key] && this.isPermissionAllowed(cat.id, f.id, key);
         });
       });
-      cat.enabled = cat.features.some(f => Object.values(f.permissions).some(Boolean));
+      const anyFeatureOn = cat.features.some(f => Object.values(f.permissions).some(Boolean));
+      // No-feature categories (like "auth") rely purely on the saved master toggle,
+      // clamped against what the admin's own package still allows.
+      cat.enabled = anyFeatureOn || (savedCat.enabled && this.isCategoryAllowed(cat.id));
     });
     return base;
   }

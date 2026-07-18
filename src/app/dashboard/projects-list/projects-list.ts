@@ -2,7 +2,7 @@ import { Component, OnInit, HostListener, Inject, PLATFORM_ID, signal } from '@a
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ProjectService, Project } from '../../services/project.service';
 import { CreateProjectModalComponent } from '../../../PopUp/create-project-modal/create-project-modal';
-
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-projects-list',
@@ -40,6 +40,7 @@ export class ProjectsList implements OnInit {
 
   constructor(
     private apiService: ProjectService,
+    private authService: AuthService,
     @Inject(PLATFORM_ID) private platformId: object,
   ) {}
 
@@ -55,6 +56,24 @@ export class ProjectsList implements OnInit {
     if (!target.closest('.expand-user-dropdown-wrapper')) this.expandUserDropdownId.set(null);
     if (!target.closest('.filter-dropdown-wrapper')) this.showFilterDropdown.set(false);
   }
+
+  // feature-level permission getters (project-hub feature) ──
+  get canCreateProject(): boolean {
+    return this.authService.hasFeatureAccess('project-hub', 'create');
+  }
+
+  get canViewProject(): boolean {
+    return this.authService.hasFeatureAccess('project-hub', 'read');
+  }
+
+  get canEditProject(): boolean {
+    return this.authService.hasFeatureAccess('project-hub', 'update');
+  }
+
+  get canDeleteProject(): boolean {
+    return this.authService.hasFeatureAccess('project-hub', 'delete');
+  }
+
 
   // ── Load ──────────────────────────────────────────────────────────
 
