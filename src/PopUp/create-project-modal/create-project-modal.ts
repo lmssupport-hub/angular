@@ -19,6 +19,7 @@ import {
 } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ProjectService, Project, ProjectPayload } from '../../app/services/project.service';
+import { AuthService, TeamMember } from '../../app/services/auth.service';
 type Operator = '+' | '-' | '*' | '/';
 
 export type ExtraFormulaField = {
@@ -66,20 +67,23 @@ export class CreateProjectModalComponent implements OnInit, OnChanges {
     { parameter1: 'Monthly Target',        parameter2: 'Working Days',     sampleValue1: 1200, sampleValue2: 24 },
   ];
 
-  users = ['test name 1', 'test name 2', 'test name 3'];
+  users: string[] = [];
   todayInputValue = CreateProjectModalComponent.toDateInputValue(new Date());
 
   projectForm;
 
   constructor(
-    private fb: FormBuilder,
-    private projectService: ProjectService,
-    @Inject(PLATFORM_ID) private platformId: object,
-  ) {
-    this.projectForm = this.buildForm();
-  }
+  private fb: FormBuilder,
+  private projectService: ProjectService,
+  private authService: AuthService,
+  @Inject(PLATFORM_ID) private platformId: object,
+) {
+  this.projectForm = this.buildForm();
+}
+
 
   ngOnInit(): void {
+    this.loadTeamMembers();
     this.initForm();
   }
 
@@ -92,6 +96,15 @@ export class CreateProjectModalComponent implements OnInit, OnChanges {
     const target = event.target as HTMLElement;
     if (!target.closest('.user-dropdown-wrapper')) this.showUserDropdown = false;
   }
+
+  private loadTeamMembers(): void {
+  this.authService.getTeamMembers().subscribe({
+    next: (members: TeamMember[]) => {
+      this.users = members.map(m => `${m.firstName} ${m.lastName}`.trim());
+    },
+    error: (err) => console.error('Failed to load team members', err),
+  });
+}
 
   private initForm(): void {
     this.projectForm = this.buildForm();

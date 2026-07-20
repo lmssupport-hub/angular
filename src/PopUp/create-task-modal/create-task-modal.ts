@@ -18,8 +18,8 @@ import {
 } from '@angular/forms';
 import { tap } from 'rxjs';
 import { TaskService, TaskResponse, CreateTaskRequest } from '../../app/services/task.service';
-import { AppUser } from '../../app/services/auth.service';
 import { Project } from '../../app/services/project.service';
+import { TeamMember } from '../../app/services/auth.service';
 
 export type TaskModalMode = 'create' | 'edit' | 'view';
 
@@ -39,7 +39,7 @@ export class CreateTaskModalComponent implements OnChanges {
   @Input() mode: TaskModalMode = 'create';
   @Input() taskId: number | undefined = undefined;
   @Input() projects: Project[] = [];
-  @Input() allUsers: AppUser[] = [];
+ @Input() allUsers: TeamMember[] = [];
   @Input() defaultProjectId: number | null = null;
 
   // ── Outputs ───────────────────────────────────────────────────────

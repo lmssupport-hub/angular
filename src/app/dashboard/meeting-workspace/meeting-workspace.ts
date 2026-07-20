@@ -169,13 +169,20 @@ getProjectName(id: number | null | undefined): string {
     this.isLoading = true;
     this.errorMsg  = '';
 
-    // ── TEMPORARY: hardcoded members instead of API ──────────────
-    this.users = [
-      { id: 1, username: 'Member 1', email: 'member1@example.com' },
-      { id: 2, username: 'Member 2', email: 'member2@example.com' },
-      { id: 3, username: 'Member 3', email: 'member3@example.com' },
-    ];
-    // ─────────────────────────────────────────────────────────────
+    this.authService.getTeamMembers().subscribe({
+      next: (members) => {
+        this.users = members.map(m => ({
+          id: m.id,
+          username: `${m.firstName} ${m.lastName}`.trim(),
+          email: m.email,
+        }));
+      },
+      error: (err: unknown) => {
+        console.error('Failed to load team members', err);
+        this.users = [];
+      },
+    });
+  
 
     this.projectService.getProjects().subscribe({
       next: (projects: Project[]) => {

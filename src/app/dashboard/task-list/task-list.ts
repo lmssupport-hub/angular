@@ -11,7 +11,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { TaskService, TaskResponse, CreateTaskRequest } from '../../services/task.service';
 import { ProjectService, Project } from '../../services/project.service';
-import { AuthService, AppUser } from '../../services/auth.service';
+import { AuthService, TeamMember } from '../../services/auth.service';
 
 import { CreateTaskModalComponent, TaskModalMode } from '../../../PopUp/create-task-modal/create-task-modal';
 
@@ -69,7 +69,8 @@ export class TaskListComponent implements OnInit {
   selectedProjectId = signal<number | null>(null);
   expandedTasks     = signal<Set<number>>(new Set());
 
-  allUsers = signal<AppUser[]>([]);
+  // ✅ CHANGED — team-scoped members (admin + invited members), not global user list
+  allUsers = signal<TeamMember[]>([]);
 
   // ── Modal signals ─────────────────────────────────────────────────
   modalVisible = signal(false);
@@ -156,7 +157,8 @@ export class TaskListComponent implements OnInit {
       error: () => { this.loading.set(false); },
     });
 
-    this.authService.getUsers().subscribe({
+    // ✅ CHANGED — team-scoped members (works for both Admin and Member login)
+    this.authService.getTeamMembers().subscribe({
       next:  u => this.allUsers.set(u),
       error: () => this.allUsers.set([]),
     });

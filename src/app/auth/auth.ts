@@ -241,6 +241,14 @@ export class Auth implements OnInit {
           localStorage.removeItem('userEmail');
         }
 
+
+fetch('http://localhost:8080/api/priority-ranking', {
+  headers: { 'Authorization': 'Bearer ' + localStorage.getItem('token') }
+})
+  .then(r => r.json())
+  .then(data => console.table(data));
+
+
         this.resetLoginErrors();
         this.loginSubmitted = false;
 

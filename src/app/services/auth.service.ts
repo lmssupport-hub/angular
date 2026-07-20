@@ -14,15 +14,23 @@ export interface AppUser {
   createdAt: string;
   lastLoginAt: string | null;
   assignedPackageId: number | null;
-  assignedRoleId: number | null;   // custom role assigned to invited members
-  createdByAdminId: number | null; // NEW — which admin invited this user (null for self-registered)
+  assignedRoleId: number | null;
+  createdByAdminId: number | null;
 }
 
-// NEW — resolved permission set for the logged-in user
 export interface EffectivePermissions {
   roleType: string;
   fullAccess: boolean;
   permissions: Category[];
+}
+
+// NEW — minimal shape for Assigned User dropdowns (Projects, Tasks, etc.)
+export interface TeamMember {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
 }
 
 @Injectable({
@@ -31,14 +39,12 @@ export interface EffectivePermissions {
 export class AuthService {
 private apiUrl   = 'https://nexus-backend-uoox.onrender.com/api';
   private usersUrl = `${this.apiUrl}/users`;
-  private permissionsUrl = `${this.apiUrl}/permissions`; // NEW
+  private permissionsUrl = `${this.apiUrl}/permissions`;
 
   constructor(
     private http: HttpClient,
     @Inject(PLATFORM_ID) private platformId: object
   ) {}
-
-  // ── Token helpers ─────────────────────────────────────────────────
 
   isAuthenticated(): boolean {
     if (!isPlatformBrowser(this.platformId)) return false;
@@ -56,10 +62,9 @@ private apiUrl   = 'https://nexus-backend-uoox.onrender.com/api';
     if (!isPlatformBrowser(this.platformId)) return;
     localStorage.removeItem('token');
     localStorage.removeItem('loggedInUser');
-    localStorage.removeItem('userPermissions'); // NEW
+    localStorage.removeItem('userPermissions');
   }
 
-  // ── Current user / role ─────────────────────────────────────────
   getCurrentUser(): AppUser | null {
     if (!isPlatformBrowser(this.platformId)) return null;
     const raw = localStorage.getItem('loggedInUser');
@@ -75,7 +80,6 @@ private apiUrl   = 'https://nexus-backend-uoox.onrender.com/api';
     return this.getCurrentUser()?.role ?? null;
   }
 
-  // ── NEW: Effective permissions (fetch after login / on app init) ──────
   getMyPermissions(): Observable<EffectivePermissions> {
     return this.http.get<EffectivePermissions>(`${this.permissionsUrl}/me`);
   }
@@ -100,7 +104,6 @@ private apiUrl   = 'https://nexus-backend-uoox.onrender.com/api';
     return this.getStoredPermissions()?.fullAccess === true || this.getCurrentUserRole() === 'SUPER_ADMIN';
   }
 
-  // Use this to gate a create/edit/delete button or a route
   hasFeatureAccess(featureId: string, action: 'create' | 'read' | 'update' | 'delete' = 'read'): boolean {
     if (this.isSuperAdmin()) return true;
     const perms = this.getStoredPermissions();
@@ -112,18 +115,12 @@ private apiUrl   = 'https://nexus-backend-uoox.onrender.com/api';
     return false;
   }
 
-  // Use this to show/hide a whole sidebar section/category
   hasCategoryAccess(categoryId: string): boolean {
     if (this.isSuperAdmin()) return true;
     const perms = this.getStoredPermissions();
     return !!perms?.permissions.find(c => c.id === categoryId && c.enabled);
   }
 
-  // ── Auth ──────────────────────────────────────────────────────────
-
-  // inviteToken is present when the user arrived via an admin's invite link
-  // (?invite=... on /auth). The backend validates it, locks in createdByAdminId
-  // and assignedRoleId on the new user, and marks the invite used.
   registerUser(data: unknown, inviteToken?: string | null): Observable<unknown> {
     const url = inviteToken
       ? `${this.usersUrl}/register?inviteToken=${encodeURIComponent(inviteToken)}`
@@ -143,7 +140,10 @@ private apiUrl   = 'https://nexus-backend-uoox.onrender.com/api';
     return this.http.delete(`${this.usersUrl}/${id}`);
   }
 
-  // ── Forgot Password ───────────────────────────────────────────────
+  
+  getTeamMembers(): Observable<TeamMember[]> {
+    return this.http.get<TeamMember[]>(`${this.usersUrl}/team-members`);
+  }
 
   forgotPassword(data: { email: string }): Observable<unknown> {
     return this.http.post(`${this.usersUrl}/forgot-password`, data);
