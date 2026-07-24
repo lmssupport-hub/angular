@@ -2,7 +2,7 @@ import { Component, OnInit, HostListener, Inject, PLATFORM_ID, signal } from '@a
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ProjectService, Project } from '../../services/project.service';
 import { CreateProjectModalComponent } from '../../../PopUp/create-project-modal/create-project-modal';
-import { AuthService } from '../../services/auth.service';
+import { AuthService, TeamMember } from '../../services/auth.service';
 
 @Component({
   selector: 'app-projects-list',
@@ -34,8 +34,16 @@ export class ProjectsList implements OnInit {
   expandUserDropdownId = signal<number | null>(null);
   showAddChoiceIndex: number | null = null;
 
-  // Static / never reassigned after init — fine as plain fields
-  users = ['test name 1', 'test name 2', 'test name 3'];
+  // ✅ CHANGED — real team members (admin + invited members) pulled from the
+  // backend instead of a hardcoded fake list. `assignedUsers` on a project
+  // must contain actual emails so backend notifications can resolve them.
+  teamMembers = signal<TeamMember[]>([]);
+
+  // Emails only — kept for template code that expects a plain string[]
+  get users(): string[] {
+    return this.teamMembers().map(m => m.email);
+  }
+
   todayInputValue = new Date().toISOString().split('T')[0];
 
   constructor(
@@ -47,7 +55,27 @@ export class ProjectsList implements OnInit {
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.loadProjects();
+      this.loadTeamMembers();
     }
+  }
+
+  // NEW — real team members, used to populate the "add user" dropdown with
+  // actual emails (previously a hardcoded ['test name 1', ...] list, which
+  // meant notifyUserByEmail() on the backend could never find a match).
+  loadTeamMembers(): void {
+    this.authService.getTeamMembers().subscribe({
+      next: (members) => this.teamMembers.set(members),
+      error: () => this.teamMembers.set([]),
+    });
+  }
+
+  // Look up a member's display name from their email, for showing in the UI
+  // instead of the raw email address.
+  getUserDisplayName(email: string): string {
+    const member = this.teamMembers().find(m => m.email === email);
+    if (!member) return email;
+    const full = [member.firstName, member.lastName].filter(Boolean).join(' ').trim();
+    return full || email;
   }
 
   @HostListener('document:click', ['$event'])

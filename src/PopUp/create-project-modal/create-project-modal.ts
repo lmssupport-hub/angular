@@ -67,6 +67,14 @@ export class CreateProjectModalComponent implements OnInit, OnChanges {
     { parameter1: 'Monthly Target',        parameter2: 'Working Days',     sampleValue1: 1200, sampleValue2: 24 },
   ];
 
+  // ✅ NEW — full member objects, used to resolve email → display name
+  teamMembers: TeamMember[] = [];
+
+  // users stays as the dropdown/form source of truth — MUST be emails,
+  // since backend Project.assignedUsers (List<String>) is matched against
+  // User.email in NotificationService.notifyUserByEmail(). Displaying the
+  // raw email is fine functionally, but we show the person's name via
+  // getUserDisplayName() in the template instead.
   users: string[] = [];
   todayInputValue = CreateProjectModalComponent.toDateInputValue(new Date());
 
@@ -98,13 +106,22 @@ export class CreateProjectModalComponent implements OnInit, OnChanges {
   }
 
   private loadTeamMembers(): void {
-  this.authService.getTeamMembers().subscribe({
-    next: (members: TeamMember[]) => {
-      this.users = members.map(m => `${m.firstName} ${m.lastName}`.trim());
-    },
-    error: (err) => console.error('Failed to load team members', err),
-  });
-}
+    this.authService.getTeamMembers().subscribe({
+      next: (members: TeamMember[]) => {
+        this.teamMembers = members;
+        this.users = members.map(m => m.email); // ✅ email — backend needs this to match User.email
+      },
+      error: (err) => console.error('Failed to load team members', err),
+    });
+  }
+
+  // ✅ NEW — email → display name lookup, same pattern as projects-list.ts
+  getUserDisplayName(email: string): string {
+    const member = this.teamMembers.find(m => m.email === email);
+    if (!member) return email;
+    const full = `${member.firstName} ${member.lastName}`.trim();
+    return full || email;
+  }
 
   private initForm(): void {
     this.projectForm = this.buildForm();
@@ -209,7 +226,7 @@ export class CreateProjectModalComponent implements OnInit, OnChanges {
 
   getAssignedUsersLabel(): string {
     const s = this.getAssignedUsers();
-    return s.length === 0 ? 'Select users...' : s.join(', ');
+    return s.length === 0 ? 'Select users...' : s.map(email => this.getUserDisplayName(email)).join(', ');
   }
 
   isUserSelected(user: string): boolean { return this.getAssignedUsers().includes(user); }

@@ -239,10 +239,76 @@
           <i class="fa-regular fa-note-sticky text-gray-600 dark:text-gray-400 text-xs"></i>
         </button>
 
-        <!-- Messages -->
-        <button type="button" aria-label="Messages" class="w-9 h-9 rounded-[7px] bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] flex items-center justify-center hover:-translate-y-px hover:text-[#5a4bb3] transition-all duration-200">
-          <i class="fa-regular fa-message text-gray-600 dark:text-gray-400 text-xs"></i>
-        </button>
+       
+
+        <!-- NEW: Notification bell + unread badge + dropdown panel -->
+        <div class="relative">
+          <button
+            type="button"
+            aria-label="Notifications"
+            (click)="toggleNotificationPanel($event)"
+            class="relative w-9 h-9 rounded-[7px] bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] flex items-center justify-center hover:-translate-y-px hover:text-[#5a4bb3] transition-all duration-200"
+          >
+            <i
+              class="fa-regular fa-bell text-gray-600 dark:text-gray-400 text-xs transition-transform duration-300"
+              [class.animate-bell-ring]="bellBump"
+            ></i>
+            @if (unreadCount > 0) {
+              <span
+                class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center leading-none transition-transform duration-300"
+                [class.scale-125]="bellBump"
+              >
+                {{ unreadCount > 9 ? '9+' : unreadCount }}
+              </span>
+            }
+          </button>
+
+          @if (isNotificationPanelOpen) {
+            <div class="absolute right-0 mt-2 w-[340px] max-h-[420px] rounded-xl bg-white dark:bg-[#1a1a24] border border-gray-200 dark:border-[#2a2a3a] shadow-lg z-30 flex flex-col overflow-hidden">
+              <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-[#2a2a3a]">
+                <p class="text-sm font-bold text-gray-900 dark:text-gray-100">Notifications</p>
+                @if (unreadCount > 0) {
+                  <button
+                    type="button"
+                    (click)="markAllNotificationsRead($event)"
+                    class="text-[11px] font-semibold text-[#5a4bb3] hover:underline"
+                  >
+                    Mark all as read
+                  </button>
+                }
+              </div>
+
+              <div class="flex-1 overflow-y-auto">
+                @if (notificationsLoading) {
+                  <p class="px-4 py-6 text-xs text-gray-400 dark:text-gray-500 text-center">Loading...</p>
+                } @else if (notificationsError) {
+                  <p class="px-4 py-6 text-xs text-red-500 text-center">Unable to load notifications</p>
+                } @else if (notifications.length === 0) {
+                  <p class="px-4 py-6 text-xs text-gray-400 dark:text-gray-500 text-center">No notifications available</p>
+                } @else {
+                  @for (n of notifications; track n.id) {
+                    <button
+                      type="button"
+                      (click)="openNotification(n)"
+                      class="w-full text-left px-4 py-3 border-b border-gray-50 dark:border-[#23233a] hover:bg-gray-50 dark:hover:bg-[#23233a] transition-colors duration-150 flex gap-2.5 items-start"
+                    >
+                      @if (n.status === 'Unread') {
+                        <span class="mt-1.5 w-2 h-2 rounded-full bg-[#5a4bb3] shrink-0"></span>
+                      } @else {
+                        <span class="mt-1.5 w-2 h-2 rounded-full bg-transparent shrink-0"></span>
+                      }
+                      <span class="flex-1 min-w-0">
+                        <span class="block text-xs font-bold text-gray-900 dark:text-gray-100 truncate">{{ n.title }}</span>
+                        <span class="block text-[11px] text-gray-500 dark:text-gray-400 line-clamp-2 mt-0.5">{{ n.message }}</span>
+                        <span class="block text-[10px] text-gray-400 dark:text-gray-600 mt-1">{{ n.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                      </span>
+                    </button>
+                  }
+                }
+              </div>
+            </div>
+          }
+        </div>
 
         <!-- Dark / Light toggle -->
         <button
