@@ -96,7 +96,8 @@
       placeholder="Enter your email"
       [(ngModel)]="loginData.email"
       (input)="clearLoginError('email')"
-      class="h-12 w-full rounded-[12px] border border-[#e2e4ea] bg-white pl-11 pr-4 text-[13px] font-medium text-[#11131a] outline-none transition-all duration-[250ms] ease-in-out placeholder:text-[#a2a6b0] focus:border-[#596cea] focus:shadow-[0_0_0_4px_rgb(89_108_234/10%)]"
+      (animationstart)="onAutofillDetected($event)"
+      class="autofill-watch h-12 w-full rounded-[12px] border border-[#e2e4ea] bg-white pl-11 pr-4 text-[13px] font-medium text-[#11131a] outline-none transition-all duration-[250ms] ease-in-out placeholder:text-[#a2a6b0] focus:border-[#596cea] focus:shadow-[0_0_0_4px_rgb(89_108_234/10%)]"
     />
   </div>
 
@@ -121,7 +122,8 @@
       placeholder="Enter your password"
       [(ngModel)]="loginData.password"
       (input)="clearLoginError('password')"
-      class="h-12 w-full rounded-[12px] border border-[#e2e4ea] bg-white pl-11 pr-11 text-[13px] font-medium text-[#11131a] outline-none transition-all duration-[250ms] ease-in-out placeholder:text-[#a2a6b0] focus:border-[#596cea] focus:shadow-[0_0_0_4px_rgb(89_108_234/10%)]"
+      (animationstart)="onAutofillDetected($event)"
+      class="autofill-watch h-12 w-full rounded-[12px] border border-[#e2e4ea] bg-white pl-11 pr-11 text-[13px] font-medium text-[#11131a] outline-none transition-all duration-[250ms] ease-in-out placeholder:text-[#a2a6b0] focus:border-[#596cea] focus:shadow-[0_0_0_4px_rgb(89_108_234/10%)]"
     />
 
     <span
@@ -151,6 +153,7 @@
         <button
   type="button"
   (click)="loginUser()"
+  [disabled]="!isLoginFormValid()"
   class="mx-auto flex h-12 w-full max-w-[300px] items-center justify-center rounded-2xl border-0 bg-white px-8 text-[15px] font-semibold text-[#596cea] shadow-[0_8px_20px_rgb(0_0_0/10%),0_2px_6px_rgb(0_0_0/6%)] transition-all duration-[250ms] ease-in-out hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgb(0_0_0/14%),0_4px_10px_rgb(0_0_0/8%)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#596cea] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
 >
   Login
@@ -360,6 +363,7 @@
     <button
       type="button"
       (click)="registerUser()"
+      [disabled]="!isRegisterFormValid()"
       class="mx-auto mt-4 flex h-12 w-full max-w-[300px] items-center justify-center rounded-2xl border-0 bg-white px-8 text-[15px] font-semibold text-[#596cea] shadow-[0_8px_20px_rgb(0_0_0/10%),0_2px_6px_rgb(0_0_0/6%)] transition-all duration-[250ms] ease-in-out hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgb(0_0_0/14%),0_4px_10px_rgb(0_0_0/8%)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#596cea] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
     >
       Sign Up

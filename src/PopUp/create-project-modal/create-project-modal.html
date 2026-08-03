@@ -20,13 +20,26 @@
 
         <div>
           <label class="text-xs font-bold text-gray-900">Project name<span class="text-red-500">*</span></label>
-          <input
-            formControlName="projectName"
-            placeholder="Enter project name"
-            class="w-full h-9 mt-1 px-3 rounded-lg bg-gray-50 border border-transparent text-sm outline-none focus:border-[#5a4bb3] focus:bg-white transition"
-          />
+          <div class="relative mt-1">
+            <input
+              formControlName="projectName"
+              (input)="onProjectNameInput($event)"
+              placeholder="Enter project name"
+              maxlength="500"
+              class="w-full h-9 pl-3 pr-16 rounded-lg bg-gray-50 border border-transparent text-sm outline-none focus:border-[#5a4bb3] focus:bg-white transition"
+            />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400">
+              {{ projectNameLength() }}/500
+            </span>
+          </div>
           @if (projectForm.get('projectName')?.touched && projectForm.get('projectName')?.errors?.['required']) {
             <p class="text-xs text-red-500 mt-1">Project Name is required</p>
+          }
+          @if (projectForm.get('projectName')?.errors?.['onlyWhitespace']) {
+            <p class="text-xs text-red-500 mt-1">Project Name cannot be only spaces</p>
+          }
+          @if (projectForm.get('projectName')?.errors?.['maxlength']) {
+            <p class="text-xs text-red-500 mt-1">Project Name must not exceed 500 characters</p>
           }
           @if (projectForm.get('projectName')?.errors?.['duplicateProject']) {
             <p class="text-xs text-red-500 mt-1">Project with the same name already exists</p>
@@ -70,18 +83,22 @@
         <label class="text-xs font-bold text-gray-900">Project description<span class="text-red-500">*</span></label>
         <div class="relative mt-1">
           <textarea
-            formControlName="projectDescription"
-            rows="3"
-            maxlength="1000"
-            placeholder="Enter detailed project scope and objectives..."
-            class="w-full p-3 pb-5 rounded-lg bg-gray-50 border border-transparent text-sm outline-none resize-none focus:border-[#5a4bb3] focus:bg-white transition"
-          ></textarea>
+  formControlName="projectDescription"
+  (input)="onDescriptionInput($event)"
+  rows="3"
+  maxlength="500"
+  placeholder="Enter detailed project scope and objectives..."
+  class="w-full p-3 pb-5 rounded-lg bg-gray-50 border border-transparent text-sm outline-none resize-none focus:border-[#5a4bb3] focus:bg-white transition"
+></textarea>
           <span class="absolute bottom-2 right-3 text-[10px] text-gray-400">
-            {{ projectForm.get('projectDescription')?.value?.length || 0 }}/1000 characters
+            {{ descriptionCharCount() }}/{{ descriptionMaxChars }} characters
           </span>
         </div>
         @if (projectForm.get('projectDescription')?.errors?.['maxWords']) {
           <p class="text-xs text-red-500 mt-1">Project Description must not exceed 500 words</p>
+        }
+        @if (projectForm.get('projectDescription')?.errors?.['maxlength']) {
+          <p class="text-xs text-red-500 mt-1">Project Description must not exceed {{ descriptionMaxChars }} characters</p>
         }
       </div>
 
@@ -174,7 +191,7 @@
                 <select [(ngModel)]="row.operator" (change)="onAnyFormulaChange()"
                   [ngModelOptions]="{ standalone: true }"
                   class="w-9 h-9 rounded-lg bg-gray-50 text-sm font-bold text-center outline-none cursor-pointer appearance-none">
-                  <option value="">+</option>
+                  <option value="">Select</option>
                   @for (op of operatorOptions; track op) {
                     <option [value]="op">{{ op }}</option>
                   }
@@ -205,8 +222,10 @@
               <!-- Add Param (icon button, every row) -->
               <div class="min-w-0">
                 <label class="block text-[11px] font-bold text-transparent mb-1">Add</label>
-                <button type="button" (click)="toggleAddChoice(rowIndex, $event)" title="Add Param"
-                  class="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-50 text-[#5a4bb3] text-base font-bold hover:bg-[#eef0ff] cursor-pointer transition">
+                <button type="button" (click)="toggleAddChoice(rowIndex, $event)"
+                  [disabled]="!isRowFilled(row)"
+                  [title]="isRowFilled(row) ? 'Add Param' : 'Fill Param key 1, Operator and Param key 2 first'"
+                  class="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-50 text-[#5a4bb3] text-base font-bold hover:bg-[#eef0ff] transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-50 enabled:cursor-pointer">
                   +
                 </button>
               </div>
@@ -246,7 +265,7 @@
                     <select [(ngModel)]="extra.operator" (change)="onAnyFormulaChange()"
                       [ngModelOptions]="{ standalone: true }"
                       class="w-9 h-9 rounded-lg bg-gray-50 text-sm font-bold text-center outline-none appearance-none">
-                      <option value="">+</option>
+                      <option value="">Select</option>
                       @for (op of operatorOptions; track op) {
                         <option [value]="op">{{ op }}</option>
                       }

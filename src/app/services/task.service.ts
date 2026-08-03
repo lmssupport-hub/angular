@@ -54,7 +54,7 @@ export interface CreateTaskRequest {
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
-  private readonly baseUrl = 'https://nexus-backend-uoox.onrender.com/api/tasks';
+  private readonly baseUrl = 'http://localhost:8080/api/tasks';
 
   constructor(private http: HttpClient) {}  // PLATFORM_ID & headers no longer needed
 

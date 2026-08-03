@@ -74,3 +74,31 @@ body {
     opacity: 1;
   }
 }
+
+/* ── Autofill detection (Autofill-01 fix) ──────────────────────────────
+   Browsers apply a distinct internal style to autofilled inputs. We attach
+   a no-op CSS animation to that state so Angular can catch the resulting
+   'animationstart' DOM event (see onAutofillDetected() in auth.ts) and force
+   change detection — this is how the Login button's [disabled] state
+   re-evaluates even when the browser fills the fields without a normal
+   keyboard 'input' event. */
+
+.autofill-watch:-webkit-autofill {
+  animation-name: onAutoFillStart;
+  animation-duration: 0.001s;
+}
+
+.autofill-watch:not(:-webkit-autofill) {
+  animation-name: onAutoFillCancel;
+  animation-duration: 0.001s;
+}
+
+@keyframes onAutoFillStart {
+  from {}
+  to {}
+}
+
+@keyframes onAutoFillCancel {
+  from {}
+  to {}
+}

@@ -5,6 +5,7 @@ import {
   EventEmitter,
   OnChanges,
   SimpleChanges,
+  HostListener,
   inject,
   signal,
 } from '@angular/core';
@@ -58,6 +59,12 @@ descLength    = signal(0);
 
   form!: FormGroup;
 
+  // fields that must stay disabled until a Project is chosen (Form Open-02)
+  private readonly DEPENDENT_FIELDS = [
+    'taskName', 'description', 'startDate', 'dueDate',
+    'targetCount', 'priority', 'assignedUserId', 'status',
+  ];
+
   // ── Derived getters ───────────────────────────────────────────────
   get subTasksArray(): FormArray { return this.form?.get('subTasks') as FormArray; }
 
@@ -68,6 +75,15 @@ descLength    = signal(0);
   }
 
   get isReadOnly(): boolean { return this.mode === 'view'; }
+
+  // ✅ FIX (Session Handling-02): warn on tab close / browser refresh while there are unsaved changes
+  @HostListener('window:beforeunload', ['$event'])
+  unloadNotification(event: BeforeUnloadEvent): void {
+    if (this.isOpen && !this.isReadOnly && this.form?.dirty) {
+      event.preventDefault();
+      event.returnValue = true;
+    }
+  }
 
   // ── Lifecycle ─────────────────────────────────────────────────────
   ngOnChanges(changes: SimpleChanges): void {
@@ -103,6 +119,7 @@ descLength    = signal(0);
 
   const taskNameCtrl = this.form.get('taskName')!;
   const descCtrl     = this.form.get('description')!;
+  const projectCtrl  = this.form.get('projectId')!;
 
   const refreshMainTaskState = () => {
     this.descLength.set(descCtrl.value?.length ?? 0);
@@ -115,7 +132,30 @@ descLength    = signal(0);
   taskNameCtrl.valueChanges.subscribe(refreshMainTaskState);
   descCtrl.valueChanges.subscribe(refreshMainTaskState);
   refreshMainTaskState(); // initial state (also covers patchValue in loadTask)
+
+  // ✅ FIX (Form Open-02): task detail fields stay disabled until a Project is selected
+  projectCtrl.valueChanges.subscribe(projectId => this.toggleDependentFields(projectId));
+  this.toggleDependentFields(projectCtrl.value); // initial state on form build
 }
+
+  // ✅ FIX (Form Open-02): enable/disable dependent fields based on Project selection
+  private toggleDependentFields(projectId: any): void {
+    if (this.isReadOnly) return; // view mode has its own full-form disable in loadTask()
+
+    this.DEPENDENT_FIELDS.forEach(name => {
+      const ctrl = this.form.get(name);
+      if (!ctrl) return;
+
+      // status stays disabled on create regardless of project (existing rule)
+      if (name === 'status' && this.mode === 'create') return;
+
+      if (projectId) {
+        ctrl.enable({ emitEvent: false });
+      } else {
+        ctrl.disable({ emitEvent: false });
+      }
+    });
+  }
 
   // ── Load existing task ────────────────────────────────────────────
   private loadTask(id: number): void {
@@ -147,6 +187,9 @@ descLength    = signal(0);
         this.subTasksVersion.update(v => v + 1);   // ✅ trigger repaint
 
         if (this.mode === 'view') this.form.disable();
+
+        // form was just populated from the server — nothing "unsaved" yet
+        this.form.markAsPristine();
 
         this.isLoading.set(false);
       },
@@ -202,12 +245,23 @@ descLength    = signal(0);
       : this.taskService.createTask(payload).pipe(tap(t => this.created.emit(t)));
 
     obs.subscribe({
-      next:  () => { this.isLoading.set(false); this.close(); },
+      next:  (t) => {
+        this.form.markAsPristine(); // saved successfully — no more "unsaved changes"
+        this.isLoading.set(false);
+        this.close();
+      },
       error: (err) => {
-        const message =
-          err?.error?.message ||
-          Object.values(err?.error?.errors ?? {}).join(', ') ||
-          'Failed to save task. Please try again.';
+        // ✅ FIX (Connectivity-01): status 0 = browser couldn't reach the server at all
+        // (offline / DNS / connection refused) — HttpErrorResponse.error is not JSON in this case
+        let message: string;
+        if (err.status === 0) {
+          message = 'No internet connection. Please check your network and try again.';
+        } else {
+          message =
+            err?.error?.message ||
+            Object.values(err?.error?.errors ?? {}).join(', ') ||
+            'Failed to save task. Please try again.';
+        }
         this.submitError.set(message);
         this.isLoading.set(false);
       },

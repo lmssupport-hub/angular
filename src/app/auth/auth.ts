@@ -185,22 +185,52 @@ export class Auth implements OnInit {
   this.router.navigate(['/Forgot-Password']);
 }
 
+  // ── Shared validation helpers ───────────────────────────────────────
+  // Rejects consecutive dots anywhere in the address (e.g. 'gd.t01@vativahub..com',
+  // 'priya@@example..com') in addition to the basic shape check.
+  private emailRegex = /^(?!.*\.\.)[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Allows an optional leading '+' for international / country-code numbers
+  // (e.g. '+919876543210', '+14155552671'). Digit-length is validated separately.
+  private phoneRegex = /^\+?[0-9]+$/;
+
+  private strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/;
+
+  private nameRegex = /^[A-Za-z]+$/;
+
+  // Normalizes away case and symbols before comparing against the common-password
+  // list, so variants like 'Password@123' still match 'password123'.
+  isCommonPassword(password: string): boolean {
+    const normalized = password.toLowerCase().replace(/[^a-z0-9]/g, '');
+    return this.commonPasswords.some(cp => normalized.includes(cp));
+  }
+
+  // NEW — drives [disabled] on the Login button (Login Button-02 / Autofill-01).
+  // Only checks that both fields are non-empty after trimming — no format
+  // validation here, that still happens on submit in validateLoginForm().
+  isLoginFormValid(): boolean {
+    return this.loginData.email.trim().length > 0 && this.loginData.password.trim().length > 0;
+  }
+
   validateLoginForm(): boolean {
     this.resetLoginErrors();
 
     let isValid = true;
+    let hasMandatoryError = false;
 
+    // Leading/trailing spaces are stripped silently (Email ID-05 / Password-04);
+    // only *internal* whitespace in the email is still flagged as an error.
     const email = this.loginData.email.trim();
-    const password = this.loginData.password;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const password = this.loginData.password.trim();
 
     if (!email) {
       this.loginErrors.email = 'Email is required';
       isValid = false;
-    } else if (/\s/.test(this.loginData.email)) {
+      hasMandatoryError = true;
+    } else if (/\s/.test(email)) {
       this.loginErrors.email = 'Email should not have spaces';
       isValid = false;
-    } else if (!emailRegex.test(email)) {
+    } else if (!this.emailRegex.test(email)) {
       this.loginErrors.email = 'Enter a valid email address';
       isValid = false;
     }
@@ -208,9 +238,26 @@ export class Auth implements OnInit {
     if (!password) {
       this.loginErrors.password = 'Password is required';
       isValid = false;
+      hasMandatoryError = true;
+    }
+
+    // Matches the register form's pattern (Login Button-03) — with the button
+    // now disabled via isLoginFormValid(), this mainly guards programmatic calls.
+    if (!isValid && hasMandatoryError) {
+      alert('Please complete all mandatory fields.');
     }
 
     return isValid;
+  }
+
+  // NEW — Chrome/Safari fire an 'animationstart' event on autofilled inputs
+  // (see the auth.css keyframe trick on .autofill-watch). Angular's zone.js
+  // doesn't always pick up autofill via ngModel alone, so this forces a
+  // change-detection pass the moment autofill happens (Autofill-01).
+  onAutofillDetected(event: AnimationEvent) {
+    if (event.animationName === 'onAutoFillStart') {
+      this.cdr.detectChanges();
+    }
   }
 
   loginUser() {
@@ -225,7 +272,7 @@ export class Auth implements OnInit {
 
     const payload = {
       email: this.loginData.email.trim(),
-      password: this.loginData.password
+      password: this.loginData.password.trim() // NEW — strip leading/trailing spaces (Password-04)
     };
 
     this.apiService.loginUser(payload).subscribe({
@@ -319,17 +366,13 @@ fetch('http://localhost:8080/api/priority-ranking', {
     const phone = this.registerData.phone.trim();
     const password = this.registerData.password;
     const confirmPassword = this.registerData.confirmPassword;
-
-    const nameRegex = /^[A-Za-z]+$/;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^[0-9]+$/;
-    const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/;
+    const phoneDigitsOnly = phone.replace('+', '');
 
     if (!firstName) {
       this.errorMessages.firstName = 'First Name is required';
       isValid = false;
       hasMandatoryError = true;
-    } else if (!nameRegex.test(firstName)) {
+    } else if (!this.nameRegex.test(firstName)) {
       this.errorMessages.firstName = 'First Name must contain only letters';
       isValid = false;
     } else if (firstName.length < 4) {
@@ -341,7 +384,7 @@ fetch('http://localhost:8080/api/priority-ranking', {
       this.errorMessages.lastName = 'Last Name is required';
       isValid = false;
       hasMandatoryError = true;
-    } else if (!nameRegex.test(lastName)) {
+    } else if (!this.nameRegex.test(lastName)) {
       this.errorMessages.lastName = 'Last Name must contain only letters';
       isValid = false;
     }
@@ -353,7 +396,7 @@ fetch('http://localhost:8080/api/priority-ranking', {
     } else if (/\s/.test(this.registerData.email)) {
       this.errorMessages.email = 'Email should not have spaces';
       isValid = false;
-    } else if (!emailRegex.test(email)) {
+    } else if (!this.emailRegex.test(email)) {
       this.errorMessages.email = 'Enter a valid email address';
       isValid = false;
     } else if (email.length > 254) {
@@ -365,10 +408,10 @@ fetch('http://localhost:8080/api/priority-ranking', {
       this.errorMessages.phone = 'Enter a valid phone number';
       isValid = false;
       hasMandatoryError = true;
-    } else if (!phoneRegex.test(phone)) {
+    } else if (!this.phoneRegex.test(phone)) {
       this.errorMessages.phone = 'Enter a valid phone number';
       isValid = false;
-    } else if (phone.length < 10 || phone.length > 15) {
+    } else if (phoneDigitsOnly.length < 10 || phoneDigitsOnly.length > 15) {
       this.errorMessages.phone = 'Phone number must be between 10 and 15 digits';
       isValid = false;
     }
@@ -380,13 +423,13 @@ fetch('http://localhost:8080/api/priority-ranking', {
     } else if (password.length < 8 || password.length > 16) {
       this.errorMessages.password = 'Password must be 8-16 characters';
       isValid = false;
-    } else if (!strongPasswordRegex.test(password)) {
+    } else if (!this.strongPasswordRegex.test(password)) {
       this.errorMessages.password = 'Password must include uppercase, lowercase, number, and special character';
       isValid = false;
     } else if (email && password.toLowerCase() === email.toLowerCase()) {
       this.errorMessages.password = 'Password should not match Email ID';
       isValid = false;
-    } else if (this.commonPasswords.includes(password.toLowerCase())) {
+    } else if (this.isCommonPassword(password)) {
       this.errorMessages.password = 'Password is too common';
       isValid = false;
     }
@@ -415,6 +458,33 @@ fetch('http://localhost:8080/api/priority-ranking', {
     }
 
     return isValid;
+  }
+
+  // NEW — drives [disabled] on the Sign Up button so it only becomes clickable
+  // once every mandatory field is valid AND Terms & Conditions is checked
+  // (Test Case Sign Up Button_04). Mirrors the same rules as validateRegisterForm(),
+  // but silently (no alerts) since it re-evaluates on every keystroke.
+  isRegisterFormValid(): boolean {
+    const { firstName, lastName, email, phone, password, confirmPassword, termsAccepted } = this.registerData;
+
+    const fn = firstName.trim();
+    const ln = lastName.trim();
+    const em = email.trim();
+    const ph = phone.trim();
+    const phDigits = ph.replace('+', '');
+
+    return !!(
+      fn.length >= 4 && this.nameRegex.test(fn) &&
+      ln.length > 0 && this.nameRegex.test(ln) &&
+      em.length > 0 && em.length <= 254 && this.emailRegex.test(em) &&
+      ph.length > 0 && this.phoneRegex.test(ph) && phDigits.length >= 10 && phDigits.length <= 15 &&
+      password.length >= 8 && password.length <= 16 &&
+      this.strongPasswordRegex.test(password) &&
+      password.toLowerCase() !== em.toLowerCase() &&
+      !this.isCommonPassword(password) &&
+      confirmPassword === password &&
+      termsAccepted
+    );
   }
 
   registerUser() {

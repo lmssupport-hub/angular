@@ -8,6 +8,7 @@ import {
   HostListener,
   Inject,
   PLATFORM_ID,
+  signal,
 } from '@angular/core';
 import {
   FormsModule,
@@ -59,6 +60,19 @@ export class CreateProjectModalComponent implements OnInit, OnChanges {
   showUserDropdown = false;
   showAddChoiceIndex: number | null = null;
 
+  // signals so counters repaint under zoneless change detection
+  // (plain method calls reading the FormControl value in the template do
+  // NOT reliably repaint here — same reasoning as projects-list.ts).
+  projectNameLength = signal(0);
+
+  // ✅ CHANGED — description counter now tracks live CHARACTER count
+  // (increments on every keystroke, including within one unbroken word),
+  // not word count. Word-count is still enforced as a separate validation
+  // rule (see maxWords below) but is no longer what's displayed, since a
+  // word-based live counter looks "stuck" while typing a single long word.
+  descriptionCharCount = signal(0);
+  readonly descriptionMaxChars = 500;
+
   formulaRows: FormulaRow[] = [this.createFormulaRow()];
   operatorOptions: Operator[] = ['+', '-', '*', '/'];
   formulaOptions = [
@@ -67,7 +81,7 @@ export class CreateProjectModalComponent implements OnInit, OnChanges {
     { parameter1: 'Monthly Target',        parameter2: 'Working Days',     sampleValue1: 1200, sampleValue2: 24 },
   ];
 
-  // ✅ NEW — full member objects, used to resolve email → display name
+  // full member objects, used to resolve email → display name
   teamMembers: TeamMember[] = [];
 
   // users stays as the dropdown/form source of truth — MUST be emails,
@@ -109,13 +123,13 @@ export class CreateProjectModalComponent implements OnInit, OnChanges {
     this.authService.getTeamMembers().subscribe({
       next: (members: TeamMember[]) => {
         this.teamMembers = members;
-        this.users = members.map(m => m.email); // ✅ email — backend needs this to match User.email
+        this.users = members.map(m => m.email); // email — backend needs this to match User.email
       },
       error: (err) => console.error('Failed to load team members', err),
     });
   }
 
-  // ✅ NEW — email → display name lookup, same pattern as projects-list.ts
+  // email → display name lookup, same pattern as projects-list.ts
   getUserDisplayName(email: string): string {
     const member = this.teamMembers.find(m => m.email === email);
     if (!member) return email;
@@ -157,18 +171,30 @@ export class CreateProjectModalComponent implements OnInit, OnChanges {
       this.formulaRows = [this.createFormulaRow()];
     }
 
+    // seed counters from whatever the form now holds
+    this.projectNameLength.set((this.projectForm.get('projectName')?.value || '').length);
+    this.descriptionCharCount.set((this.projectForm.get('projectDescription')?.value || '').length);
+
     this.calculateFormulaTarget();
   }
 
   private buildForm() {
     return this.fb.group({
-      projectName:         ['', [Validators.required, this.uniqueProjectName.bind(this)]],
+      projectName:         ['', [
+        Validators.required,
+        Validators.maxLength(500),
+        this.noWhitespaceOnly,
+        this.uniqueProjectName.bind(this),
+      ]],
       projectReceivedDate: ['', [Validators.required, this.validDDMMYYYY, this.notFutureDate]],
       assignedUsers:       this.fb.control<string[]>([], [Validators.required, Validators.minLength(1)]),
       startDate:           ['', [Validators.required, this.validDDMMYYYY]],
       dueDate:             ['', [Validators.required, this.validDDMMYYYY]],
       target:              [{ value: '', disabled: true }],
-      projectDescription:  ['', [this.maxWords(500)]],
+      projectDescription:  ['', [
+        Validators.maxLength(this.descriptionMaxChars), // hard character backstop
+        this.maxWords(500),                             // still enforces the 500-word business rule
+      ]],
     }, { validators: [this.dateDependencyValidator] });
   }
 
@@ -181,7 +207,7 @@ export class CreateProjectModalComponent implements OnInit, OnChanges {
 
     const fv = this.projectForm.getRawValue();
     const payload: ProjectPayload = {
-      projectName:         fv.projectName || '',
+      projectName:         (fv.projectName || '').trim(),
       projectDescription:  fv.projectDescription || '',
       projectReceivedDate: CreateProjectModalComponent.ddmmyyyyToDateInput(fv.projectReceivedDate || ''),
       startDate:           CreateProjectModalComponent.ddmmyyyyToDateInput(fv.startDate || ''),
@@ -279,7 +305,19 @@ export class CreateProjectModalComponent implements OnInit, OnChanges {
 
   toggleAddChoice(i: number, event: Event): void {
     event.stopPropagation();
+    // guard — even if somehow triggered while disabled, don't open the popup
+    // unless the whole row (Param key 1, Operator, Param key 2) is filled.
+    if (!this.isRowFilled(this.formulaRows[i])) return;
     this.showAddChoiceIndex = this.showAddChoiceIndex === i ? null : i;
+  }
+
+  // Add button requires the ENTIRE row to be filled:
+  // Param key 1 (parameter1 + value1), Operator, and Param key 2
+  // (parameter2 + value2).
+  isRowFilled(row: FormulaRow): boolean {
+    return !!row.parameter1 && this.isPositiveNumber(row.value1)
+        && !!row.operator
+        && !!row.parameter2 && this.isPositiveNumber(row.value2);
   }
 
   addExtraField(i: number, type: 'parameter' | 'operator'): void {
@@ -349,7 +387,36 @@ export class CreateProjectModalComponent implements OnInit, OnChanges {
     return CreateProjectModalComponent.ddmmyyyyToDateInput(this.projectForm.get(ctrl)?.value || '');
   }
 
+  // ── Name / description counters ────────────────────────────────────
+
+  onProjectNameInput(event: Event): void {
+    const val = (event.target as HTMLInputElement).value || '';
+    this.projectNameLength.set(val.length);
+  }
+
+  // ✅ CHANGED — counts CHARACTERS live (updates on every keystroke,
+  // including mid-word), clamps to the max, and still runs word validation
+  // via the form control's own maxWords validator.
+  onDescriptionInput(event: Event): void {
+    const el = event.target as HTMLTextAreaElement;
+    let val = el.value || '';
+    if (val.length > this.descriptionMaxChars) {
+      val = val.slice(0, this.descriptionMaxChars);
+      el.value = val;
+      this.projectForm.get('projectDescription')?.setValue(val);
+    }
+    this.descriptionCharCount.set(val.length);
+  }
+
   // ── Validators ────────────────────────────────────────────────────
+
+  // rejects a value that is non-empty but only whitespace
+  // (Validators.required already catches a fully empty string, so this
+  // only needs to fire on "   " style input).
+  noWhitespaceOnly(control: AbstractControl): ValidationErrors | null {
+    const v = String(control.value ?? '');
+    return v.length > 0 && v.trim().length === 0 ? { onlyWhitespace: true } : null;
+  }
 
   uniqueProjectName(control: AbstractControl): ValidationErrors | null {
     const v = String(control.value || '').trim();
